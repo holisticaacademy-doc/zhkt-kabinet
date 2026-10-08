@@ -635,6 +635,15 @@ table.tk tr.a td{font-weight:700;background:var(--soft)}
 .bub{white-space:pre-wrap}
 .aib ul{margin:6px 0 0;padding-left:18px}
 .tg2{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 0}
+/* схлопывающиеся блоки карточки */
+details.fold>summary{display:flex;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer;list-style:none}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary h2{margin:0}
+details.fold>summary .arr{margin-left:auto;width:30px;height:30px;border-radius:50%;background:var(--mint-pale);display:grid;place-items:center;flex:0 0 auto}
+details.fold>summary .arr:after{content:"";width:8px;height:8px;border-right:2.5px solid var(--e);border-bottom:2.5px solid var(--e);transform:rotate(45deg) translate(-2px,-2px);transition:transform .15s}
+details.fold[open]>summary .arr:after{transform:rotate(-135deg) translate(-2px,-2px)}
+details.fold .fold-in{margin-top:14px}
+details.fold .ans{margin-top:0}
 /* ── телефон и планшет ── */
 .app>*{min-width:0}
 .grid>*{min-width:0}
@@ -2186,21 +2195,18 @@ const Adm = (() => {
         ${[1,2,3,4,5,6,7].map(w => { const s = weekTrack(c, w); return `<div class="wkr"><span>Неделя ${w}</span><span class="pb"><i style="width:${s ? s.p : 0}%"></i></span><span>${s ? s.p + '%' : '—'}</span></div>`; }).join('')}
         ${a.auto ? `<p class="small muted" style="margin-top:10px">Выраженность по анкете</p><p class="small">вялое ${a.auto.pct.V}% · воспалённое ${a.auto.pct.I}% · чувствительное ${a.auto.pct.C}%</p>` : ''}</div>
     </div>
-    <div class="panel" style="margin-top:16px">
-      <div class="head" style="margin-bottom:12px"><h2 style="margin:0"><span>Материалы клиента</span></h2><button class="btn mag" data-a="addMat">+ Добавить материал</button></div>
+        ${answersPanel(c)}
+    ${chatPanel(c)}
+    ${clientComments(c)}
+    <div class="panel" style="margin-top:16px"><h2><span>Заметка куратора</span></h2><textarea id="note" placeholder="Видно только сотрудникам">${esc(c.note)}</textarea>
+      <div style="margin-top:8px"><button class="btn sm" data-a="saveNote">Сохранить заметку</button></div></div>
+    ${fold('mat', 'Материалы клиента', ['lessons','practices','spices','phyto'].map(k => eff(c, k).length + ' ' + ({lessons:'уроков',practices:'практик',spices:'специй',phyto:'фитосоставов'})[k]).join(' · ') + (ovCount(c) ? ' · правок: ' + ovCount(c) : ''), `<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn mag" data-a="addMat">+ Добавить материал</button></div>
       <div class="tabs">${tabs.map(([k, t]) => `<button class="${k === tab ? 'on' : ''}" data-a="ctab" data-k="${k}">${t}<span>${eff(c, k).length}</span></button>`).join('')}</div>
       <div class="mat">${rows || `<p class="muted">В этом разделе у клиента пока нет материалов.</p>`}</div>
       <p class="small muted" style="margin:12px 0 0">«Авто» — подобрано по протоколу и анкете. «Куратор» — добавлено вручную. Ручные правки хранятся отдельно и не затираются при смене протокола. ${c.assigned ? 'Галочка — ученица отметила материал выполненным.' : 'Ученица увидит материалы после назначения протокола.'}</p>
-    </div>
-    ${answersPanel(c)}
-    ${chatPanel(c)}
-    ${clientComments(c)}
+`)}
     ${c.assigned ? lessonActivity(c) : ''}
-    <div class="grid g2" style="margin-top:16px">
-      <div class="panel"><h2><span>Заметка куратора</span></h2><textarea id="note" placeholder="Видно только сотрудникам">${esc(c.note)}</textarea>
-        <div style="margin-top:8px"><button class="btn sm" data-a="saveNote">Сохранить заметку</button></div></div>
-      ${histBlock(c)}
-    </div>`;
+    <div style="margin-top:16px">${histBlock(c)}</div>`;
   }
   function accessTxt(c){ const a = c.access; if (!a || !a.end) return 'срок ещё не начался';
     return `${a.closed ? 'закрыт с ' + fmt(a.end) : 'до ' + fmt(a.last) + ' · осталось ' + a.left + ' ' + plural(a.left, ['день','дня','дней'])}${a.ext ? ` · продлений: ${a.ext}` : ''}${MODE === 'demo' ? ` <button class="btn lnk" data-a="demoExtend" style="padding:0">+ продление (демо)</button>` : ''}`; }
@@ -2261,6 +2267,11 @@ const Adm = (() => {
       ${reasons.length ? `<p class="small" style="margin:8px 0 0;color:var(--mag);font-weight:700">Назначить пока нельзя: ${reasons.join(', ')}.</p>` : `<p class="small muted" style="margin:8px 0 0">После нажатия у ученицы откроется программа выбранного протокола.</p>`}
     </div>`;
   }
+  // Схлопывающийся блок карточки; открытые блоки запоминаются, пока открыта карточка
+  function fold(key, title, sub, inner){
+    const open = AV.open && AV.open[key];
+    return `<div class="panel" style="margin-top:16px"><details class="fold" data-k="${key}" ${open ? 'open' : ''}><summary><h2><span>${title}</span></h2>${sub ? `<span class="small muted">${sub}</span>` : ''}<i class="arr" aria-hidden="true"></i></summary><div class="fold-in">${inner}</div></details></div>`;
+  }
   function answersPanel(c){
     const a = c.quiz, p = a.personal || {}, rows = [];
     const r = (q, v) => `<div class="ar"><span>${esc(q)}</span><b>${esc(v)}</b></div>`;
@@ -2274,7 +2285,7 @@ const Adm = (() => {
     rows.push(`<div class="as"><div class="ah">Лекарства и цели</div>${r('Лекарства', a.meds || 'нет')}${r('Цели', a.goals || '—')}</div>`);
     rows.push(`<div class="as"><div class="ah">Убрать из меню</div>${r('Продукты', (a.excluded || []).join(', ') || '—')}${a.productsOther ? r('Другое', a.productsOther) : ''}</div>`);
     rows.push(`<div class="as"><div class="ah">Что ещё важно знать</div>${r('Свободное поле', a.free || '—')}${r('Фото языка', a.photo ? 'загружено' : 'нет')}${a.consent ? r('Согласие на обработку данных', 'дано ' + fmt(a.consent.at)) : ''}</div>`);
-    return `<div class="panel" style="margin-top:16px"><details><summary><h2 style="display:inline;margin:0"><span>Ответы анкеты</span></h2></summary><div class="ans">${rows.join('')}</div></details></div>`;
+    return fold('ans', 'Ответы анкеты', c.filledAt ? 'заполнена ' + fmt(c.filledAt) : '', `<div class="ans">${rows.join('')}</div>`);
   }
   function chatPanel(c){
     const m = chatOf(c), ind = c.tariff === TARIFF_IND;
@@ -2328,13 +2339,14 @@ const Adm = (() => {
   async function saveOv(c, ov, log, msg){ c.ov = ov; return act(() => api('setOverrides', { token:S.token, email:c.email, ov, log }), msg); }
   function lessonActivity(c){
     const ls = eff(c, 'lessons').map(byId).sort((a, b) => a.w - b.w);
-    return `<div class="panel" style="margin-top:16px"><h2><span>Уроки: заходы и отметки</span></h2>
+    const opened = ls.filter(l => c.state.lx[l.id]).length, done = ls.filter(l => c.state.done[l.id]).length;
+    return fold('act', 'Уроки: заходы и отметки', `открыто ${opened} из ${ls.length} · отмечено ${done}`, `
     <div class="tw" style="border:none"><table class="t la"><thead><tr><th>Урок</th><th>Заходов</th><th>Последний заход</th><th>Отмечен просмотренным</th></tr></thead><tbody>
     ${ls.map(l => { const x = c.state.lx[l.id], lock = !wkOpenC(c, l.w);
       return `<tr><td><b>${esc(l.t)}</b><span class="sub">${WEEKSHORT[l.w]} · ${esc(l.d)}</span></td>
       <td>${lock ? `<span class="muted">откроется</span>` : x ? x.open : `<span class="muted">не открывал(а)</span>`}</td>
       <td>${x && x.last ? fmtDT(x.last) : '—'}</td><td>${c.state.done[l.id] ? '✓' : '—'}</td></tr>`; }).join('')}
-    </tbody></table></div></div>`;
+    </tbody></table></div>`);
   }
   function histBlock(c){
     const all = c.events.slice().reverse().slice(0, 60);
@@ -2481,7 +2493,7 @@ const Adm = (() => {
     if (t.id === 'asq') { $('#asl').innerHTML = assignList(AV.lastPrev, t.value); }
     if (t.id === 'kq') { KF.q = t.value; const p = t.selectionStart; render(true); const n = $('#kq'); n.focus(); n.setSelectionRange(p, p); }
   }
-  return { open, click, change, input, closeDr, reset(){ D = null; C = []; AV = { s:'over' }; }, get data(){ return D; }, set data(v){ if (!v) this.reset(); } };
+  return { fold(k, v){ AV.open = AV.open || {}; AV.open[k] = v; }, open, click, change, input, closeDr, reset(){ D = null; C = []; AV = { s:'over' }; }, get data(){ return D; }, set data(v){ if (!v) this.reset(); } };
 })();
 
 // ═══ Общие обработчики ═════════════════════════════════════════
@@ -2493,6 +2505,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('#A')) Adm.change(e); });
 document.addEventListener('input', e => { if (e.target.closest && e.target.closest('#A')) Adm.input(e); });
+document.addEventListener('toggle', e => { if (e.target.matches && e.target.matches('details.fold[data-k]')) Adm.fold(e.target.dataset.k, e.target.open); }, true);
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') Adm.closeDr();
   if (e.key === 'Enter' && e.target.matches && e.target.matches('tr[data-a=open]')) e.target.click();
