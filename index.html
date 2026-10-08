@@ -1108,14 +1108,15 @@ async function api(action, params = {}) {
 
 // ═══ Демо-бэкенд: повторяет логику Apps Script, хранит всё в этом браузере ═══
 const Demo = (() => {
-  const KEY = 'hz_demo_db_v6';
+  const KEY = 'hz_demo_db_v7';
   let mem = null;
   const now = () => new Date().toISOString();
   const ago = (d, h=10) => { const t=new Date(dayStart(Date.now()-d*DAY)); t.setHours(h, 15); return t.toISOString(); };
   const PHOTO = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360"><rect width="480" height="360" fill="#EAF5EE"/><ellipse cx="240" cy="200" rx="120" ry="130" fill="#E8A0A8"/><path d="M240 90v200" stroke="#C97C86" stroke-width="5"/><text x="240" y="40" font-family="Montserrat,Arial" font-size="20" font-weight="700" fill="#1E4D3E" text-anchor="middle">Фото языка · демо</text></svg>');
   function seed() {
     const db = { students: [], quizzes: {}, photos: {}, events: [], sessions: {}, paid: [], lessons: {}, messages: [], ai: {}, ext: {},
-      settings: { start: CFG.START_DATE || '', programDays: 49, accessDays: 90, extDays: 60, extendUrl: 'https://kurs.holistica.academy/' } };
+      settings: { start: CFG.START_DATE || '', programDays: 49, accessDays: 90, extDays: 60, extendUrl: 'https://kurs.holistica.academy/',
+        chats: { slow:'https://t.me/', infl:'https://t.me/', sens:'https://t.me/', mix:'https://t.me/' } } };
     const msg = (email, lessonId, from, text, at) => db.messages.push({ at, email, lessonId:lessonId || '', lesson: lessonId ? byId(lessonId).t : '', from, who: from === 'cu' ? 'Куратор (демо)' : '', text });
     const add = (email, name, role='ученик') => { const s={'Email':email,'Имя':name,'Роль':role,'Статус':STS.none}; db.students.push(s); return s; };
     const ev = (email, type, item, at) => db.events.push({'Дата':at||now(),'Email':email,'Событие':type,'Объект':item||''});
@@ -1538,6 +1539,7 @@ function dash(){
   ${newReplies().map(m => `<button class="next" data-a="open" data-id="${m.lessonId}"><span class="ic">${I.chat}</span><span><small>Куратор ответил на ваш вопрос</small><b>${esc(byId(m.lessonId) ? byId(m.lessonId).t : m.lesson)}</b></span></button>`).join('')}
   ${nextL ? `<button class="next" data-a="open" data-id="${nextL.id}"><span class="ic">${I.play}</span><span><small>Следующий урок</small><b>${esc(nextL.t)}</b></span></button>`
          : `<div class="out">Все открытые уроки пройдены. Сделайте замер самочувствия в разделе «Прогресс».</div>`}
+  ${(() => { const u = S.set && S.set.chats && S.set.chats[TYPE()]; return u ? `<a class="next" href="${esc(u)}" target="_blank" rel="noopener" data-a="groupChat" style="text-decoration:none;color:inherit;border-color:var(--e)"><span class="ic" style="background:var(--e)">${I.chs}</span><span><small style="color:var(--e)">Общий чат программы</small><b>Чат протокола «${esc(PNAME[TYPE()])}»</b></span><span class="ch" style="margin-left:auto;color:var(--grey)">${I.chev}</span></a>` : ''; })()}
   <div class="tiles">${tiles}
     ${chatVisible() ? `<button class="tile" data-a="chat"><span class="ic">${I.chat}</span><b>Чат с куратором</b><span class="cnt">${chatUnread() ? `<span class="chip m">${chatUnread()} ${plural(chatUnread(), ['новое','новых','новых'])}</span>` : (S.user.tariff === TARIFF_IND ? 'индивидуальное сопровождение' : 'сообщения куратора')}</span></button>` : ''}
     <button class="tile prg" data-a="progress"><span class="ic">${I.chart}</span><b>Прогресс</b><span class="cnt" style="color:var(--ink)">замеры и статистика</span></button>
@@ -1897,6 +1899,7 @@ function studentClick(e, b, a){
   if (a === 'cat') return go('cat', { k:b.dataset.k });
   if (a === 'menu') { track('menu', 'Конструктор меню'); return go('menu'); }
   if (a === 'open') { const id = b.dataset.id; if (catOf(id) === 'lessons') { const l = lx(id); l.open++; l.last = Date.now(); save(); track('open', byId(id).t); } return go('item', { id }); }
+  if (a === 'groupChat') { track('group_chat', PNAME[TYPE()]); return; }
   if (a === 'extopen') { track('video', byId(b.dataset.id).t); return; }
   if (a === 'dl') { track('download', byId(b.dataset.id).t); return; }
   if (a === 'progress') return go('progress');
@@ -1926,7 +1929,7 @@ const EVN = { login:'Вход в кабинет', password_set:'Задан па�
   video:'Открыто видео урока', download:'Открыт конспект', menu:'Открыт конструктор меню', check:'Замер самочувствия',
   recs:'Обновлены рекомендации', note:'Обновлена заметка куратора', chat:'Сообщение в чат', reply_chat:'Ответ куратора в чате',
   comment:'Вопрос под уроком', reply_comment:'Ответ куратора под уроком', tariff:'Тариф', materials:'Правка материалов',
-  ai_resolved:'Решение по ИИ', curator:'Куратор', extended:'Продление', ai_error:'Ошибка ИИ-проверки', ai_done:'ИИ-проверка выполнена' };
+  ai_resolved:'Решение по ИИ', curator:'Куратор', extended:'Продление', group_chat:'Открыт общий чат протокола', ai_error:'Ошибка ИИ-проверки', ai_done:'ИИ-проверка выполнена' };
 const FLAGNAME = { chole:'Удалён желчный пузырь', ppi:'Принимает препараты от изжоги' };
 const Adm = (() => {
   let D = null, C = [], AV = { s:'over' };
