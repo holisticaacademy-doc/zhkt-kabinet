@@ -635,6 +635,70 @@ table.tk tr.a td{font-weight:700;background:var(--soft)}
 .bub{white-space:pre-wrap}
 .aib ul{margin:6px 0 0;padding-left:18px}
 .tg2{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 0}
+/* ── телефон и планшет ── */
+.app>*{min-width:0}
+.grid>*{min-width:0}
+.ch .who{min-width:0}.ch .who>div{min-width:0}
+@media (max-width:860px){
+  html,body{overflow-x:hidden}
+  .app{grid-template-columns:minmax(0,1fr)}
+  .g2,.g3{grid-template-columns:minmax(0,1fr)}
+  main{min-width:0;padding:16px 14px 50px}
+  .side{position:relative;display:block;padding:12px 12px 10px}
+  .side .brand{display:inline-block;padding:0}
+  .side .navs{display:flex;gap:4px;overflow-x:auto;margin:10px -12px 0;padding:0 12px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .side .navs::-webkit-scrollbar{display:none}
+  .nav{flex:0 0 auto;width:auto;padding:8px 12px}
+  .side .role{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 0;padding:8px 10px}
+  .side .role label{display:none}
+  .side .role b{margin:0 4px 0 0}
+  .side .role>.small{margin-right:auto}
+  .side .role .btn{width:auto;flex:1 1 auto;margin:0;white-space:normal}
+  h1{font-size:20px;overflow-wrap:anywhere}
+  .ch{gap:12px}
+  .ch .who{align-items:flex-start}
+  .ch .who p{overflow-wrap:anywhere}
+  .ch .who select{max-width:100%}
+  .ch>div:last-child{width:100%}
+  .ch>div:last-child .btn{flex:1 1 auto}
+  .tools>*{flex:1 1 100%;max-width:100%}
+  .seg{flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none}
+  .seg::-webkit-scrollbar{display:none}
+  .seg button{flex:0 0 auto;white-space:nowrap}
+  .head{align-items:flex-start}
+  .head>.btn,.head>.seg{max-width:100%}
+  .panel{padding:14px}
+  .btn{white-space:normal;text-align:center}
+  .row2>.btn{flex:1 1 100%}
+  .btn.big{font-size:15px;min-height:52px}
+  .mi{flex-wrap:wrap}
+  .mi .acts{width:100%;justify-content:flex-start}
+  .ci{grid-template-columns:1fr}
+  .ci .cnt{text-align:left}
+  .kv3{grid-template-columns:1fr}
+  dl.kv{grid-template-columns:auto minmax(0,1fr)}
+  dl.kv dd{overflow-wrap:anywhere}
+  .ar{flex-direction:column;gap:2px}.ar b{text-align:left}
+  .bub{max-width:92%}
+  .hist div{grid-template-columns:1fr;gap:2px}
+  .wkr{grid-template-columns:80px 1fr 40px}
+  .fun .r{grid-template-columns:96px 1fr 52px;gap:8px}
+  .dr .pan{padding:16px 14px 30px}
+  .side .role .btn{font-size:12px;min-height:30px;padding:5px 10px}
+  /* список клиентов — карточками вместо широкой таблицы */
+  .tw:has(table.t:not(.la)){background:none;border:none;overflow:visible}
+  table.t:not(.la){min-width:0;display:block}
+  table.t:not(.la) thead{display:none}
+  table.t:not(.la) tbody{display:grid;gap:8px}
+  table.t:not(.la) tr{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  table.t:not(.la) td{display:block;padding:0;border:none}
+  table.t:not(.la) td:first-child{flex:1 1 100%}
+  table.t:not(.la) td:empty,table.t:not(.la) td:has(>.nd){display:none!important}
+  .photo-img{max-height:280px;object-fit:contain;background:var(--soft)}
+  table.t:not(.la) td[data-l]:before{content:attr(data-l) ': ';font-size:11.5px;color:var(--grey);font-weight:600}
+  table.t:not(.la) td[data-l]{display:flex;align-items:center;gap:6px;font-size:12.5px}
+  table.t:not(.la) .mini .pb{width:56px}
+}
 </style>
 
 </head>
@@ -2065,10 +2129,10 @@ const Adm = (() => {
     <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th>Статус</th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
     ${list.map(c => { const lp = lessonPct(c), wt = c.assigned ? weekTrack(c, curWeekC(c)) : null;
       return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td>
-      <td>${c.filled && c.type ? `<span class="chip">${TYPES[c.type].short}</span>${c.assigned ? '' : ' <span class="small muted">авто</span>'}` : `<span class="muted">—</span>`}</td>
-      <td>${c.assigned ? `<span class="mini"><span class="pb"><i style="width:${lp}%"></i></span>${lp}%</span>` : '—'}</td>
-      <td>${wt ? `<span class="mini"><span class="pb"><i style="width:${wt.p}%"></i></span>${wt.p}%</span>` : '—'}</td>
- <td>${lastTxt(c.last)}</td><td>${ovCount(c) ? `<span class="chip m">${ovCount(c)}</span>` : ''}</td></tr>`; }).join('') ||  `<tr><td colspan="8" class="muted">Никого не нашлось. Измените фильтры или поиск.</td></tr>`}
+      <td>${c.filled && c.type ? `<span class="chip">${TYPES[c.type].short}</span>${c.assigned ? '' : ' <span class="small muted">авто</span>'}` : `<span class="nd muted">—</span>`}</td>
+      <td data-l="Уроки">${c.assigned ? `<span class="mini"><span class="pb"><i style="width:${lp}%"></i></span>${lp}%</span>` : '<span class="nd">—</span>'}</td>
+      <td data-l="Трекер">${wt ? `<span class="mini"><span class="pb"><i style="width:${wt.p}%"></i></span>${wt.p}%</span>` : '<span class="nd">—</span>'}</td>
+ <td data-l="Вход">${lastTxt(c.last)}</td><td>${ovCount(c) ? `<span class="chip m">${ovCount(c)}</span>` : ''}</td></tr>`; }).join('') ||  `<tr><td colspan="8" class="muted">Никого не нашлось. Измените фильтры или поиск.</td></tr>`}
     </tbody></table></div>`;
   }
 
