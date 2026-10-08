@@ -665,7 +665,8 @@ const CFG = {
   SUPPORT_URL: 'https://kurs.holistica.academy/cms/system/contact',
   // Ссылка на политику обработки персональных данных (шаг «Проверка» в анкете)
   POLICY_URL: '#',
-  // Дата старта потока ГГГГ-ММ-ДД. Пусто — отсчёт от дня, когда куратор назначил протокол.
+  // Дата старта потока, сроки доступа и ссылка на продление задаются в листе «Настройки» Google-таблицы.
+  // START_DATE здесь — только для демо-режима (ГГГГ-ММ-ДД).
   START_DATE: '',
   // true — открыть все недели сразу (удобно для теста). false — недели открываются по календарю.
   OPEN_ALL_WEEKS: false,
@@ -808,6 +809,33 @@ var EXCLUDABLE = [
 var CONSENT_VERSION = '2026-09-30-draft';
 var STEP_NAMES = ['Данные','Диагнозы','Боли','Тяжесть','Изжога','Тошнота','Вздутие','Стул','Кожа и волосы','Общее состояние','Лекарства','Цели','Продукты','Важное','Фото языка','Проверка'];
 var QSTEPS = 16;
+
+// ── Срок доступа (общий для сайта и Code.gs) ─────────────────────
+// start — день старта (поток или назначение протокола); accessDays — дней доступа;
+// exts — даты оплат продлений (каждое даёт extDays: от конца доступа или от даты оплаты, если она позже);
+// until — ручная дата «Доступ до» (включительно), перекрывает расчёт.
+var DAY_MS = 864e5;
+function dayStart0(t) { var d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); }
+function parseDate0(x) {
+  if (!x) return 0;
+  if (x instanceof Date) return x.getTime();
+  var s = String(x).trim(), m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1]).getTime();
+  var t = new Date(s).getTime();
+  return isNaN(t) ? 0 : t;
+}
+function accessCalc(o) {
+  var start = parseDate0(o.start);
+  if (!start && !o.until) return { end: '', last: '', closed: false, left: null, ext: 0 };
+  var end = start ? dayStart0(start) + (Number(o.accessDays) || 90) * DAY_MS : 0;
+  var exts = (o.exts || []).map(parseDate0).sort(function (a, b) { return a - b; });
+  exts.forEach(function (p) { end = Math.max(end, p ? dayStart0(p) : 0) + (Number(o.extDays) || 60) * DAY_MS; });
+  var u = parseDate0(o.until);
+  if (u) end = dayStart0(u) + DAY_MS;
+  var now = o.now || Date.now();
+  return { end: new Date(end).toISOString(), last: new Date(end - DAY_MS).toISOString(), closed: now >= end,
+    left: Math.max(0, Math.ceil((end - now) / DAY_MS)), ext: exts.length };
+}
 
 const Q = {"blocks":[{"id":"b3","title":"Боли в животе","gate":"Бывают ли у вас боли в животе (за последний год)?","q":[["b3q1","В желудке боль после еды, слабая, тянущая","В желудке боль после еды, тянущая","V","s4"],["b3q2","Боли на голодный желудок — слабые, ноющие","Боли на голодный, ноющие","C","s4"],["b3q3","Боли на голодный желудок — острые, сосущие. Облегчение от приёма пищи","Боли на голодный, острые, облегчение от еды","I","s4"],["b3q4","Боли/жжение в животе, в районе пупка через 1–1,5 часа после еды","Боли/жжение около пупка через 1-1,5ч","I","s4"],["b3q14","Боли/жжение в желудке проходят от обволакивающей пищи (овсянка, льняная каша)","Боли проходят от обволакивающей пищи","CI","na"],["b3q5","Боль в желудке и левом боку, отдающая в спину","Боль в желудке и левом боку, в спину","I","s4"],["b3q6","Ночные боли в животе (1–3 часа ночи)","Ночные боли (1-3ч)","I","s4"],["b3q7","Боль в правом боку после еды острая/колющая","Боль в правом боку, острая/колющая","I","s4"],["b3q8","Тяжесть или слабая, ноющая, тупая боль в правом боку","Тяжесть/ноющая боль в правом боку","V","s4"],["b3q9","Боль в левом боку тупая, ноющая","Боль в левом боку, тупая/ноющая","VI","s4"],["b3q10","Боль в левом боку схваткообразная (спастическая), на стрессе, часто сопровождается вздутием живота","Боль в левом боку схваткообразная","C","s4"],["b3q11","Боли по всему животу (по ходу кишечника), схваткообразные, перемежающиеся, со вздутием. Проходят от отхождения газов и стула","Боли по всему животу, схваткообразные","C","s4"],["b3q12","Боль тянущая слева внизу живота. Сопровождается запорами. Боль волнообразная","Тянущая боль слева внизу, запоры","C","s4"],["b3q13","Боль острая стойкая слева внизу живота. Сопровождается диареей","Острая боль слева внизу, диарея","I","s4"],["b3q15","Боль при нажатии на живот по ходу толстой кишки, с ощущением спазмированного кишечника","Боль при нажатии на живот по ходу кишки","I","yes"]]},{"id":"b4","title":"Тяжесть и чувствительность","gate":"Бывает ли у вас тяжесть в животе и чувствительность (за последний год)?","q":[["b4q1","Тяжесть в желудке после еды, ощущение, что пища «стоит», не перевариваясь","Тяжесть в желудке, пища «стоит»","V","s4"],["b4q2","Ощущение комка в желудке","Ощущение комка в желудке","V","s4"],["b4q3","Чувствительность к холодному/горячему (от напитков со льдом или горячего чая — дискомфорт в пищеводе и желудке)","Чувствительность к холодному/горячему","C","s4"]]},{"id":"b5","title":"Изжога и привкус","gate":"Бывает ли у вас изжога, отрыжка, привкус во рту (за последний год)?","q":[["b5q1","Изжога от кислой/острой пищи, кофе, алкоголя, шоколада: острая, длительная, может быть с болью","Изжога острая, длительная","I","r5"],["b5q2","Изжога от кислой/острой пищи, кофе, алкоголя, шоколада: лёгкая, быстро проходит, бывает на стрессе","Изжога лёгкая, на стрессе","C","r5"],["b5q3","Изжога после мучного, сладкого, крахмалистого","Изжога от мучного/сладкого","V","r5"],["b5q4","Отрыжка без привкуса","Отрыжка без привкуса","C","ro"],["b5q5","Отрыжка с неприятным привкусом / вкусом еды","Отрыжка с привкусом","V","ro"],["b5q6","Сладковатый привкус во рту","Сладковатый привкус","V","ro"],["b5q7","Металлический привкус во рту","Металлический привкус","V","ro"],["b5q8","Горький привкус во рту","Горький привкус","CI","ro"],["b5q9","Кислый привкус во рту","Кислый привкус","CI","ro"],["b5q10","Обильная слюна","Обильная слюна","V","ro"],["b5q11","Сухость во рту","Сухость во рту","CI","ro"]]},{"id":"b6","title":"Тошнота","gate":"Испытывали ли вы тошноту (за последний год)?","q":[["b6q1","Тошнота без связи с едой","Тошнота без связи с едой","I","s4"],["b6q2","Тошнота на голодный желудок или от стресса","Тошнота на голодный/стресс","C","r5"],["b6q3","Рвотные позывы без рвоты или с рвотой желудочным соком","Рвотные позывы","C","s4"],["b6q4","Тошнота от жирной пищи","Тошнота от жирного","V","r5"],["b6q5","Тошнота от жирной пищи: во время обострений воспалительных процессов в ЖКТ","Тошнота от жирного при воспалении","I","r5"]]},{"id":"b7","title":"Вздутие","gate":"Было ли у вас вздутие или газы (за последний год)?","q":[["b7q1","Вздутие с утра и до вечера","Вздутие с утра до вечера","V","s4"],["b7q2","Вздутие сразу после еды","Вздутие сразу после еды","V","s4"],["b7q3_scale","Вздутие на определённые продукты","Вздутие на определённые продукты","","r5"],["b7q4","Утром живот плоский, вздутие во 2-й половине дня (после 15–16:00)","Вздутие во 2-й половине дня","C","s4"],["b7q5","Вздутие с болью, проходит от отхождения газов и стула","Вздутие с болью, проходит от газов","C","s4"],["b7q6","Вздутие и боли на ферментированную пищу (квашеная капуста, пробиотики)","Вздутие от ферментированного","IC","r5"],["b7q7","Урчание живота","Урчание живота","C","s4"]]},{"id":"b8","title":"Стул","gate":"Стул за последний год — есть ли особенности или нарушения?","q":[["b8q1","Слизь в стуле прозрачная, эпизодическая","Слизь в стуле","CV","s4"],["b8q_flag","Чёрный смолистый кал — исключая приём железа, угля, окрашивающих продуктов","Чёрный смолистый кал","I","s4"],["b8q2","Запор: стул редко (1–2 раза в неделю), обильный","Запор (1-2 раза/нед)","V","s4"],["b8q3","Запор: стул через день, катышками («козий кал»)","Запор, катышками","C","s4"],["b8q4","Диарея (стул жидкий, 3 и чаще раз в день) с неприятным запахом","Диарея с запахом","I","s4"],["b8q5","Несформированный стул с частями непереваренной пищи","Несформированный стул","V","s4"],["b8q6","Стул липнет, плохо смывается","Стул липнет","VCI","s4"],["b8q7","Чередование запоров и поносов","Чередование запоров и поносов","C","s4"],["b8q8","Ощущение неполного опорожнения кишечника","Неполное опорожнение","CV","s4"]]},{"id":"b9","title":"Кожа и волосы","gate":"Есть ли у вас проблемы с кожей или волосами?","q":[["b9q1","Кожа холодная, отёчная","Кожа холодная, отёчная","V","ro"],["b9q2","Розацеа (покраснение кожи лица)","Розацеа","IV","ro"],["b9q3","Экзема, дерматит (регулярные проявления)","Экзема, дерматит","IV","ro"],["b9q4","Прыщи, воспалительные высыпания","Прыщи, высыпания","IV","ro"],["b9q5","Сухость кожи, гиперкератоз, себорея","Сухость кожи, гиперкератоз","VC","ro"],["b9q6","Сухость кожи на руках и ногах","Сухость кожи рук и ног","IVC","ro"],["b9q7","Крапивница, зуд, аллергические высыпания","Крапивница, зуд","IV","ro"],["b9q8","Розовые пятна, пигментация, парапсориаз","Розовые пятна, пигментация","IV","ro"],["b9q9","Выпадение волос, ломкость","Выпадение волос","IVC","ro"]]},{"id":"b10","title":"Общее состояние","gate":null,"q":[["b10q2","Нарушения сна, бессонница, сон чуткий и прерывистый","Нарушения сна","C","s4"],["b10q4","Сонливость и вялость после еды","Сонливость после еды","V","s4"],["b10q6","Мигрени (сильные головные боли до тошноты)","Мигрени","I","s4"],["b10q9","Нет аппетита","Нет аппетита","VC","s4"],["b10q10","Пищеварение ухудшается на фоне стресса","Пищеварение на стрессе","C","na"],["b10q11","Быстро наедаюсь малым объёмом пищи","Быстро наедаюсь","V","s4"],["b10q13","Склонность к перееданию","Склонность к перееданию","VIC","s4"],["b10q14","Слабость после сладкого / углеводов","Слабость от углеводов","V","na"],["b10q16","Скопление слизи в носоглотке","Слизь в носоглотке","V","s4"],["b10q17","Ком в горле, чувство инородного тела","Ком в горле","C","s4"],["b10q18","Неприятный запах изо рта","Запах изо рта","V","s4"],["b10q19","Желтоватый оттенок склер глаз","Желтоватые склеры","I","s4"],["b10q21","Рецидивирующие инфекции: герпес, цистит, конъюнктивит и др.","Рецидивирующие инфекции","IC","s4"],["b10q22","Любые аллергические реакции: на продукты, цветение, животных, солнце и т.д.","Аллергические реакции","IV","s4"],["b10q24","Приливы жара, ночная потливость","Приливы жара, потливость","I","s4"],["b10q26","Сильная потливость с резким запахом","Сильная потливость","I","s4"],["b10q27","Отёчность","Отёчность","V","s4"],["b10q28","Снижение веса при обострениях ЖКТ","Снижение веса при обострениях","I","na"]]}],"scales":{"s4":["≤ 1 раза в месяц","Несколько раз в месяц","Еженедельно","Каждый день"],"r5":["Есть реакция, не провоцирую","≤ 1 раза в месяц","Несколько раз в месяц","Еженедельно","Каждый день"],"ro":["Изредка","Часто"],"na":["Иногда","Всегда"],"yes":["Да"]},"diagnoses":[["Синдром Жильбера",0],["Дискинезия желчевыводящих путей",0],["Сладж (взвесь) желчного пузыря",0],["Камни желчного пузыря (желчнокаменная болезнь)",0],["Удалён желчный пузырь",0],["Холецистит хронический",0],["Жировая болезнь печени",0],["Эрозии пищевода",0],["ГЭРБ",0],["Пищевод Баррета",0],["Диспепсия",0],["Гастропарез (замедленное опорожнение желудка)",0],["Гастрит хронический",0],["Гастрит атрофический",0],["Эрозии слизистой желудка, эрозивный гастрит",0],["Язва желудка в ремиссии",0],["Язва желудка в стадии обострения",1],["Helicobacter pylori инфекция желудка",0],["Кишечная метаплазия",0],["Дуоденит",0],["Хронический панкреатит",0],["Липоматоз поджелудочной железы",0],["Полип: желчного, желудка, кишечника",0],["Синдром раздражённого кишечника (СРК)",0],["Синдром избыточного бактериального роста",0],["Синдром мальабсорбции",0],["Дисбиоз кишечника",0],["Кандидоз пищевода или кишечника",0],["Колит / энтерит хронический",0],["Дивертикулёз",0],["Долихосигма (удлинение кишечника)",0],["Язвенный колит",0],["Болезнь Крона",0],["Геморрой / трещина анального отверстия",0],["Целиакия / непереносимость глютена",0],["Непереносимость лактозы / фруктозы",0],["Любые проблемы с ЖКТ в стадии обострения, острые воспалительные процессы",1],["Повышенный холестерин",0],["Аутоиммунные заболевания (тиреоидит, артрит и др.)",0],["Гипертония",0],["Гипотиреоз (щитовидная железа) + лишний вес",0],["Гипотиреоз (щитовидная железа) + низкий вес",0],["Миома, эндометриоз",0],["Псориаз",0]]};
 // ── Автоназначение протокола ─────────────────────────────────────
@@ -1007,30 +1035,34 @@ async function api(action, params = {}) {
 
 // ═══ Демо-бэкенд: повторяет логику Apps Script, хранит всё в этом браузере ═══
 const Demo = (() => {
-  const KEY = 'hz_demo_db_v5';
+  const KEY = 'hz_demo_db_v6';
   let mem = null;
   const now = () => new Date().toISOString();
   const ago = (d, h=10) => { const t=new Date(dayStart(Date.now()-d*DAY)); t.setHours(h, 15); return t.toISOString(); };
   const PHOTO = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360"><rect width="480" height="360" fill="#EAF5EE"/><ellipse cx="240" cy="200" rx="120" ry="130" fill="#E8A0A8"/><path d="M240 90v200" stroke="#C97C86" stroke-width="5"/><text x="240" y="40" font-family="Montserrat,Arial" font-size="20" font-weight="700" fill="#1E4D3E" text-anchor="middle">Фото языка · демо</text></svg>');
   function seed() {
-    const db = { students: [], quizzes: {}, photos: {}, events: [], sessions: {}, paid: [], lessons: {}, messages: [], ai: {} };
+    const db = { students: [], quizzes: {}, photos: {}, events: [], sessions: {}, paid: [], lessons: {}, messages: [], ai: {}, ext: {},
+      settings: { start: CFG.START_DATE || '', programDays: 49, accessDays: 90, extDays: 60, extendUrl: 'https://kurs.holistica.academy/' } };
     const msg = (email, lessonId, from, text, at) => db.messages.push({ at, email, lessonId:lessonId || '', lesson: lessonId ? byId(lessonId).t : '', from, who: from === 'cu' ? 'Куратор (демо)' : '', text });
     const add = (email, name, role='ученик') => { const s={'Email':email,'Имя':name,'Роль':role,'Статус':STS.none}; db.students.push(s); return s; };
     const ev = (email, type, item, at) => db.events.push({'Дата':at||now(),'Email':email,'Событие':type,'Объект':item||''});
     add('admin@holistica.test','Куратор (демо)','админ');
+    add('curator@holistica.test','Ольга Куратор (демо)','куратор')._pw = 'seeded';
     let sn = 11; const rnd = () => { sn = (sn * 9301 + 49297) % 233280; return sn / 233280; };
     const lean = {slow:'Вялое',infl:'Воспаленное',sens:'Чувствительное'};
     const F = [
       ['anna','Анна Пример','paid'], ['olga','Ольга Пример','paid'],
       ['maria','Мария Пример','login'],
       ['svetlana','Светлана Пример','wait','sens',1], ['irina','Ирина Пример','wait','mix',0],
-      ['natalia','Наталья Пример','ok','infl',1,9,1], ['vera','Вера Пример','ok','slow',1,16,0], ['daria','Дарья Пример','ok','mix',1,8,6]
+      ['natalia','Наталья Пример','ok','infl',1,9,1], ['vera','Вера Пример','ok','slow',1,16,0], ['daria','Дарья Пример','ok','mix',1,8,6],
+      ['polina','Полина Пример','ok','sens',1,95,3]
     ];
+    const CUR = { natalia:'admin@holistica.test', vera:'admin@holistica.test', svetlana:'admin@holistica.test', daria:'curator@holistica.test', polina:'curator@holistica.test' };
     F.forEach(([id,name,stage,type,photo,dIn,lastAgo],i)=>{
       const email=id+'@holistica.test';
       db.paid.push({email,name});
       if(stage==='paid') return;
-      const st=add(email,name); st._pw='seeded'; st['Тариф'] = (id==='vera'||id==='irina') ? TARIFF_IND : 'Общий';
+      const st=add(email,name); st._pw='seeded'; st['Тариф'] = (id==='vera'||id==='irina') ? TARIFF_IND : 'Общий'; st['Закреплён за'] = CUR[id] || '';
       const first=ago((dIn||2)+3, 9); Object.assign(st,{'Первый вход':first,'Последний вход':ago(lastAgo!=null?lastAgo:0, 19)});
       ev(email,'login','',first);
       if(stage==='login') return;
@@ -1062,7 +1094,7 @@ const Demo = (() => {
       const R=buildResult(type,quiz), today=dIn+1, state={done:{},track:{},checks:[],lx:{},seen:1};
       R.lessons.map(byId).filter(l=>dIn+1>=CAL.weekOpens[l.w]).forEach(l=>{ if(rnd()<.75){ state.lx[l.id]={open:1+Math.floor(rnd()*3),last:ago(Math.floor(rnd()*dIn),20)}; ev(email,'open',l.t,state.lx[l.id].last); if(rnd()<.7) state.done[l.id]=1; } });
       R.practices.slice(0,3).forEach(id=>state.done[id]=1);
-      for(let day=1;day<=today-(lastAgo||0);day++) trackRowsT(type,Math.floor((day-1)/7)+1).forEach((r,k)=>{ if(rnd()<(i===7?.35:.75)) state.track[day+':'+k]=1 });
+      for(let day=1;day<=Math.min(49,today-(lastAgo||0));day++) trackRowsT(type,Math.floor((day-1)/7)+1).forEach((r,k)=>{ if(rnd()<(i===7?.35:.75)) state.track[day+':'+k]=1 });
       if(i===6){ msg(email,'','cl','Здравствуйте! Можно ли пить имбирный чай вечером?',ago(3,20)); msg(email,'','cu','Добрый вечер! Да, но не позже чем за 2 часа до сна и некрепкий.',ago(2,10)); msg(email,'','cl','Спасибо! А если после него тяжесть?',ago(1,21)); }
       if(i===5){ const l=R.lessons.find(id=>byId(id).w===1&&!byId(id).core); if(l) msg(email,l,'cl','Не совсем поняла, сколько раз в день пить отвар. Можно уточнить?',ago(1,18)); }
       if(i===6) state.checks.push({at:ago(2,21),scores:Object.fromEntries(Object.entries(quiz.scores).map(([k,v])=>[k,Math.max(0,v-2-Math.floor(rnd()*2))]))});
@@ -1085,7 +1117,9 @@ const Demo = (() => {
   }
   function hash(x){ let h=5381; for(const c of x) h=((h<<5)+h+c.charCodeAt(0))|0; return 'd'+(h>>>0).toString(36); }
   function session(st){ const t='demo-'+Math.random().toString(36).slice(2); load().sessions[t]=st['Email']; if(!st['Первый вход']) st['Первый вход']=now(); st['Последний вход']=now(); log(st['Email'],'login'); return t; }
-  const pub = d => ({ email:d['Email'], name:d['Имя'], role:d['Роль'], status:d['Статус']||STS.none, autoProtocol:d['Протокол авто']||'', protocol:d['Протокол итог']||'',
+  const accessOf = d => accessCalc({ start: load().settings.start || d['Дата подтверждения'] || d['Первый вход'], accessDays: load().settings.accessDays, extDays: load().settings.extDays, exts: load().ext[d['Email']] || [], until: d['Доступ до'] });
+  const openOnly = st => { if (!isStaff({role:st['Роль']}) && accessOf(st).closed) throw new Error('Доступ к программе закрыт'); };
+  const pub = d => ({ access: accessOf(d), email:d['Email'], name:d['Имя'], role:d['Роль'], status:d['Статус']||STS.none, autoProtocol:d['Протокол авто']||'', protocol:d['Протокол итог']||'',
     recs:d['Комментарий куратора']||'', confirmedAt:d['Дата подтверждения']||'', filledAt:d['Дата анкеты']||'', hasPhoto:!!(load().quizzes[d['Email']]||{}).photo,
     tariff:d['Тариф']||'Общий', ov:parse(d['Правки материалов']) });
   const msgsOf = e => load().messages.filter(m => m.email === e);
@@ -1099,9 +1133,14 @@ const Demo = (() => {
       st._pw=hash(st['Email']+password); log(st['Email'],'password_set'); return {token:session(st)}; },
     login({email,password}){ const st=studentOrPaid(email); if(!st) throw new Error(NOT_PAID); if(!st._pw) throw new Error('Пароль ещё не задан');
       if(st._pw!==hash(st['Email']+password)) throw new Error('Неверный пароль'); return {token:session(st)}; },
-    me({token}){ const st=auth(token); const q=load().quizzes[st['Email']]||null; return {user:pub(st), quiz:q, state:parse(st['Прогресс']), lessons:load().lessons, messages:msgsOf(st['Email'])}; },
+    me({token}){ const st=auth(token); const q=load().quizzes[st['Email']]||null, u=pub(st), closed=u.access.closed&&!isStaff({role:st['Роль']});
+      return {user:u, quiz:q, state:parse(st['Прогресс']), lessons:closed?{}:load().lessons, messages:msgsOf(st['Email']), settings:load().settings}; },
+    assignCurator({token,email,curator}){ const a=adminAuth(token), st=find(email); if(!st) throw new Error('Ученица не найдена');
+      if(curator){ const c=find(curator); if(!c||!isStaff({role:c['Роль']})) throw new Error('Куратор не найден'); }
+      st['Закреплён за']=curator||''; log(email,'curator',curator?(curator===a['Email']?'закреплена за ':'назначен куратор ')+curator:'откреплена'); return {}; },
+    demoExtend({token,email}){ adminAuth(token); (load().ext[email]=load().ext[email]||[]).push(now()); log(email,'extended','демо: оплачено продление'); return {}; },
     messages({token}){ const st=auth(token); return {messages:msgsOf(st['Email'])}; },
-    sendMessage({token,text,lessonId}){ const st=auth(token); text=String(text||'').trim(); if(!text) throw new Error('Напишите сообщение');
+    sendMessage({token,text,lessonId}){ const st=auth(token); openOnly(st); text=String(text||'').trim(); if(!text) throw new Error('Напишите сообщение');
       if(!lessonId && st['Тариф']!==TARIFF_IND && !msgsOf(st['Email']).some(m=>!m.lessonId)) throw new Error('Чат с куратором доступен на индивидуальном тарифе');
       addMsg(st['Email'],lessonId,'cl','',text); return {messages:msgsOf(st['Email'])}; },
     reply({token,email,lessonId,text}){ const a=adminAuth(token); text=String(text||'').trim(); if(!text) throw new Error('Напишите сообщение'); addMsg(email,lessonId,'cu',a['Имя']||a['Email'],text); return {}; },
@@ -1117,15 +1156,15 @@ const Demo = (() => {
       log(st['Email'],'quiz_submit',res.name); return {auto:res}; },
     uploadTongue({token,photo}){ const st=auth(token), q=load().quizzes[st['Email']]; if(!q) throw new Error('Сначала отправьте анкету');
       q.photo=true; load().photos[st['Email']]=photo; log(st['Email'],'photo'); return {}; },
-    saveState({token,state}){ const st=auth(token); st['Прогресс']=JSON.stringify(state); return {}; },
+    saveState({token,state}){ const st=auth(token); openOnly(st); st['Прогресс']=JSON.stringify(state); return {}; },
     event({token,type,item}){ const st=auth(token); log(st['Email'],type,item); return {}; },
     adminData({token}){ adminAuth(token); const db=load();
-      return { students: db.students.map(s=>{ const r=Object.assign({},s); r['Пароль задан']=s._pw?'да':'нет'; r.state=parse(s['Прогресс']); r.ov=parse(s['Правки материалов']); delete r._pw; delete r['Прогресс']; delete r['Правки материалов']; return r; }),
-        quizzes:db.quizzes, events:db.events, paid:db.paid, lessons:db.lessons, messages:db.messages, ai:db.ai, aiKey:false }; },
+      return { students: db.students.map(s=>{ const r=Object.assign({},s); r['Пароль задан']=s._pw?'да':'нет'; r.state=parse(s['Прогресс']); r.ov=parse(s['Правки материалов']); r.access=accessOf(s); delete r._pw; delete r['Прогресс']; delete r['Правки материалов']; return r; }),
+        quizzes:db.quizzes, events:db.events, paid:db.paid, lessons:db.lessons, messages:db.messages, ai:db.ai, aiKey:false, settings:db.settings }; },
     photo({token,email}){ adminAuth(token); return {data:load().photos[email]||''}; },
     confirm({token,email,protocol,recs}){ const a=adminAuth(token), st=find(email); if(!st) throw new Error('Ученица не найдена');
       const was=st['Статус']===STS.ok;
-      Object.assign(st,{'Протокол итог':protocol,'Куратор':a['Имя']||a['Email'],'Статус':STS.ok}); if(!was) st['Дата подтверждения']=now();
+      Object.assign(st,{'Протокол итог':protocol,'Куратор':a['Имя']||a['Email'],'Статус':STS.ok}); if(!was) st['Дата подтверждения']=now(); if(!st['Закреплён за']) st['Закреплён за']=a['Email'];
       if(recs!=null) st['Комментарий куратора']=recs; log(st['Email'],was?'protocol_changed':'confirmed',protocol); return {}; },
     saveRecs({token,email,recs}){ adminAuth(token); const st=find(email); st['Комментарий куратора']=recs; log(email,'recs'); return {}; },
     saveNote({token,email,note}){ adminAuth(token); const st=find(email); st['Заметка куратора']=note; log(email,'note'); return {}; },
@@ -1153,7 +1192,8 @@ const Demo = (() => {
 
 // ═══ Состояние ══════════════════════════════════════════════════
 const TOKEN_KEY = 'hz_token_' + MODE;
-const S = { token: LS.get(TOKEN_KEY, null), user: null };
+const S = { token: LS.get(TOKEN_KEY, null), user: null, set: {} };
+const START = () => (S.set && S.set.start) || CFG.START_DATE || '';
 const U = { quiz: null, st: null, links: {}, preview: false, ptype: 'slow', msgs: [], pov: null };
 let V = { s: 'calc' }, hist = [], QD = null;
 
@@ -1167,7 +1207,7 @@ function normState(s){ s = s && typeof s === 'object' ? s : {}; const f = freshS
 
 async function loadMe(){
   const r = await api('me', { token: S.token });
-  S.user = r.user; U.quiz = r.quiz || null; U.st = normState(r.state); U.links = r.lessons || {}; U.msgs = r.messages || []; _RK = '';
+  S.user = r.user; S.set = r.settings || {}; U.quiz = r.quiz || null; U.st = normState(r.state); U.links = r.lessons || {}; U.msgs = r.messages || []; _RK = '';
 }
 async function boot(){
   useUI('u');
@@ -1184,13 +1224,14 @@ function route(){
   if (isStaff(S.user) && !U.preview) return Adm.open();
   useUI('u');
   if (U.preview) V = { s:'dash' };
+  else if (accessClosed()) V = { s:'closed' };
   else if (S.user.status === STS.ok) V = { s: U.st.seen ? 'dash' : 'result' };
   else if (S.user.status === STS.wait) V = { s:'wait' };
   else V = { s:'welcome' };
   render(); window.scrollTo(0,0);
 }
 function logout(){
-  flushSave(); LS.del(TOKEN_KEY);
+  flushSave(); $('#toast').classList.remove('on'); LS.del(TOKEN_KEY);
   Object.assign(S, { token:null, user:null }); Object.assign(U, { quiz:null, st:null, preview:false }); QD = null;
   Adm.data = null; useUI('u'); hist = []; V = { s:'login', step:'email' }; render();
 }
@@ -1248,12 +1289,23 @@ function chatView(){
   <textarea class="inp" id="msgIn" maxlength="3000" placeholder="Ваше сообщение" style="margin-top:12px;min-height:90px"></textarea>
   <button class="btn full" data-a="send" style="margin-top:10px">Отправить</button>`;
 }
-const startT = () => CFG.START_DATE ? new Date(CFG.START_DATE).getTime() : U.preview ? (U.pstart ? new Date(U.pstart).getTime() : Date.now()) : (S.user.confirmedAt ? new Date(S.user.confirmedAt).getTime() : Date.now());
+const startT = () => START() ? new Date(START()).getTime() : U.preview ? (U.pstart ? new Date(U.pstart).getTime() : Date.now()) : (S.user.confirmedAt ? new Date(S.user.confirmedAt).getTime() : Date.now());
 const dayN = () => dayNum(startT());
 const dateOf = n => new Date(dayStart(startT()) + (n-1)*DAY);
 const weekOpen = w => U.preview || CFG.OPEN_ALL_WEEKS || dayN() >= CAL.weekOpens[w];
 const curWeek = () => Math.min(7, Math.floor((Math.min(dayN(), CAL.programDays)-1)/7)+1);
-const accessLeft = () => Math.max(0, CAL.accessDays - dayN() + 1);
+const accessLeft = () => { const a = S.user && S.user.access; return a && a.left != null ? a.left : Math.max(0, CAL.accessDays - dayN() + 1); };
+const extTxt = () => { const d = (S.set && S.set.extDays) || 60; return d % 30 === 0 ? (d/30) + ' ' + plural(d/30, ['месяц','месяца','месяцев']) : d + ' ' + plural(d, ['день','дня','дней']); };
+const accessClosed = () => !!S.user && !U.preview && !isStaff(S.user) && !!(S.user.access && S.user.access.closed);
+function closedView(){
+  const a = S.user.access || {}, url = S.set && S.set.extendUrl;
+  return `<div class="top"><div class="sub">Формула здоровья ЖКТ</div><h1>Доступ к программе закрыт</h1>
+    <p style="margin:0">Срок доступа закончился${a.last ? ' ' + fmt(a.last) : ''}. Ваши отметки, трекер и замеры сохранены — после продления всё вернётся на место.</p></div>
+  <div class="card"><p><b>Продление — ещё ${extTxt()}.</b> После оплаты кабинет откроется сам, как только оплата появится в системе. Если в течение суток он всё ещё закрыт, напишите в службу заботы.</p></div>
+  <div class="opts">${url ? `<a class="btn full" href="${esc(url)}" target="_blank" rel="noopener">Продлить доступ на ${extTxt()}</a>` : ''}${supportLink()}</div>
+  <button class="btn ghost full" data-a="reload" style="margin-top:10px">Я оплатила — проверить доступ</button>
+  ${foot()}`;
+}
 const dayStat = day => dayStatT(U.st.track, TYPE(), day);
 const weekStat = w => weekStatT(U.st.track, TYPE(), dayN(), w);
 const trackRows = w => trackRowsT(TYPE(), w);
@@ -1279,7 +1331,7 @@ function home(){ hist = []; V = { s:'dash' }; render(); window.scrollTo(0,0); }
 
 // ═══ ЭКРАНЫ УЧЕНИЦЫ ═════════════════════════════════════════════
 function renderBar(title){
-  const showBack = hist.length > 0 && !['welcome','dash','login','wait','result','calc','fail'].includes(V.s);
+  const showBack = hist.length > 0 && !['welcome','dash','login','wait','result','calc','fail','closed'].includes(V.s);
   $('#bar').innerHTML = (showBack ? `<button class="back" data-a="back" aria-label="Назад">${I.back}</button>` : '') +
     `<div class="brand">HOLISTICA<i>DOC</i></div><div class="prog">${title || 'Формула здоровья ЖКТ'}</div>` +
     (S.user && !U.preview ? `<button class="back out-btn" data-a="logout" aria-label="Выйти" title="Выйти">${I.out}</button>` : '');
@@ -1407,6 +1459,7 @@ function dash(){
     <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-top:10px"><span>Пройдено</span><span>${tp}%</span></div>
     <div class="pb"><i style="width:${tp}%"></i></div>
   </div>
+  ${!U.preview && S.user.access && S.user.access.left != null && S.user.access.left <= 7 ? `<div class="upcard"><b style="color:var(--mag)">Доступ открыт до ${fmt(S.user.access.last)}.</b> ${S.set.extendUrl ? `Чтобы продолжить, продлите доступ на ${extTxt()} — все отметки сохранятся.<div style="margin-top:10px"><a class="btn mag" href="${esc(S.set.extendUrl)}" target="_blank" rel="noopener">Продлить доступ</a></div>` : 'Продлить доступ можно через службу заботы.'}</div>` : ''}
   ${S.user.recs && !U.preview ? `<div class="recs"><small>Рекомендации куратора</small><p style="margin:0">${esc(S.user.recs)}</p></div>` : ''}
   <button class="today" data-a="tracker"><span class="h"><span><small>Трекер на сегодня · ${fmt(dateOf(dn), {day:'numeric', month:'long', weekday:'short'})}</small><br><b>${ts.d === ts.n ? 'Все действия выполнены' : 'Отметьте, что уже сделали'}</b></span><span class="n">${ts.d}/${ts.n}</span></span><span class="pb"><i style="width:${ts.p}%"></i></span></button>
   ${newReplies().map(m => `<button class="next" data-a="open" data-id="${m.lessonId}"><span class="ic">${I.chat}</span><span><small>Куратор ответил на ваш вопрос</small><b>${esc(byId(m.lessonId) ? byId(m.lessonId).t : m.lesson)}</b></span></button>`).join('')}
@@ -1719,7 +1772,8 @@ function renderPv(){
 }
 function render(){
   const titles = { chat:'Чат', quiz:'Анкета', progress:'Прогресс', check:'Замер', tracker:'Трекер', login:'Вход', menu:'Меню', redflag:'Анкета' };
-  const map = { login:vLogin, welcome, quiz:quizStep, redflag, calc, wait, result, dash, cat:catList, item, progress:prog, check, tracker, menu:menuView, fail, chat:chatView };
+  if (accessClosed() && !['login','calc','fail'].includes(V.s)) V = { s:'closed' };
+  const map = { closed:closedView, login:vLogin, welcome, quiz:quizStep, redflag, calc, wait, result, dash, cat:catList, item, progress:prog, check, tracker, menu:menuView, fail, chat:chatView };
   if (V.s === 'item' && !U.preview && lessonMsgs(V.id).some(m => m.from === 'cu')) { U.st.seenL = U.st.seenL || {}; const last = Math.max(...lessonMsgs(V.id).map(tsOf)); if (last > (U.st.seenL[V.id] || 0)) { U.st.seenL[V.id] = last; save(); } }
   if (['chat','item'].includes(V.s)) { if (!pollT) startPoll(); } else stopPoll();
   renderBar(titles[V.s]);
@@ -1737,7 +1791,7 @@ function studentClick(e, b, a){
   if (a === 'forgot') { V.forgot = !V.forgot; return render(); }
   if (a === 'demoEmail') { V = { s:'login', step:'email', email:'admin@holistica.test' }; render(); return doLogin(); }
   if (a === 'demoReset') { Demo.reset(); toast('Демо-данные сброшены'); return; }
-  if (a === 'reload') { V = { s:'calc', msg:'Проверяем…' }; render(); return loadMe().then(() => { route(); if (S.user.status === STS.wait) toast('Протокол пока не назначен'); }).catch(x => { V = { s:'fail', err:x.message }; render(); }); }
+  if (a === 'reload') { const wasClosed = accessClosed(); V = { s:'calc', msg:'Проверяем…' }; render(); return loadMe().then(() => { route(); if (wasClosed && accessClosed()) toast('Продление пока не поступило'); else if (S.user.status === STS.wait) toast('Протокол пока не назначен'); }).catch(x => { V = { s:'fail', err:x.message }; render(); }); }
   if (a === 'toAdmin') { U.preview = false; return Adm.open(); }
   if (a === 'startQuiz') { const d = LS.get(draftKey(), null); QD = Object.assign(newQ(), d || {}); return go('quiz', { step: Math.min(QSTEP_COUNT, Math.max(1, (d && d.step) || 1)) }); }
   if (a === 'qp') {
@@ -1799,11 +1853,11 @@ const EVN = { login:'Вход в кабинет', password_set:'Задан па�
   video:'Открыто видео урока', download:'Открыт конспект', menu:'Открыт конструктор меню', check:'Замер самочувствия',
   recs:'Обновлены рекомендации', note:'Обновлена заметка куратора', chat:'Сообщение в чат', reply_chat:'Ответ куратора в чате',
   comment:'Вопрос под уроком', reply_comment:'Ответ куратора под уроком', tariff:'Тариф', materials:'Правка материалов',
-  ai_resolved:'Решение по ИИ', ai_error:'Ошибка ИИ-проверки', ai_done:'ИИ-проверка выполнена' };
+  ai_resolved:'Решение по ИИ', curator:'Куратор', extended:'Продление', ai_error:'Ошибка ИИ-проверки', ai_done:'ИИ-проверка выполнена' };
 const FLAGNAME = { chole:'Удалён желчный пузырь', ppi:'Принимает препараты от изжоги' };
 const Adm = (() => {
   let D = null, C = [], AV = { s:'over' };
-  const CF = { q:'', st:'all', type:'all' }, KF = { k:'lessons', type:'all', q:'' }, photos = {};
+  const CF = { q:'', st:'all', type:'all', cur:LS.get('hz_curf', 'all') }, KF = { k:'lessons', type:'all', q:'' }, photos = {};
   const hidden = () => { const h = {}; const L = (D && D.lessons) || {}; for (const id in L) if (L[id] && L[id].hide) h[id] = 1; return h; };
 
   async function open(){
@@ -1827,7 +1881,7 @@ const Adm = (() => {
       const assigned = status === STS.ok, filled = !!q && status !== STS.none;
       const autoKey = q && q.auto ? CODEKEY[q.auto.code] : null;
       const type = assigned ? (PKEY[s['Протокол итог']] || autoKey || 'slow') : autoKey;
-      const start = CFG.START_DATE || s['Дата подтверждения'] || '';
+      const start = (d.settings && d.settings.start) || CFG.START_DATE || s['Дата подтверждения'] || '';
       return { email:e, name:s['Имя'] || x.name || e, status, assigned, filled, quiz:filled ? q : null, autoKey, type,
         first:s['Первый вход'] || '', lastAt:s['Последний вход'] || '', last:daysAgo(s['Последний вход']), hasPw:s['Пароль задан'] === 'да',
         recs:s['Комментарий куратора'] || '', note:s['Заметка куратора'] || '', curator:s['Куратор'] || '',
@@ -1835,7 +1889,8 @@ const Adm = (() => {
         red:filled ? (q.redFlags || []) : [], photo:!!(filled && q.photo), state:normState(s.state), start,
         day:assigned && start ? dayNum(new Date(start).getTime()) : 0, events:evs[e] || [], paidOnly:!!x.paidOnly,
         tariff:s['Тариф'] || 'Общий', ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
-        msgs:(msgs[e] || []).slice().sort((a, b) => tsOf(a) - tsOf(b)) };
+        msgs:(msgs[e] || []).slice().sort((a, b) => tsOf(a) - tsOf(b)),
+        cur:String(s['Закреплён за'] || '').trim().toLowerCase(), access:s.access || null };
     }).sort((a, b) => (b.lastAt || '').localeCompare(a.lastAt || ''));
   }
   const stageOf = c => c.paidOnly || !c.first ? 0 : !c.filled ? 1 : 3;
@@ -1843,6 +1898,18 @@ const Adm = (() => {
   function autoL(c, k){ if (!c.type || !c.filled) return []; if (!c._R) c._R = buildResult(c.type, c.quiz, hidden()); return c._R[k] || []; }
   function eff(c, k){ if (!c.type || !c.filled) return []; if (!c._E) c._E = applyOv(buildResult(c.type, c.quiz, hidden()), c.ov); return c._E[k] || []; }
   const ovCount = c => (c.ov.add || []).length + (c.ov.rm || []).length;
+  // кураторы
+  const curators = () => ((D && D.students) || []).filter(s => isStaff({ role:s['Роль'] })).map(s => ({ email:String(s['Email']).trim().toLowerCase(), name:s['Имя'] || s['Email'] }));
+  const meEmail = () => String(S.user.email || '').trim().toLowerCase();
+  const curName = e => { if (!e) return ''; const c = curators().find(x => x.email === e); return c ? c.name : e; };
+  const curChip = c => c.paidOnly ? '' : c.cur ? `<span class="chip ${c.cur === meEmail() ? 'd' : ''}">${c.cur === meEmail() ? 'мой' : esc(curName(c.cur))}</span>` : `<span class="chip g">свободна</span>`;
+  const curFilter = list => CF.cur === 'all' ? list : CF.cur === 'me' ? list.filter(c => c.cur === meEmail()) : CF.cur === 'free' ? list.filter(c => !c.cur && !c.paidOnly) : list.filter(c => c.cur === CF.cur);
+  const curSeg = () => { const b = (v, t) => `<button class="${CF.cur === v ? 'on' : ''}" data-a="curf" data-v="${esc(v)}">${t}</button>`;
+    const others = curators().filter(x => x.email !== meEmail());
+    return `<span class="seg">${b('all','Все')}${b('me','Мои · ' + C.filter(c => c.cur === meEmail()).length)}${b('free','Свободные · ' + C.filter(c => !c.cur && !c.paidOnly).length)}</span>
+      ${others.length ? `<select class="inp" id="curF" style="min-height:38px"><option value="">Куратор…</option>${others.map(x => `<option value="${esc(x.email)}" ${CF.cur === x.email ? 'selected' : ''}>${esc(x.name)} · ${C.filter(c => c.cur === x.email).length}</option>`).join('')}</select>` : ''}`; };
+  const closedC = c => !!(c.access && c.access.closed);
+  const extC = c => !!(c.access && c.access.ext);
   // ИИ
   const aiReady = c => c.ai && c.ai.status === 'готово' && c.ai.protocol;
   const aiK = c => aiReady(c) ? aiKeyOf(c.ai.protocol) : null;
@@ -1861,6 +1928,7 @@ const Adm = (() => {
   const pctOf = (a, b) => b ? Math.round(a/b*100) : 0;
   function status(c){
     const s = stageOf(c);
+    if (!c.paidOnly && closedC(c)) return `<span class="st o">Доступ закрыт</span>`;
     if (s < 3) return `<span class="st o">${s === 0 ? 'Не заходил(а)' : 'Анкета не заполнена'}</span>`;
     const f = flowOf(c);
     if (f === 'photo') return `<span class="st w">Ждём фото языка</span>`;
@@ -1921,7 +1989,7 @@ const Adm = (() => {
     const withAuto = asg.filter(c => c.autoKey), match = withAuto.filter(c => c.autoKey === c.type).length;
     const lp = AV.lp || 'slow';
     const lessons = CAT.lessons.filter(l => l.core ? lp === 'core' : (l.types || []).includes(lp)).slice().sort((a, b) => a.w - b.w);
-    return `<div class="head"><div><h1>Обзор программы</h1><p class="muted" style="margin:0">Данные на ${fmt(Date.now())}${CFG.START_DATE ? ` · старт потока ${fmt(CFG.START_DATE)}` : ''}</p></div></div>
+    return `<div class="head"><div><h1>Обзор программы</h1><p class="muted" style="margin:0">Данные на ${fmt(Date.now())}${D.settings && D.settings.start ? ` · старт потока ${fmt(D.settings.start)} · доступ ${D.settings.accessDays} дней, до ${fmt(new Date(dayStart(D.settings.start) + (D.settings.accessDays - 1) * DAY))}` : ' · старт потока не задан — отсчёт от назначения протокола'}</p></div></div>
     <div class="panel todo" style="margin-bottom:16px"><h2><span>Нужно сделать</span></h2><div class="todo-g">
       <button class="tdi" data-a="navq" data-st="review"><b>${C.filter(c => flowOf(c) === 'review').length}</b><span>ждут проверки и назначения протокола</span></button>
       <button class="tdi" data-a="navq" data-st="photo"><b>${C.filter(c => flowOf(c) === 'photo').length}</b><span>ждём фото языка</span></button>
@@ -1931,6 +1999,9 @@ const Adm = (() => {
       <button class="tdi ${red.length ? 'w' : ''}" data-a="navq" data-st="red"><b>${red.length}</b><span>с красными флагами</span></button>
       <button class="tdi" data-a="navq" data-st="idle"><b>${idle.length}</b><span>не заходят 5+ дней</span></button>
       <button class="tdi" data-a="navq" data-st="noform"><b>${C.filter(c => !c.filled).length}</b><span>ещё не заполнили анкету</span></button>
+      <button class="tdi" data-a="navcur" data-v="free"><b>${C.filter(c => !c.cur && !c.paidOnly).length}</b><span>без куратора</span></button>
+      <button class="tdi" data-a="navcur" data-v="me"><b>${C.filter(c => c.cur === meEmail()).length}</b><span>закреплены за мной</span></button>
+      <button class="tdi" data-a="navq" data-st="closed"><b>${C.filter(c => !c.paidOnly && closedC(c)).length}</b><span>доступ закрыт · продлили ${C.filter(extC).length}</span></button>
     </div></div>
     <div class="grid g4" style="margin-bottom:16px">
       <div class="panel kpi"><b>${n}</b><span>получили доступ</span></div>
@@ -1981,19 +2052,23 @@ const Adm = (() => {
     if (CF.st === 'ai') list = list.filter(c => flowOf(c) !== 'assigned' && aiOpen(c));
     if (CF.st === 'ind') list = list.filter(c => c.tariff === TARIFF_IND);
     if (CF.st === 'edited') list = list.filter(c => ovCount(c));
+    if (CF.st === 'closed') list = list.filter(c => !c.paidOnly && closedC(c));
+    if (CF.st === 'ext') list = list.filter(extC);
+    list = curFilter(list);
     if (CF.type !== 'all') list = list.filter(c => c.filled && c.type === CF.type);
     const seg = (k, v, t) => `<button class="${CF[k] === v ? 'on' : ''}" data-a="cf" data-k="${k}" data-v="${v}">${t}</button>`;
     return `<div class="head"><div><h1>${CF.st === 'review' ? 'Проверка назначений' : 'Клиенты'}</h1><p class="muted" style="margin:0">Нажмите на строку, чтобы открыть карточку</p></div><button class="btn ghost" data-a="addOpen">+ Добавить учениц</button></div>
     <div class="tools"><input class="inp" id="cq" placeholder="Имя или email" value="${esc(CF.q)}" style="flex:1 1 220px">
-      <span class="seg">${seg('st','all','Все')}${seg('st','review','Ждут проверки')}${seg('st','photo','Нет фото языка')}${seg('st','ai','Расхождение с ИИ')}${seg('st','ind','Индивидуальный')}${seg('st','edited','С правками')}${seg('st','red','Красный флаг')}${seg('st','idle','Давно не заходят')}${seg('st','noform','Без анкеты')}</span>
-      <span class="seg">${seg('type','all','Все типы')}${Object.keys(TYPES).map(k => seg('type', k, TYPES[k].short)).join('')}</span></div>
-    <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Статус</th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
+      <span class="seg">${seg('st','all','Все')}${seg('st','review','Ждут проверки')}${seg('st','photo','Нет фото языка')}${seg('st','ai','Расхождение с ИИ')}${seg('st','ind','Индивидуальный')}${seg('st','edited','С правками')}${seg('st','closed','Доступ закрыт')}${seg('st','ext','Продлили')}${seg('st','red','Красный флаг')}${seg('st','idle','Давно не заходят')}${seg('st','noform','Без анкеты')}</span>
+      <span class="seg">${seg('type','all','Все типы')}${Object.keys(TYPES).map(k => seg('type', k, TYPES[k].short)).join('')}</span>
+      ${curSeg()}</div>
+    <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th>Статус</th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
     ${list.map(c => { const lp = lessonPct(c), wt = c.assigned ? weekTrack(c, curWeekC(c)) : null;
-      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${status(c)}</td>
+      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td>
       <td>${c.filled && c.type ? `<span class="chip">${TYPES[c.type].short}</span>${c.assigned ? '' : ' <span class="small muted">авто</span>'}` : `<span class="muted">—</span>`}</td>
       <td>${c.assigned ? `<span class="mini"><span class="pb"><i style="width:${lp}%"></i></span>${lp}%</span>` : '—'}</td>
       <td>${wt ? `<span class="mini"><span class="pb"><i style="width:${wt.p}%"></i></span>${wt.p}%</span>` : '—'}</td>
- <td>${lastTxt(c.last)}</td><td>${ovCount(c) ? `<span class="chip m">${ovCount(c)}</span>` : ''}</td></tr>`; }).join('') || `<tr><td colspan="7" class="muted">Никого не нашлось. Измените фильтры или поиск.</td></tr>`}
+ <td>${lastTxt(c.last)}</td><td>${ovCount(c) ? `<span class="chip m">${ovCount(c)}</span>` : ''}</td></tr>`; }).join('') ||  `<tr><td colspan="8" class="muted">Никого не нашлось. Измените фильтры или поиск.</td></tr>`}
     </tbody></table></div>`;
   }
 
@@ -2004,6 +2079,8 @@ const Adm = (() => {
     const initials = c.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
     const head = `<button class="btn lnk" data-a="nav" data-s="clients" style="margin-bottom:10px">← Все клиенты</button>
     <div class="ch"><div class="who"><span class="av">${esc(initials)}</span><div><h1 style="margin:0">${esc(c.name)}</h1><p class="muted" style="margin:0">${esc(c.email)}${c.paidOnly ? ' · из выгрузки GetCourse' : ''}</p>
+    ${c.paidOnly ? '' : `<div class="row2" style="align-items:center;margin-top:6px"><label class="small muted">Куратор: <select id="curSel" class="sel" style="width:auto;display:inline-block;padding:4px 10px"><option value="">— свободна —</option>${curators().map(x => `<option value="${esc(x.email)}" ${x.email === c.cur ? 'selected' : ''}>${esc(x.name)}${x.email === meEmail() ? ' (я)' : ''}</option>`).join('')}</select></label>
+      ${c.cur !== meEmail() ? `<button class="btn sm mag" data-a="assignMe">Закрепить за мной</button>` : ''}</div>`}
     ${c.paidOnly ? '' : `<label class="small muted">Тариф: <select id="tariff" class="sel" style="width:auto;display:inline-block;padding:4px 10px">${['Общий', TARIFF_IND].map(t => `<option ${t === c.tariff ? 'selected' : ''}>${t}</option>`).join('')}</select></label>`}</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${status(c)}
       ${c.assigned ? `<button class="btn ghost sm" data-a="asStudent">Кабинет её глазами</button>` : ''}
@@ -2011,7 +2088,7 @@ const Adm = (() => {
       <button class="btn ghost sm" data-a="resetProg" ${c.assigned ? '' : 'disabled'}>Сбросить прогресс</button>
       <button class="btn ghost sm" data-a="resetPw" ${c.hasPw ? '' : 'disabled'}>Сбросить пароль</button></div></div>`;
     if (!c.filled) return head + `<div class="panel"><h2><span>Анкета не заполнена</span></h2><p>${c.paidOnly ? 'Ученица ещё не заходила в кабинет. Её e-mail есть в выгрузке оплативших из GetCourse — карточка появится в листе «Ученики» при первом входе.' : stageOf(c) === 0 ? 'Ученица ещё не заходила в кабинет.' : `Ученица вошла в кабинет${c.first ? ' ' + fmtDT(c.first) : ''}, но анкету ещё не отправила.`}</p>
-      <p class="small muted" style="margin:0">Пароль ${c.hasPw ? 'задан' : 'ещё не задан'}.</p></div>${c.paidOnly ? '' : chatPanel(c) + `<div style="margin-top:16px">${histBlock(c)}</div>`}`;
+      <p class="small muted" style="margin:0">Пароль ${c.hasPw ? 'задан' : 'ещё не задан'}. Доступ: ${accessTxt(c)}.</p></div>${c.paidOnly ? '' : chatPanel(c) + `<div style="margin-top:16px">${histBlock(c)}</div>`}`;
     const a = c.quiz, last = c.state.checks[c.state.checks.length-1], sc = a.scores || {}, p = a.personal || {};
     const tab = AV.tab || 'lessons';
     const tabs = [['lessons','Уроки'],['practices','Практики'],['spices','Специи'],['phyto','Фитосоставы']];
@@ -2030,6 +2107,7 @@ const Adm = (() => {
         <dt>Анкета</dt><dd>${c.filledAt ? fmt(c.filledAt) : '—'}</dd>
         ${c.assigned ? `<dt>День</dt><dd>${Math.min(c.day, CAL.programDays)} из ${CAL.programDays}</dd>` : ''}
         <dt>Вход</dt><dd>${lastTxt(c.last)}</dd>
+        <dt>Доступ</dt><dd>${accessTxt(c)}</dd>
         <dt>Данные</dt><dd>${[p.age && p.age + ' лет', p.height && p.weight && p.height + ' см / ' + p.weight + ' кг', p.bmi && 'ИМТ ' + p.bmi].filter(Boolean).join(' · ') || '—'}</dd>
         <dt>Цели</dt><dd>${esc(a.goals || '—')}</dd>
         <dt>Убрать из меню</dt><dd>${esc([].concat(a.excluded || [], a.productsOther ? [a.productsOther] : []).join(', ') || 'ничего')}</dd>
@@ -2060,6 +2138,8 @@ const Adm = (() => {
       ${histBlock(c)}
     </div>`;
   }
+  function accessTxt(c){ const a = c.access; if (!a || !a.end) return 'срок ещё не начался';
+    return `${a.closed ? 'закрыт с ' + fmt(a.end) : 'до ' + fmt(a.last) + ' · осталось ' + a.left + ' ' + plural(a.left, ['день','дня','дней'])}${a.ext ? ` · продлений: ${a.ext}` : ''}${MODE === 'demo' ? ` <button class="btn lnk" data-a="demoExtend" style="padding:0">+ продление (демо)</button>` : ''}`; }
   function photoBox(c){
     return c.photo ? `<div id="photo-box"><div class="photo-ph"><span>Загружаем фото…</span></div></div>`
       : `<div class="photo-ph miss"><span><b>Фото языка ещё не загружено</b><br><small>Ученица видит карточку загрузки в кабинете</small></span></div>`;
@@ -2150,16 +2230,18 @@ const Adm = (() => {
   function clientComments(c){ const list = threads().filter(t => t.c === c); if (!list.length) return '';
     return `<div class="panel" style="margin-top:16px"><h2><span>Вопросы под уроками</span></h2>${list.map(t => commentItem(t, false)).join('')}</div>`; }
   function comments(){
-    const f = AV.cf || 'open', all = threads(), list = (f === 'open' ? openThreads() : all).slice().sort((a, b) => tsOf(b.list[b.list.length-1]) - tsOf(a.list[a.list.length-1]));
+    const f = AV.cf || 'open', inCur = t => curFilter([t.c]).length > 0, all = threads().filter(inCur), list = (f === 'open' ? openThreads().filter(inCur) : all).slice().sort((a, b) => tsOf(b.list[b.list.length-1]) - tsOf(a.list[a.list.length-1]));
     return `<div class="head"><div><h1>Комментарии под уроками</h1><p class="muted" style="margin:0">Ответ появляется под уроком у ученицы</p></div>
     <span class="seg"><button class="${f === 'open' ? 'on' : ''}" data-a="cmf" data-v="open">Без ответа · ${openThreads().length}</button><button class="${f === 'all' ? 'on' : ''}" data-a="cmf" data-v="all">Все · ${all.length}</button></span></div>
+    <div class="tools">${curSeg()}</div>
     ${list.length ? list.map(t => commentItem(t, true)).join('') : `<div class="panel"><p style="margin:0">${f === 'open' ? 'Все комментарии отвечены.' : 'Комментариев пока нет.'}</p></div>`}`;
   }
   function chats(){
-    const list = chatClients().sort((a, b) => unreadOf(b) - unreadOf(a) || (chatOf(b).length ? tsOf(chatOf(b).slice(-1)[0]) : 0) - (chatOf(a).length ? tsOf(chatOf(a).slice(-1)[0]) : 0));
+    const list = curFilter(chatClients()).sort((a, b) => unreadOf(b) - unreadOf(a) || (chatOf(b).length ? tsOf(chatOf(b).slice(-1)[0]) : 0) - (chatOf(a).length ? tsOf(chatOf(a).slice(-1)[0]) : 0));
     return `<div class="head"><div><h1>Чаты</h1><p class="muted" style="margin:0">Индивидуальный тариф — всегда; общий — если куратор написал первым. Сначала — чаты с новыми сообщениями.</p></div></div>
+    <div class="tools">${curSeg()}</div>
     <div class="cat">${list.map(c => { const m = chatOf(c), l = m[m.length-1], u = unreadOf(c);
-      return `<button class="ci" data-a="openChat" data-id="${esc(c.email)}"><span><b>${esc(c.name)}</b> ${c.tariff === TARIFF_IND ? '<span class="chip m">инд.</span>' : ''}<span class="tg"><span class="small muted">${l ? (l.from === 'cu' ? 'Вы: ' : '') + esc(l.text.slice(0, 90)) + (l.text.length > 90 ? '…' : '') : 'Сообщений пока нет'}</span></span></span><span class="cnt">${u ? `<span class="chip r">${u} нов.</span>` : ''}${l ? `<br>${fmtDT(l.at)}` : ''}</span></button>`; }).join('') || '<p class="muted">Чатов пока нет. Индивидуальный тариф отмечается в карточке ученицы.</p>'}</div>`;
+      return `<button class="ci" data-a="openChat" data-id="${esc(c.email)}"><span><b>${esc(c.name)}</b> ${c.tariff === TARIFF_IND ? '<span class="chip m">инд.</span>' : ''} ${curChip(c)}<span class="tg"><span class="small muted">${l ? (l.from === 'cu' ? 'Вы: ' : '') + esc(l.text.slice(0, 90)) + (l.text.length > 90 ? '…' : '') : 'Сообщений пока нет'}</span></span></span><span class="cnt">${u ? `<span class="chip r">${u} нов.</span>` : ''}${l ? `<br>${fmtDT(l.at)}` : ''}</span></button>`; }).join('') || '<p class="muted">Чатов пока нет. Индивидуальный тариф отмечается в карточке ученицы.</p>'}</div>`;
   }
   function picker(){
     const c = C.find(x => x.email === AV.id), k = AV.pk || AV.tab || 'lessons', q = (AV.pq || '').toLowerCase();
@@ -2256,6 +2338,8 @@ const Adm = (() => {
   function click(e, b, a){
     const c = AV.s === 'client' ? C.find(x => x.email === AV.id) : null;
     if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
+    if (a === 'curf') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); return render(true); }
+    if (a === 'navcur') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); CF.st = 'all'; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
     if (a === 'navq') { CF.st = b.dataset.st; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
     if (a === 'lp') { AV.lp = b.dataset.v; return render(true); }
     if (a === 'open') { closeDr(); AV = { s:'client', id:b.dataset.id, tab:'lessons' }; render(); return window.scrollTo(0,0); }
@@ -2287,6 +2371,8 @@ const Adm = (() => {
     if (a === 'preview') { U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (a === 'asStudent' && c) { U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (!c) return;
+    if (a === 'assignMe') return act(() => api('assignCurator', { token:S.token, email:c.email, curator:meEmail() }), 'Ученица закреплена за вами');
+    if (a === 'demoExtend') return act(() => api('demoExtend', { token:S.token, email:c.email }), 'Продление добавлено (демо)');
     if (a === 'chatSend') { const text = ($('#chatIn').value || '').trim(); if (!text) return toast('Напишите сообщение');
       return act(() => api('reply', { token:S.token, email:c.email, lessonId:'', text }), 'Сообщение отправлено'); }
     if (a === 'addMat') { AV.pk = AV.tab || 'lessons'; AV.pq = ''; return openDr(picker()); }
@@ -2314,6 +2400,9 @@ const Adm = (() => {
       return act(() => api('resetPassword', { token:S.token, email:c.email }), 'Пароль сброшен'); }
   }
   function change(e){
+    if (e.target.id === 'curF') { CF.cur = e.target.value || 'all'; LS.set('hz_curf', CF.cur); return render(true); }
+    if (e.target.id === 'curSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); const v = e.target.value;
+      return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : 'Ученица откреплена'); }
     if (e.target.id === 'tariff' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); return act(() => api('setTariff', { token:S.token, email:c.email, tariff:e.target.value }), 'Тариф сохранён'); }
     if (e.target.id !== 'proto' || AV.s !== 'client') return;
     const c = C.find(x => x.email === AV.id); if (!c || !c.assigned) return;
