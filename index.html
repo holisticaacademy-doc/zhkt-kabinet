@@ -335,6 +335,121 @@ table.wg td.tdc{background:var(--lav)!important}
 }
 
 /* ── дополнения платформы ── */
+/* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
+.dtop .dt-b .cal{margin-top:16px}
+@media (min-width:900px){
+  .dtop{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,44%);gap:32px;align-items:center;padding:16px 26px;margin:18px 0}
+  .dtop .sub{margin-bottom:2px}
+  .dtop h1{font-size:21px;margin:0 0 6px}
+  .dtop .dt-b .cal{margin-top:0}
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 12px}
+  .duo>*{margin:0!important;height:100%}
+  .duo .today{display:flex;flex-direction:column;justify-content:center}
+}
+@media (min-width:1100px){
+  body.wide .wrap,body.wide .bar .in{max-width:1760px;padding-left:32px;padding-right:32px}
+  .lay{display:grid;grid-template-columns:minmax(0,8fr) minmax(340px,4fr);gap:28px;align-items:start}
+  .lay-side{position:sticky;top:72px;margin-top:18px;max-height:calc(100vh - 88px);overflow:auto;scrollbar-width:thin;padding-bottom:12px}
+  .lay-main>h1:first-child{margin-top:22px}
+  .c2-mob{display:none}
+  body.wide .pvbar{max-width:1100px}
+}
+@media (max-width:1099px){.lay-side{display:none}}
+
+/* ── боковая панель навигации ── */
+@media (max-width:520px){body.wide .bar .prog{display:none}body.wide .bar .out-btn{margin-left:auto}}
+.bar .burger{margin-right:-4px}
+.snav{position:fixed;z-index:31;left:0;top:0;bottom:0;width:min(320px,86vw);background:var(--surface);border-right:1px solid var(--line);
+  overflow-y:auto;overscroll-behavior:contain;transform:translateX(-105%);transition:transform .22s ease;box-shadow:0 10px 40px rgba(0,0,0,.18);scrollbar-width:thin}
+.snav.open{transform:none}
+.snav-bd{position:fixed;inset:0;z-index:30;background:rgba(8,28,22,.45);opacity:0;pointer-events:none;transition:opacity .2s}
+.snav-bd.on{opacity:1;pointer-events:auto}
+.srail{display:none}
+.sn-h{position:sticky;top:0;z-index:1;background:var(--surface);display:flex;align-items:center;gap:6px;padding:12px 12px 8px 16px;border-bottom:1px solid var(--line)}
+.sn-ttl{font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--grey);margin-right:auto}
+.sn-pin,.sn-x{border:none;background:var(--mint-pale);width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--ink);padding:0}
+.sn-pin svg{width:18px;height:18px}.sn-pin{display:none}
+.sn-b{padding:8px 8px 40px}
+.sn-l,.sn-sh{display:flex;align-items:center;gap:10px;width:100%;border:none;background:none;padding:9px 10px;border-radius:10px;text-align:left;font-weight:700;font-size:14px;color:inherit;text-decoration:none}
+.sn-l:hover,.sn-sh:hover,.sn-wh:hover,.sn-i:hover{background:var(--mint-pale)}
+.sn-l.cur{background:var(--mint-pale);color:var(--e)}
+.sn-ic{width:22px;height:22px;display:grid;place-items:center;color:var(--e);flex:0 0 22px}.sn-ic svg{width:20px;height:20px}
+.sn-t{flex:1;min-width:0}
+.sn-c{font-size:11.5px;font-weight:700;color:var(--grey);font-variant-numeric:tabular-nums}.sn-c.m{background:var(--mag);color:#fff;border-radius:999px;padding:1px 7px}
+.sn-ch{display:grid;place-items:center;color:var(--grey);transition:transform .15s}.sn-ch svg{width:14px;height:14px}
+.sn-sec.on>.sn-sh .sn-ch,.sn-wk.on>.sn-wh .sn-ch{transform:rotate(90deg)}
+.sn-lk{display:grid;place-items:center;color:var(--grey)}.sn-lk svg{width:14px;height:14px}
+.sn-sb{padding:0 0 6px 18px}
+.sn-wh{display:flex;align-items:center;gap:8px;width:100%;border:none;background:none;padding:7px 10px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:700;color:var(--mag)}
+.sn-wh span:first-child{flex:1;min-width:0}
+.sn-wb{padding:0 0 4px}
+.sn-i{display:flex;align-items:flex-start;gap:8px;width:100%;border:none;background:none;padding:6px 10px;border-radius:9px;text-align:left;font-size:13px;line-height:1.35;color:inherit}
+.sn-i.cur{background:var(--mint-pale);font-weight:700}
+.sn-i.lock{color:var(--grey);cursor:default}.sn-i.lock:hover{background:none}
+.sn-st{flex:0 0 16px;height:16px;margin-top:1px;border-radius:50%;border:2px solid var(--mint-bd);display:grid;place-items:center;font-style:normal}
+.sn-st.ok{background:var(--lime);border-color:var(--lime);color:#fff}.sn-st.ok svg{width:10px;height:10px}
+.sn-st.lk{border:none;color:var(--grey)}.sn-st.lk svg{width:13px;height:13px}
+.sn-bm{margin-left:auto;color:var(--mag);font-style:normal}.sn-bm svg{width:13px;height:13px}
+.sn-note{font-size:12px;color:var(--grey);padding:4px 10px 8px}
+.sn-gl{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--grey);padding:14px 10px 4px}
+.sn-cont{display:block;width:calc(100% - 4px);margin:4px 2px 8px;text-align:left;border:2px solid var(--mag);background:var(--surface);border-radius:12px;padding:9px 12px;color:inherit}
+.sn-cont small{display:block;color:var(--mag);font-weight:700;font-size:11.5px}.sn-cont b{display:block;font-size:13.5px;line-height:1.3}
+.sn-cont:hover{background:var(--lav)}
+.next.cont{border-color:var(--e)}.next.cont .ic{background:var(--e)}.next.cont small{color:var(--e)}
+.bmbtn{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:2px solid var(--mint-bd);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;font-weight:700;font-size:12.5px}
+.bmbtn svg{width:15px;height:15px}.bmbtn.on{border-color:var(--mag);color:var(--mag)}
+.meta{align-items:center}
+@media (min-width:1100px){
+  .bar .burger{display:none}
+  .sn-x{display:none}.sn-pin{display:grid}
+  body.navpin .snav{top:55px;width:280px;transform:none;box-shadow:none;z-index:4}
+  body.navpin .snav-bd{display:none}
+  body.navpin .wrap{margin-left:280px}
+  body.navrail .srail{display:flex;flex-direction:column;align-items:center;gap:4px;position:fixed;z-index:4;left:0;top:55px;bottom:0;width:64px;padding:12px 0;background:var(--surface);border-right:1px solid var(--line)}
+  body.navrail .wrap{margin-left:64px}
+  body.navrail .snav{top:55px;width:300px}
+  body.navrail .snav .sn-pin{display:grid}
+  .sr-b{width:42px;height:42px;border:none;background:none;border-radius:11px;display:grid;place-items:center;color:var(--e);padding:0}
+  .sr-b:hover{background:var(--mint-pale)}.sr-b svg{width:21px;height:21px}
+  .sr-sp{height:1px;width:28px;background:var(--line);margin:4px 0}
+  body.navpin.wide .wrap,body.navrail.wide .wrap{margin-right:auto}
+  body.navpin .pvbar{left:292px}
+}
+@media (prefers-reduced-motion:reduce){.snav,.snav-bd{transition:none}}
+/* ── календарь программы ── */
+.today .pb{display:block}
+.c2{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px 14px 10px}
+.c2-mob .c2{margin:0 0 16px}
+.c2-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.c2-h b{font-size:15px}
+.c2-h span{display:flex;gap:6px;flex:0 0 auto}
+.c2-nav{width:30px;height:30px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;padding:0;color:var(--ink)}
+.c2-nav:hover{border-color:var(--mint-bd)}.c2-nav svg{width:14px;height:14px;transform:rotate(180deg)}.c2-nav.nx svg{transform:none}
+.c2-wd,.c2-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center}
+.c2-wd span{font-size:11px;color:var(--grey);font-weight:700;padding:2px 0}
+.c2-d{position:relative;border:none;background:none;height:32px;border-radius:9px;font-size:13px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;padding:0}
+.c2-d:hover{background:var(--mint-pale)}
+.c2-d.c2-o{color:var(--grey);opacity:.55}
+.c2-d.has:after{content:'';position:absolute;left:50%;bottom:3px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--mag)}
+.c2-d.now{box-shadow:inset 0 0 0 1.5px var(--mint-bd)}
+.c2-d.sel{background:var(--e-dk);color:#fff}.c2-d.sel:after{background:#fff}
+.c2-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.c2-strip .c2-d{height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:15px;background:var(--soft)}
+.c2-strip .c2-d small{font-size:10.5px;color:var(--grey);font-weight:700;line-height:1}
+.c2-strip .c2-d.sel small{color:#CFE9DA}
+.c2-list{border-top:1px solid var(--line);margin-top:10px;padding-top:10px}
+.c2-lh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px}.c2-lh b{font-size:14px}.c2-lh .linkbtn{font-size:12.5px;padding:0}
+.c2-dh{font-size:12px;font-weight:700;color:var(--mag);margin:8px 0 2px}
+.c2-r{display:grid;grid-template-columns:42px minmax(0,1fr) 18px;gap:8px;align-items:center;width:100%;text-align:left;border:none;background:none;padding:7px 6px;border-radius:10px;color:inherit;text-decoration:none}
+button.c2-r:hover,a.c2-r:hover{background:var(--mint-pale)}
+.c2-t{font-size:12.5px;font-weight:700;color:var(--e);font-variant-numeric:tabular-nums}
+.c2-x{min-width:0}.c2-x b{display:block;font-size:13.5px;line-height:1.3;font-weight:600}
+.c2-x span{display:block;font-size:11.5px;color:var(--grey);margin-top:1px}
+.c2-s{display:grid;place-items:center}.c2-s svg{width:15px;height:15px;color:var(--grey)}.c2-s.ok svg{color:var(--lime)}
+.c2-r.lock .c2-x b{color:var(--grey)}
+.c2-r.web .c2-t{color:var(--mag)}
+.c2-more{border:none;background:none;color:var(--mag);font-weight:700;font-size:12.5px;padding:4px 6px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .c2-d.sel{background:var(--mint-bd);color:#0E211B}}
+
 [hidden]{display:none!important}
 .bar .out-btn{margin-left:6px}
 .bar .out-btn svg{width:17px;height:17px}
@@ -726,6 +841,7 @@ details.fold .ans{margin-top:0}
 <body>
 <div id="U">
   <div class="bar"><div class="in" id="bar"></div></div>
+  <div id="snav"></div>
   <main class="wrap" id="app" aria-live="polite"></main>
   <div id="pv"></div>
 </div>
@@ -908,6 +1024,7 @@ var QSTEPS = 16;
 // start — день старта (поток или назначение протокола); accessDays — дней доступа;
 // exts — даты оплат продлений (каждое даёт extDays: от конца доступа или от даты оплаты, если она позже);
 // until — ручная дата «Доступ до» (включительно), перекрывает расчёт.
+// endAt — общий момент закрытия доступа потока (ISO), заменяет start + accessDays.
 var DAY_MS = 864e5;
 function dayStart0(t) { var d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); }
 function parseDate0(x) {
@@ -920,8 +1037,9 @@ function parseDate0(x) {
 }
 function accessCalc(o) {
   var start = parseDate0(o.start);
-  if (!start && !o.until) return { end: '', last: '', closed: false, left: null, ext: 0 };
-  var end = start ? dayStart0(start) + (Number(o.accessDays) || 90) * DAY_MS : 0;
+  if (!start && !o.until && !o.endAt) return { end: '', last: '', closed: false, left: null, ext: 0 };
+  var endAt = o.endAt ? new Date(o.endAt).getTime() : 0;
+  var end = endAt || (start ? dayStart0(start) + (Number(o.accessDays) || 90) * DAY_MS : 0);
   var exts = (o.exts || []).map(parseDate0).sort(function (a, b) { return a - b; });
   exts.forEach(function (p) { end = Math.max(end, p ? dayStart0(p) : 0) + (Number(o.extDays) || 60) * DAY_MS; });
   var u = parseDate0(o.until);
@@ -1103,6 +1221,7 @@ const MODE = CFG.API_URL ? 'live' : 'demo';
 function plural(n,f){const a=n%10,b=n%100;return f[(a==1&&b!=11)?0:(a>=2&&a<=4&&(b<10||b>=20))?1:2]}
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2000)}
 function dayStart(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
+function fmtM(d){return new Date(d).toLocaleDateString('ru-RU',{day:'numeric',month:'long',timeZone:'Europe/Moscow'})}
 function fmt(d,o){return new Date(d).toLocaleDateString('ru-RU',o||{day:'numeric',month:'long'})}
 function fmtDT(d){ if(!d) return '—'; const x=new Date(d); return isNaN(x)?String(d):x.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+', '+x.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
 function daysAgo(d){ if(!d) return null; return Math.max(0, Math.floor((dayStart(Date.now())-dayStart(d))/DAY)); }
@@ -1110,6 +1229,11 @@ function keepY(fn){ const y=window.scrollY; fn(); window.scrollTo(0,y); }
 const supportLink = (cls='btn ghost full') => `<a class="${cls}" href="${esc(CFG.SUPPORT_URL)}" target="_blank" rel="noopener">Написать в службу заботы</a>`;
 
 const I = {
+ bmk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg>',
+ bmkf:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg>',
+ home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 12 4l8.5 6.5V20a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z"/></svg>',
+ burger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+ side:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/></svg>',
  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
  play:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z" fill="currentColor"/></svg>',
  leaf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14"/><path d="M5 19l7-7"/></svg>',
@@ -1237,7 +1361,7 @@ const Demo = (() => {
   const PHOTO = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360"><rect width="480" height="360" fill="#EAF5EE"/><ellipse cx="240" cy="200" rx="120" ry="130" fill="#E8A0A8"/><path d="M240 90v200" stroke="#C97C86" stroke-width="5"/><text x="240" y="40" font-family="Montserrat,Arial" font-size="20" font-weight="700" fill="#1E4D3E" text-anchor="middle">Фото языка · демо</text></svg>');
   function seed() {
     const db = { students: [], quizzes: {}, photos: {}, events: [], sessions: {}, paid: [], lessons: {}, messages: [], ai: {}, ext: {},
-      settings: { start: CFG.START_DATE || '', programDays: 49, accessDays: 90, extDays: 60, extendUrl: 'https://kurs.holistica.academy/',
+      settings: { start: CFG.START_DATE || '', programDays: 49, accessDays: 90, accessEnd: '2027-03-21T00:00:00+03:00', extDays: 60, extendUrl: 'https://kurs.holistica.academy/',
         chats: { slow:'https://t.me/', infl:'https://t.me/', sens:'https://t.me/', mix:'https://t.me/' } } };
     const msg = (email, lessonId, from, text, at) => db.messages.push({ at, email, lessonId:lessonId || '', lesson: lessonId ? byId(lessonId).t : '', from, who: from === 'cu' ? 'Куратор (демо)' : '', text });
     const add = (email, name, role='ученик') => { const s={'Email':email,'Имя':name,'Роль':role,'Статус':STS.none}; db.students.push(s); return s; };
@@ -1320,7 +1444,7 @@ const Demo = (() => {
   }
   function hash(x){ let h=5381; for(const c of x) h=((h<<5)+h+c.charCodeAt(0))|0; return 'd'+(h>>>0).toString(36); }
   function session(st){ const t='demo-'+Math.random().toString(36).slice(2); load().sessions[t]=st['Email']; if(!st['Первый вход']) st['Первый вход']=now(); st['Последний вход']=now(); log(st['Email'],'login'); return t; }
-  const accessOf = d => accessCalc({ start: load().settings.start || d['Дата подтверждения'] || d['Первый вход'], accessDays: load().settings.accessDays, extDays: load().settings.extDays, exts: load().ext[d['Email']] || [], until: d['Доступ до'] });
+  const accessOf = d => accessCalc({ start: load().settings.start || d['Дата подтверждения'] || d['Первый вход'], endAt: load().settings.accessEnd, accessDays: load().settings.accessDays, extDays: load().settings.extDays, exts: load().ext[d['Email']] || [], until: d['Доступ до'] });
   const openOnly = st => { if (!isStaff({role:st['Роль']}) && accessOf(st).closed) throw new Error('Доступ к программе закрыт'); };
   const pub = d => ({ access: accessOf(d), email:d['Email'], name:d['Имя'], role:d['Роль'], status:d['Статус']||STS.none, autoProtocol:d['Протокол авто']||'', protocol:d['Протокол итог']||'',
     recs:d['Комментарий куратора']||'', confirmedAt:d['Дата подтверждения']||'', filledAt:d['Дата анкеты']||'', hasPhoto:!!(load().quizzes[d['Email']]||{}).photo,
@@ -1416,7 +1540,7 @@ function useUI(w){
   $('#css-u').disabled = !u; $('#css-a').disabled = u;
   $('#U').hidden = !u; $('#A').hidden = u;
 }
-const freshState = () => ({ done:{}, track:{}, checks:[], lx:{}, seen:0, seenChat:0, seenL:{} });
+const freshState = () => ({ done:{}, track:{}, checks:[], lx:{}, seen:0, seenChat:0, seenL:{}, saved:{}, vp:{} });
 function normState(s){ s = s && typeof s === 'object' ? s : {}; const f = freshState(); for (const k in f) if (s[k] == null) s[k] = f[k]; return s; }
 
 async function loadMe(){
@@ -1576,6 +1700,87 @@ function webinarCard(W){
     ${w.url ? `<a class="btn ${live ? 'mag' : ''} full" href="${esc(w.url)}" target="_blank" rel="noopener" data-a="webinar">${live ? 'Подключиться к вебинару' : 'Перейти на вебинар'}</a>` : '<p style="margin:0;font-size:14px;opacity:.85">Ссылка на эфир появится здесь ближе к дате вебинара.</p>'}
     ${live ? '' : `<a class="wc-cal" href="${esc(cal)}" target="_blank" rel="noopener">Добавить в календарь</a>`}</div>`;
 }
+// ── Календарь программы: что и когда открывается ──
+// Десктоп — месяц справа; мобильный — лента по неделям на главной. По умолчанию — ближайшие 7 дней.
+let RENDER_N = 0;
+const CALST = { m: '', w: 0, sel: '', exp: {} };
+const MSK = 3 * 36e5;
+const mskKey = ms => new Date(ms + MSK).toISOString().slice(0, 10);
+const keyMs = k => Date.parse(k + 'T00:00:00Z') - MSK;            // полночь по Москве
+const hmOf = ms => new Date(ms + MSK).toISOString().slice(11, 16);
+const WD = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+function calEvents(){
+  if (calEvents.c && calEvents.c.n === RENDER_N) return calEvents.c.e;
+  const ev = [], r = RES();
+  r.lessons.map(byId).forEach(l => { const at = lessonOpenAt(l); if (at) ev.push({ at, t: l.t, sub: menuWeekOf(l) ? 'Меню недели' : (l.w === 7 ? 'Бонус' : l.w === 0 ? 'Перед стартом' : (l.d || 'Урок')), id: l.id, kind: menuWeekOf(l) ? 'menu' : 'lesson' }); });
+  const w = webinar(), wa = new Date(w.at).getTime(); if (wa) ev.push({ at: wa, t: w.title, sub: 'Вебинар', kind: 'web', url: w.url });
+  const f = finalWebinar(), fa = new Date(f.at).getTime(); if (fa) ev.push({ at: fa, t: f.title, sub: 'Вебинар', kind: 'web', url: f.url });
+  FB_KEYS.forEach(k => { const at = fbOpenAt(k, SCHED()); if (at) ev.push({ at, t: FB_TITLE[k], sub: 'Анкета обратной связи', kind: 'fb', k }); });
+  ev.sort((a, b) => a.at - b.at || (a.kind === 'web' ? -1 : 0));
+  calEvents.c = { n: RENDER_N, e: ev };
+  return ev;
+}
+function calOpen(e){ return U.preview || CFG.OPEN_ALL_WEEKS || Date.now() >= e.at; }
+function calRow(e){
+  const op = calOpen(e), done = e.id && U.st.done[e.id], tm = e.kind === 'web' || hmOf(e.at) !== '00:00' ? hmOf(e.at) : '';
+  const ic = done ? I.check : op ? '' : I.lock;
+  const inner = `<span class="c2-t">${tm || '—'}</span><span class="c2-x"><b>${esc(e.t)}</b><span>${esc(e.sub)}${!op ? ' · откроется' : done ? ' · пройдено' : ''}</span></span><span class="c2-s${done ? ' ok' : ''}">${ic}</span>`;
+  if (e.kind === 'web') return e.url && Date.now() < e.at + 3 * 36e5 ? `<a class="c2-r web" href="${esc(e.url)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="c2-r web">${inner}</div>`;
+  if (!op) return `<div class="c2-r lock">${inner}</div>`;
+  if (e.kind === 'fb') return fbDone()[e.k] ? `<div class="c2-r">${inner}</div>` : `<button class="c2-r" data-a="fb" data-k="${e.k}">${inner}</button>`;
+  return `<button class="c2-r" data-a="open" data-id="${e.id}">${inner}</button>`;
+}
+function calDayHead(k){ const d = new Date(keyMs(k) + MSK + 12 * 36e5); return `${WD[d.getUTCDay()]}, ${d.toLocaleDateString('ru-RU', { day:'numeric', month:'long', timeZone:'UTC' })}`; }
+function calList(){
+  const ev = calEvents(), groups = {};
+  let title, list;
+  if (CALST.sel) { title = calDayHead(CALST.sel); list = ev.filter(e => mskKey(e.at) === CALST.sel); }
+  else {
+    const a = keyMs(mskKey(Date.now())), b = a + 7 * DAY;
+    list = ev.filter(e => e.at >= a && e.at < b); title = 'Ближайшие 7 дней';
+    if (!list.length) { list = ev.filter(e => e.at >= b).slice(0, 6); title = 'Скоро откроется'; }
+  }
+  list.forEach(e => { const k = mskKey(e.at); (groups[k] = groups[k] || []).push(e); });
+  const body = Object.keys(groups).map(k => {
+    const g = groups[k], open = CALST.exp[k] || g.length <= 5, shown = open ? g : g.slice(0, 4);
+    return `<div class="c2-g">${CALST.sel ? '' : `<div class="c2-dh">${calDayHead(k)}${k === mskKey(Date.now()) ? ' · сегодня' : ''}</div>`}${shown.map(calRow).join('')}${open ? '' : `<button class="c2-more" data-a="calX" data-k="${k}">Ещё ${g.length - 4} ${plural(g.length - 4, ['урок','урока','уроков'])}</button>`}</div>`;
+  }).join('');
+  return `<div class="c2-list"><div class="c2-lh"><b>${title}</b>${CALST.sel ? '<button class="linkbtn" data-a="calD" data-k="">Ближайшие</button>' : ''}</div>
+    ${body || '<p class="muted small" style="margin:6px 0 0">В этот день ничего нового не открывается.</p>'}</div>`;
+}
+function calDayBtn(k, cls, label, sub){
+  const has = calEvents().some(e => mskKey(e.at) === k), today = k === mskKey(Date.now());
+  return `<button class="c2-d${cls}${today ? ' now' : ''}${k === CALST.sel ? ' sel' : ''}${has ? ' has' : ''}" data-a="calD" data-k="${k}" aria-pressed="${k === CALST.sel}" aria-label="${calDayHead(k)}${has ? ', есть события' : ''}">${sub ? `<small>${sub}</small>` : ''}${label}</button>`;
+}
+// месяц (правая колонка на десктопе)
+function calMonth(){
+  const ym = CALST.m || (CALST.sel || mskKey(Date.now())).slice(0, 7), [Y, M] = ym.split('-').map(Number);
+  const first = Date.UTC(Y, M - 1, 1), lead = (new Date(first).getUTCDay() + 6) % 7, days = new Date(Date.UTC(Y, M, 0)).getUTCDate();
+  let cells = '';
+  const cnt = Math.ceil((lead + days) / 7) * 7;
+  for (let i = 0; i < cnt; i++) { const d = new Date(first + (i - lead) * DAY), k = d.toISOString().slice(0, 10); cells += calDayBtn(k, d.getUTCMonth() !== M - 1 ? ' c2-o' : '', d.getUTCDate()); }
+  const name = new Date(first).toLocaleDateString('ru-RU', { month:'long', year:'numeric', timeZone:'UTC' }).replace(' г.', '');
+  return `<section class="c2 c2-month" aria-label="Календарь программы"><div class="c2-h"><b>${name[0].toUpperCase() + name.slice(1)}</b>
+    <span><button class="c2-nav" data-a="calM" data-d="-1" aria-label="Предыдущий месяц">${I.chev}</button><button class="c2-nav nx" data-a="calM" data-d="1" aria-label="Следующий месяц">${I.chev}</button></span></div>
+    <div class="c2-wd">${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(x => `<span>${x}</span>`).join('')}</div><div class="c2-grid">${cells}</div>${calList()}</section>`;
+}
+// неделя (мобильная лента на главной)
+function calWeek(){
+  const base = CALST.w || (() => { const t = keyMs(CALST.sel || mskKey(Date.now())), wd = (new Date(t + MSK).getUTCDay() + 6) % 7; return t - wd * DAY; })();
+  let s = ''; for (let i = 0; i < 7; i++) { const ms = base + i * DAY + 12 * 36e5, k = mskKey(ms); s += calDayBtn(k, '', new Date(ms + MSK).getUTCDate(), ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'][i]); }
+  const a = new Date(base + MSK + 12 * 36e5), b = new Date(base + 6 * DAY + MSK + 12 * 36e5);
+  const rng = a.getUTCMonth() === b.getUTCMonth() ? `${a.getUTCDate()}–${b.toLocaleDateString('ru-RU', { day:'numeric', month:'long', timeZone:'UTC' })}` : `${a.toLocaleDateString('ru-RU', { day:'numeric', month:'short', timeZone:'UTC' })} – ${b.toLocaleDateString('ru-RU', { day:'numeric', month:'short', timeZone:'UTC' })}`;
+  return `<section class="c2 c2-week" aria-label="Календарь программы"><div class="c2-h"><b>Календарь · ${rng}</b>
+    <span><button class="c2-nav" data-a="calW" data-d="-1" data-b="${base}" aria-label="Предыдущая неделя">${I.chev}</button><button class="c2-nav nx" data-a="calW" data-d="1" data-b="${base}" aria-label="Следующая неделя">${I.chev}</button></span></div>
+    <div class="c2-strip">${s}</div>${calList()}</section>`;
+}
+function calClick(b, a){
+  if (a === 'calD') { const k = b.dataset.k; CALST.sel = CALST.sel === k ? '' : k; if (k) CALST.m = k.slice(0, 7); }
+  if (a === 'calM') { const ym = CALST.m || (CALST.sel || mskKey(Date.now())).slice(0, 7), [Y, M] = ym.split('-').map(Number), d = new Date(Date.UTC(Y, M - 1 + +b.dataset.d, 1)); CALST.m = d.toISOString().slice(0, 7); }
+  if (a === 'calW') CALST.w = +b.dataset.b + +b.dataset.d * 7 * DAY;
+  if (a === 'calX') CALST.exp[b.dataset.k] = 1;
+  keepY(render);
+}
 const curWeek = () => { let w = 1; for (let i = 1; i <= 6; i++) if (Date.now() >= openAt(i)) w = i; return w; };
 const accessLeft = () => { const a = S.user && S.user.access; return a && a.left != null ? a.left : Math.max(0, CAL.accessDays - dayN() + 1); };
 const extTxt = () => { const d = (S.set && S.set.extDays) || 60; return d % 30 === 0 ? (d/30) + ' ' + plural(d/30, ['месяц','месяца','месяцев']) : d + ' ' + plural(d, ['день','дня','дней']); };
@@ -1583,7 +1788,7 @@ const accessClosed = () => !!S.user && !U.preview && !isStaff(S.user) && !!(S.us
 function closedView(){
   const a = S.user.access || {}, url = S.set && S.set.extendUrl;
   return `<div class="top"><div class="sub">Формула здоровья ЖКТ</div><h1>Доступ к программе закрыт</h1>
-    <p style="margin:0">Срок доступа закончился${a.last ? ' ' + fmt(a.last) : ''}. Ваши отметки, трекер и замеры сохранены — после продления всё вернётся на место.</p></div>
+    <p style="margin:0">Срок доступа закончился${a.last ? ' ' + fmtM(a.last) : ''}. Ваши отметки, трекер и замеры сохранены — после продления всё вернётся на место.</p></div>
   <div class="card"><p><b>Продление — ещё ${extTxt()}.</b> После оплаты кабинет откроется сам, как только оплата появится в системе. Если в течение суток он всё ещё закрыт, напишите в службу заботы.</p></div>
   <div class="opts">${url ? `<a class="btn full" href="${esc(url)}" target="_blank" rel="noopener">Продлить доступ на ${extTxt()}</a>` : ''}${supportLink()}</div>
   <button class="btn ghost full" data-a="reload" style="margin-top:10px">Я оплатила — проверить доступ</button>
@@ -1645,9 +1850,9 @@ function back(){ V = hist.pop() || { s:'dash' }; render(); window.scrollTo(0,0);
 function home(){ hist = []; V = { s:'dash' }; render(); window.scrollTo(0,0); }
 
 // ═══ ЭКРАНЫ УЧЕНИЦЫ ═════════════════════════════════════════════
-function renderBar(title){
+function renderBar(title, wide){
   const showBack = hist.length > 0 && !['welcome','dash','login','wait','result','calc','fail','closed'].includes(V.s);
-  $('#bar').innerHTML = (showBack ? `<button class="back" data-a="back" aria-label="Назад">${I.back}</button>` : '') +
+  $('#bar').innerHTML = (wide ? `<button class="back burger" data-a="navOpen" aria-label="Меню программы" title="Меню программы">${I.burger}</button>` : '') + (showBack ? `<button class="back" data-a="back" aria-label="Назад">${I.back}</button>` : '') +
     `<div class="brand">HOLISTICA<i>DOC</i></div><div class="prog">${title || 'Формула здоровья ЖКТ'}</div>` +
     (S.user && !U.preview ? `<button class="back out-btn" data-a="logout" aria-label="Выйти" title="Выйти">${I.out}</button>` : '');
 }
@@ -1720,7 +1925,7 @@ function welcome(){
     <p>Ответьте на вопросы о самочувствии и питании. По ответам куратор подберёт ваш протокол, а в кабинете откроются уроки, практики, меню, специи и фитосоставы.</p>
     <p style="margin:0">Займёт около 15 минут. Ответы сохраняются по ходу — можно сделать перерыв и вернуться.</p>
   </div>
-  ${webinarCard()}${finalCard()}
+  ${webinarCard()}
   <div class="card"><p><b>Важно.</b> Анкета заполняется один раз. Если позже захотите пройти её заново, напишите куратору.</p></div>
   <button class="btn full" data-a="startQuiz">${LS.get(draftKey(), null) ? 'Продолжить анкету' : 'Начать анкету'}</button>
   ${foot()}`;
@@ -1733,7 +1938,7 @@ function wait(){
   : `<div class="upcard"><h3 style="margin-top:0;color:var(--mag)">Загрузите фото языка</h3>
     <p>Сфотографируйте язык утром, натощак, до чистки зубов. При дневном свете, без вспышки и фильтров — так, чтобы язык был виден целиком.</p>
     ${tongueBlock(null,'wait')}</div>`}
-  ${webinarCard()}${finalCard()}
+  ${webinarCard()}
   <div class="card"><p>Спасибо, что ответили открыто и внимательно — именно это помогает подобрать программу точно под вас.</p></div>
   <button class="btn ghost full" data-a="reload">Проверить, назначен ли протокол</button>
   ${foot()}`;
@@ -1746,7 +1951,7 @@ function result(){
     <h1><span class="tag">${T.name}</span></h1>
     <p style="margin-top:12px">${T.about}</p>
   </div>
-  ${webinarCard()}${finalCard()}
+  ${webinarCard()}
   <h2><span>Что будем делать</span></h2>
   <div class="card"><ul class="dot" style="margin:0">${T.tactic.map(t => `<li>${t}</li>`).join('')}</ul></div>
   ${fl.includes('ppi') ? `<p><span class="mark">Важно:</span> вы принимаете препараты от изжоги. Ничего не отменяйте самостоятельно — любые изменения обсуждайте с врачом.</p>` : ''}
@@ -1760,7 +1965,8 @@ function result(){
 // ── главная ──
 function dash(){
   const r = RES(), T = TYPES[r.type], tp = totalProgress();
-  const nextL = r.lessons.map(byId).sort((a,b) => a.w - b.w).find(l => !U.st.done[l.id] && lessonOpen(l));
+  const cont = lastLesson();
+  const nextL = r.lessons.map(byId).sort((a,b) => a.w - b.w).find(l => !U.st.done[l.id] && lessonOpen(l) && !(cont && cont.l.id === l.id));
   const dn = Math.min(dayN(), CAL.programDays), ts = dayStat(dn);
   const tiles = CATS.map(c => {
     if (c.k === 'menu') return `<button class="tile" data-a="menu"><span class="ic">${I.plate}</span><b>${c.t}</b><span class="cnt">конструктор под ваш протокол</span></button>`;
@@ -1769,27 +1975,30 @@ function dash(){
       <span class="cnt">${n} ${plural(n, c.one)}${p.d ? ` · готово ${p.d}` : ''}</span>
       <span class="pb"><i style="width:${p.p}%"></i></span></button>`;
   }).join('');
-  return `<div class="top">
+  return `<div class="top dtop"><div class="dt-a">
     <div class="sub">Моя программа</div>
     <h1>Формула здоровья ЖКТ</h1>
-    <p style="margin:0 0 14px"><span class="tag" style="font-size:13px">${T.name}</span></p>
+    <p style="margin:0"><span class="tag" style="font-size:13px">${T.name}</span></p></div><div class="dt-b">
     <div class="cal"><span>${preStart() ? `Старт программы ${fmt(START())}` : dayN() <= CAL.programDays ? `День ${dayN()} из ${CAL.programDays} · неделя ${curWeek()}` : 'Программа завершена'}</span><span>${accessLeft() ? `доступ ещё ${accessLeft()} ${plural(accessLeft(), ['день','дня','дней'])}` : 'доступ закончился'}</span></div>
     <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-top:10px"><span>Пройдено</span><span>${tp}%</span></div>
-    <div class="pb"><i style="width:${tp}%"></i></div>
+    <div class="pb"><i style="width:${tp}%"></i></div></div>
   </div>
-  ${!U.preview && S.user.access && S.user.access.left != null && S.user.access.left <= 7 ? `<div class="upcard"><b style="color:var(--mag)">Доступ открыт до ${fmt(S.user.access.last)}.</b> ${S.set.extendUrl ? `Чтобы продолжить, продлите доступ на ${extTxt()} — все отметки сохранятся.<div style="margin-top:10px"><a class="btn mag" href="${esc(S.set.extendUrl)}" target="_blank" rel="noopener">Продлить доступ</a></div>` : 'Продлить доступ можно через службу заботы.'}</div>` : ''}
-  ${webinarCard()}${finalCard()}
+  ${!U.preview && S.user.access && S.user.access.left != null && S.user.access.left <= 7 ? `<div class="upcard"><b style="color:var(--mag)">Доступ открыт до ${fmtM(S.user.access.last)}.</b> ${S.set.extendUrl ? `Чтобы продолжить, продлите доступ на ${extTxt()} — все отметки сохранятся.<div style="margin-top:10px"><a class="btn mag" href="${esc(S.set.extendUrl)}" target="_blank" rel="noopener">Продлить доступ</a></div>` : 'Продлить доступ можно через службу заботы.'}</div>` : ''}
+  ${webinarCard()}
   ${fbCard()}
   ${S.user.recs && !U.preview ? `<div class="recs"><small>Рекомендации куратора</small><p style="margin:0">${esc(S.user.recs)}</p></div>` : ''}
-  ${preStart() ? '' : `<button class="today" data-a="tracker"><span class="h"><span><small>Трекер на сегодня · ${fmt(dateOf(dn), {day:'numeric', month:'long', weekday:'short'})}</small><br><b>${ts.d === ts.n ? 'Все действия выполнены' : 'Отметьте, что уже сделали'}</b></span><span class="n">${ts.d}/${ts.n}</span></span><span class="pb"><i style="width:${ts.p}%"></i></span></button>`}
+  ${cont ? contCard(cont) : ''}
+  <div class="duo">${preStart() ? '' : `<button class="today" data-a="tracker"><span class="h"><span><small>Трекер на сегодня · ${fmt(dateOf(dn), {day:'numeric', month:'long', weekday:'short'})}</small><br><b>${ts.d === ts.n ? 'Все действия выполнены' : 'Отметьте, что уже сделали'}</b></span><span class="n">${ts.d}/${ts.n}</span></span><span class="pb"><i style="width:${ts.p}%"></i></span></button>`}
   ${newReplies().map(m => `<button class="next" data-a="open" data-id="${m.lessonId}"><span class="ic">${I.chat}</span><span><small>Куратор ответил на ваш вопрос</small><b>${esc(byId(m.lessonId) ? byId(m.lessonId).t : m.lesson)}</b></span></button>`).join('')}
   ${nextL ? `<button class="next" data-a="open" data-id="${nextL.id}"><span class="ic">${I.play}</span><span><small>Следующий урок</small><b>${esc(nextL.t)}</b></span></button>`
-         : `<div class="out">Все открытые уроки пройдены. Сделайте замер самочувствия в разделе «Прогресс».</div>`}
+         : cont ? '' : `<div class="out">Все открытые уроки пройдены. Сделайте замер самочувствия в разделе «Прогресс».</div>`}</div>
   ${(() => { const u = S.set && S.set.chats && S.set.chats[TYPE()]; return u ? `<a class="next" href="${esc(u)}" target="_blank" rel="noopener" data-a="groupChat" style="text-decoration:none;color:inherit;border-color:var(--e)"><span class="ic" style="background:var(--e)">${I.chs}</span><span><small style="color:var(--e)">Общий чат программы</small><b>Чат протокола «${esc(PNAME[TYPE()])}»</b></span><span class="ch" style="margin-left:auto;color:var(--grey)">${I.chev}</span></a>` : ''; })()}
+  <div class="c2-mob">${calWeek()}</div>
   <div class="tiles">${tiles}
     ${chatVisible() ? `<button class="tile" data-a="chat"><span class="ic">${I.chat}</span><b>Чат с куратором</b><span class="cnt">${chatUnread() ? `<span class="chip m">${chatUnread()} ${plural(chatUnread(), ['новое','новых','новых'])}</span>` : (S.user.tariff === TARIFF_IND ? 'индивидуальное сопровождение' : 'сообщения куратора')}</span></button>` : ''}
     <button class="tile prg" data-a="progress"><span class="ic">${I.chart}</span><b>Прогресс</b><span class="cnt" style="color:var(--ink)">замеры и статистика</span></button>
   </div>
+  <div style="margin-top:16px">${finalCard()}</div>
   ${foot()}`;
 }
 function li(x){
@@ -1843,10 +2052,14 @@ function item(){
     return `<h1 style="margin-top:22px">${esc(x.t)}</h1><div class="card"><p>Урок откроется ${whenTxt(lessonOpenAt(x))} по Москве${menuWeekOf(x) ? '' : ' — ' + WEEKNAME[x.w].toLowerCase()}.</p></div>`;
   if (k === 'lessons') {
     const L = lessonLinks(x.id, U.links), emb = embedUrl(L.video), textLesson = !L.video && /^(Текст|Список|Рецепт|Гайд|Трекер|Меню и рецепты|Обратная связь|Задание|Сборник)$/.test(x.d);
-    const player = emb ? `<div class="player"><div class="scr"><iframe src="${esc(emb)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen title="${esc(x.t)}"></iframe></div></div>`
+    const kid = /kinescope\.io\/embed\/(\w+)/.exec(emb || ''), vp = (U.st.vp || {})[x.id];
+    const player = kid ? `<div class="player"><div class="scr"><div id="kp" data-id="${x.id}" data-url="https://kinescope.io/${kid[1]}" data-emb="${esc(emb)}"></div></div></div>${vp && !vp[3] && vp[0] > 15 ? `<p class="muted small" style="margin:-4px 0 12px">Вы остановились на ${mmss(vp[0])} — видео продолжится с этого места.</p>` : ''}`
+      : emb ? `<div class="player"><div class="scr"><iframe src="${esc(emb)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen title="${esc(x.t)}"></iframe></div></div>`
       : L.video ? `<div class="video"><a class="pl" href="${esc(L.video)}" target="_blank" rel="noopener" data-a="extopen" data-id="${x.id}" aria-label="Открыть урок"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 4.5l13 7.5-13 7.5z"/></svg></a><small>Урок откроется в новой вкладке</small></div>`
       : textLesson ? '' : `<div class="video"><span class="pl"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 4.5l13 7.5-13 7.5z"/></svg></span><small>${x.d === 'Вебинар' ? 'Запись эфира появится здесь после трансляции' : 'Видео урока появится здесь, когда его добавят на платформу'}</small></div>`;
-    return `<div class="meta" style="margin-top:22px"><span class="chip">${WEEKSHORT[x.w]}</span><span class="chip">${esc(x.d)}</span></div>
+    const bm = U.st.saved && U.st.saved[x.id];
+    return `<div class="meta" style="margin-top:22px"><span class="chip">${WEEKSHORT[x.w]}</span><span class="chip">${esc(x.d)}</span>
+      ${U.preview ? '' : `<button class="bmbtn${bm ? ' on' : ''}" data-a="bm" data-id="${x.id}" aria-pressed="${!!bm}">${bm ? I.bmkf : I.bmk}${bm ? 'Сохранён' : 'Сохранить урок'}</button>`}</div>
     <h1>${esc(x.t)}</h1>${player}
     <div class="why"><b>Почему этот урок вам.</b> ${lessonWhy(x)}</div>
     ${lessonExtra(x)}
@@ -2099,19 +2312,151 @@ function renderPv(){
     <select id="pvType" aria-label="Протокол">${Object.keys(PNAME).map(k => `<option value="${k}" ${k === U.ptype ? 'selected' : ''}>${PNAME[k]}</option>`).join('')}</select>
     <button class="btn" data-a="toAdmin">Вернуться в админку</button></div>` : '';
 }
+// ── Боковая панель: быстрая навигация, сохранённые уроки, «продолжить» ──
+// Десктоп: закреплена слева или свёрнута в узкую полоску с иконками. Мобильный — выезжает по кнопке ☰.
+const NAV = { pin: LS.get('hz_nav_pin', 1) ? 1 : 0, open: false, sec: LS.get('hz_nav_sec', null) || { lessons: 1, saved: 1 } };
+const isDesk = () => window.matchMedia('(min-width:1100px)').matches;
+const mmss = s => { s = Math.max(0, Math.floor(s || 0)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = String(s % 60).padStart(2, '0'); return h ? h + ':' + String(m).padStart(2, '0') + ':' + x : m + ':' + x; };
+function savedList(){ const sv = U.st.saved || {}, own = new Set(RES().lessons); return Object.keys(sv).filter(id => own.has(id) && byId(id)).sort((a, b) => sv[b] - sv[a]).map(byId); }
+// последний открытый и не досмотренный урок
+function lastLesson(){
+  let best = null, t = 0; const vp = U.st.vp || {};
+  RES().lessons.forEach(id => { const x = U.st.lx[id]; if (x && x.last > t && lessonOpen(byId(id))) { t = x.last; best = id; } });
+  if (!best || U.st.done[best] || (vp[best] && vp[best][3])) return null;
+  return { l: byId(best), at: t, vp: vp[best] };
+}
+function contCard(c){
+  const v = c.vp, pc = v && v[1] ? Math.min(100, Math.round(v[0] / v[1] * 100)) : 0;
+  return `<button class="next cont" data-a="open" data-id="${c.l.id}"><span class="ic">${I.play}</span><span style="flex:1;min-width:0"><small>Продолжить просмотр</small><b>${esc(c.l.t)}</b>
+    <span class="fbmeta">${v && v[0] > 15 ? `вы остановились на ${mmss(v[0])}${v[1] ? ' из ' + mmss(v[1]) : ''}` : 'вы открывали урок ' + fmt(c.at, { day:'numeric', month:'long' })}</span>
+    ${pc ? `<span class="pb" style="display:block;margin-top:8px"><i style="width:${pc}%"></i></span>` : ''}</span></button>`;
+}
+function navItem(x, kind){
+  const k = kind || catOf(x.id), open = k !== 'lessons' || lessonOpen(x), done = U.st.done[x.id], cur = V.s === 'item' && V.id === x.id;
+  const st = done ? `<i class="sn-st ok">${I.check}</i>` : open ? '<i class="sn-st"></i>' : `<i class="sn-st lk">${I.lock}</i>`;
+  if (!open) return `<div class="sn-i lock" title="Откроется ${whenTxt(lessonOpenAt(x))}">${st}<span>${esc(x.t)}</span></div>`;
+  return `<button class="sn-i${cur ? ' cur' : ''}" data-a="open" data-id="${x.id}" ${cur ? 'aria-current="page"' : ''}>${st}<span>${esc(x.t)}</span>${U.st.saved && U.st.saved[x.id] ? `<i class="sn-bm">${I.bmk}</i>` : ''}</button>`;
+}
+function navSec(key, ic, title, body, opts){
+  opts = opts || {}; const on = !!NAV.sec[key];
+  return `<div class="sn-sec${on ? ' on' : ''}" data-sec="${key}"><button class="sn-sh" data-a="navSec" data-k="${key}" aria-expanded="${on}"><span class="sn-ic">${I[ic]}</span><span class="sn-t">${title}</span>${opts.cnt != null ? `<span class="sn-c">${opts.cnt}</span>` : ''}<span class="sn-ch">${I.chev}</span></button>
+    ${on ? `<div class="sn-sb">${body}</div>` : ''}</div>`;
+}
+function navLink(a, ic, title, extra, attrs){ return `<button class="sn-l${extra && extra.cur ? ' cur' : ''}" data-a="${a}" ${attrs || ''}><span class="sn-ic">${I[ic]}</span><span class="sn-t">${title}</span>${extra && extra.lock ? `<span class="sn-lk" title="${esc(extra.lock)}">${I.lock}</span>` : ''}${extra && extra.badge ? `<span class="sn-c m">${extra.badge}</span>` : ''}</button>`; }
+function navHtml(){
+  const r = RES(), sv = savedList(), c = lastLesson();
+  const ls = r.lessons.map(byId), weeks = [...new Set(ls.map(l => l.w))].sort((a, b) => a - b);
+  const wk = weeks.map(w => { const key = 'w' + w, on = NAV.sec[key] != null ? NAV.sec[key] : (w === curWeek() || (w === 0 && preStart())), items = ls.filter(l => l.w === w), dn = items.filter(l => U.st.done[l.id]).length;
+    return `<div class="sn-wk${on ? ' on' : ''}"><button class="sn-wh" data-a="navSec" data-k="${key}" data-def="${on ? 1 : 0}" aria-expanded="${on}"><span>${esc(WEEKNAME[w])}</span>${weekOpen(w) ? `<span class="sn-c">${dn}/${items.length}</span>` : `<span class="sn-lk" title="Откроется ${whenTxt(openAt(w))}">${I.lock}</span>`}<span class="sn-ch">${I.chev}</span></button>
+      ${on ? `<div class="sn-wb">${weekOpen(w) || items.some(lessonOpen) ? '' : `<div class="sn-note">Откроется ${whenTxt(openAt(w))}</div>`}${items.map(l => navItem(l, 'lessons')).join('')}</div>` : ''}</div>`; }).join('');
+  const menuLock = !U.preview && !CFG.OPEN_ALL_WEEKS && Date.now() < (new Date(SCHED().menu[3]).getTime() || 0) ? 'Откроется ' + whenTxt(new Date(SCHED().menu[3]).getTime()) : '';
+  const gchat = S.set && S.set.chats && S.set.chats[TYPE()];
+  return `<div class="sn-h"><span class="sn-ttl">Навигация</span>
+      <button class="sn-pin" data-a="navPin" title="${NAV.pin ? 'Свернуть панель' : 'Закрепить панель'}" aria-label="${NAV.pin ? 'Свернуть панель' : 'Закрепить панель'}">${I.side}</button>
+      <button class="sn-x" data-a="navClose" aria-label="Закрыть меню">✕</button></div>
+    <div class="sn-b">
+      ${navLink('home', 'home', 'Главная', { cur: V.s === 'dash' })}
+      ${c ? `<button class="sn-cont" data-a="open" data-id="${c.l.id}"><small>Продолжить${c.vp && c.vp[0] > 15 ? ' с ' + mmss(c.vp[0]) : ''}</small><b>${esc(c.l.t)}</b></button>` : ''}
+      ${navSec('saved', 'bmk', 'Сохранённые', sv.length ? sv.map(l => navItem(l, 'lessons')).join('') : '<div class="sn-note">Нажмите «Сохранить урок» на странице урока — он появится здесь.</div>', { cnt: sv.length })}
+      ${navSec('lessons', 'play', 'Уроки', wk, { cnt: progress('lessons').d + '/' + r.lessons.length })}
+      ${navSec('practices', 'leaf', 'Практики', r.practices.map(byId).map(x => navItem(x, 'practices')).join(''), { cnt: r.practices.length })}
+      ${navLink('menu', 'plate', 'Меню и рецепты', { cur: V.s === 'menu', lock: menuLock })}
+      ${navSec('spices', 'spice', 'Специи', r.spices.map(byId).map(x => navItem(x, 'spices')).join(''), { cnt: r.spices.length })}
+      ${navSec('phyto', 'herb', 'Фитосоставы', r.phyto.map(byId).map(x => navItem(x, 'phyto')).join(''), { cnt: r.phyto.length })}
+      ${navLink('tracker', 'cl', 'Трекер', { cur: V.s === 'tracker' })}
+      ${navLink('progress', 'chart', 'Прогресс', { cur: V.s === 'progress' })}
+      ${chatVisible() || gchat ? `<div class="sn-gl">Чаты</div>` : ''}
+      ${chatVisible() ? navLink('chat', 'chat', 'Чат с куратором', { cur: V.s === 'chat', badge: chatUnread() || '' }) : ''}
+      ${gchat ? `<a class="sn-l" href="${esc(gchat)}" target="_blank" rel="noopener" data-a="groupChat"><span class="sn-ic">${I.chs}</span><span class="sn-t">Общий чат протокола</span></a>` : ''}
+    </div>`;
+}
+function railHtml(){
+  const b = (k, ic, t, a) => `<button class="sr-b${a ? '' : ''}" data-a="${a || 'navPeek'}" data-k="${k}" title="${t}" aria-label="${t}">${I[ic]}</button>`;
+  return `<button class="sr-b" data-a="navPin" title="Закрепить панель" aria-label="Закрепить панель">${I.side}</button><span class="sr-sp"></span>
+    ${b('', 'home', 'Главная', 'home')}${b('saved', 'bmk', 'Сохранённые')}${b('lessons', 'play', 'Уроки')}${b('practices', 'leaf', 'Практики')}${b('', 'plate', 'Меню и рецепты', 'menu')}${b('spices', 'spice', 'Специи')}${b('phyto', 'herb', 'Фитосоставы')}${chatVisible() ? b('', 'chat', 'Чат с куратором', 'chat') : ''}`;
+}
+function renderNav(wide){
+  const el = $('#snav'); if (!el) return;
+  document.body.classList.toggle('navpin', wide && !!NAV.pin); document.body.classList.toggle('navrail', wide && !NAV.pin);
+  if (!wide) { el.innerHTML = ''; NAV.open = false; return; }
+  const sc = el.querySelector('.snav'), top = sc ? sc.scrollTop : 0;
+  el.innerHTML = `<div class="snav-bd${NAV.open ? ' on' : ''}" data-a="navClose"></div><nav class="snav${NAV.open ? ' open' : ''}" aria-label="Навигация по программе">${navHtml()}</nav><div class="srail">${railHtml()}</div>`;
+  el.querySelector('.snav').scrollTop = top;
+}
+function navClick(b, a){
+  if (a === 'navPin') { NAV.pin = NAV.pin ? 0 : 1; NAV.open = false; LS.set('hz_nav_pin', NAV.pin); }
+  if (a === 'navOpen') NAV.open = !NAV.open;
+  if (a === 'navClose') NAV.open = false;
+  if (a === 'navPeek') { NAV.open = true; if (b.dataset.k) NAV.sec[b.dataset.k] = 1; }
+  if (a === 'navSec') { const k = b.dataset.k, cur = NAV.sec[k] != null ? !!NAV.sec[k] : b.dataset.def === '1'; NAV.sec[k] = cur ? 0 : 1; LS.set('hz_nav_sec', NAV.sec); }
+  keepY(render);
+}
+// ── сохранение урока ──
+function bmToggle(id){ U.st.saved = U.st.saved || {}; if (U.st.saved[id]) { delete U.st.saved[id]; toast('Урок убран из сохранённых'); } else { U.st.saved[id] = Date.now(); toast('Урок сохранён — он в меню, раздел «Сохранённые»'); } save(); keepY(render); }
+// ── плеер Kinescope: продолжение с места остановки ──
+let KP = null, KPid = '', KPsaved = 0;
+function kinescopeApi(){
+  if (window.Kinescope && Kinescope.IframePlayer) return Promise.resolve(Kinescope.IframePlayer);
+  if (kinescopeApi.p) return kinescopeApi.p;
+  kinescopeApi.p = new Promise((res, rej) => {
+    const ok = () => { if (window.Kinescope && Kinescope.IframePlayer) res(Kinescope.IframePlayer); };
+    (window.KinescopeIframeApiReadyHandlers = window.KinescopeIframeApiReadyHandlers || []).push(ok);
+    const s = document.createElement('script'); s.src = 'https://player.kinescope.io/latest/iframe.player.js'; s.async = true;
+    s.onload = () => setTimeout(ok, 50); s.onerror = () => rej(new Error('kinescope'));
+    document.head.appendChild(s); setTimeout(() => rej(new Error('timeout')), 9000);
+  });
+  kinescopeApi.p.catch(() => { kinescopeApi.p = null; });
+  return kinescopeApi.p;
+}
+function vpSet(id, t, dur, end){
+  if (U.preview) return;
+  U.st.vp = U.st.vp || {}; const o = U.st.vp[id] || [0, 0, 0];
+  U.st.vp[id] = [end ? 0 : Math.floor(t), dur || o[1] || 0, Date.now()].concat(end ? [1] : []);
+  if (end || Date.now() - KPsaved > 15000) { KPsaved = Date.now(); save(); }
+}
+function unmountVideo(){ if (!KP) return; const p = KP; KP = null; KPid = ''; try { p.destroy(); } catch (e) {} if (!U.preview) save(); }
+function mountVideo(){
+  const el = $('#kp');
+  if (!el) { unmountVideo(); return; }
+  if (KP && KPid === el.dataset.id) return;
+  unmountVideo();
+  const id = el.dataset.id, url = el.dataset.url, emb = el.dataset.emb;
+  const fallback = () => { if (el.isConnected && !el.querySelector('iframe')) el.innerHTML = `<iframe src="${esc(emb)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen title="Видео урока"></iframe>`; };
+  kinescopeApi().then(F => {
+    if (!el.isConnected) return;
+    return F.create(el, { url, size: { width: '100%', height: '100%' }, behavior: { localStorage: { time: false }, preload: 'metadata' }, ui: { language: 'ru' } }).then(p => {
+      if (!el.isConnected && !document.body.contains(p.iframe || el)) { /* страницу уже сменили */ }
+      KP = p; KPid = id; let dur = 0;
+      const v = (U.st.vp || {})[id];
+      p.getDuration().then(d => { dur = d || 0; if (v && !v[3] && v[0] > 15 && (!dur || v[0] < dur - 15)) { p.seekTo(v[0]); toast('Продолжаем с ' + mmss(v[0])); } }).catch(() => {});
+      p.on(p.Events.DurationChange, e => { dur = e.data.duration || dur; });
+      p.on(p.Events.TimeUpdate, e => vpSet(id, e.data.currentTime, dur));
+      p.on(p.Events.Pause, () => { KPsaved = 0; p.getCurrentTime().then(t => vpSet(id, t, dur)).catch(() => {}); });
+      p.on(p.Events.Ended, () => vpSet(id, 0, dur, true));
+    });
+  }).catch(fallback);
+}
+const WIDE_VIEWS = ['dash','cat','item','progress','check','tracker','chat','fb','fbok','menu'];
 function render(){
   const titles = { fb:'Оценка обучения', fbok:'Спасибо', chat:'Чат', quiz:'Анкета', progress:'Прогресс', check:'Замер', tracker:'Трекер', login:'Вход', menu:'Меню', redflag:'Анкета' };
   if (accessClosed() && !['login','calc','fail'].includes(V.s)) V = { s:'closed' };
   const map = { closed:closedView, login:vLogin, welcome, quiz:quizStep, redflag, calc, wait, result, dash, cat:catList, item, progress:prog, check, tracker, menu:menuView, fail, chat:chatView, fb:fbView, fbok:fbOkView };
   if (V.s === 'item' && !U.preview && lessonMsgs(V.id).some(m => m.from === 'cu')) { U.st.seenL = U.st.seenL || {}; const last = Math.max(...lessonMsgs(V.id).map(tsOf)); if (last > (U.st.seenL[V.id] || 0)) { U.st.seenL[V.id] = last; save(); } }
   if (['chat','item'].includes(V.s)) { if (!pollT) startPoll(); } else stopPoll();
-  renderBar(titles[V.s]);
-  $('#app').innerHTML = map[V.s]();
+  RENDER_N++;
+  const wide = WIDE_VIEWS.includes(V.s) && (U.preview || (!!S.user && S.user.status === STS.ok)), side = wide && V.s !== 'menu';
+  document.body.classList.toggle('wide', wide);
+  renderBar(titles[V.s], wide);
+  renderNav(wide);
+  const html = map[V.s]();
+  $('#app').innerHTML = side ? `<div class="lay"><div class="lay-main">${html}</div><aside class="lay-side">${calMonth()}</aside></div>` : html;
+  mountVideo();
   renderPv();
   if (V.s === 'quiz') saveDraft();
   if (V.s === 'login' && !V.busy) { const f = $('#app input:not([hidden])'); if (f && !V.err) f.focus(); }
 }
 function studentClick(e, b, a){
+  if (b.closest('.snav') && !/^nav/.test(a)) NAV.open = false;
   if (a === 'back') return back();
   if (a === 'logout') return logout();
   if (a === 'retry') return boot();
@@ -2150,6 +2495,9 @@ function studentClick(e, b, a){
   if (a === 'ackRed') { QD.redAck = true; return finishQuiz(); }
   if (a === 'toDash') { U.st.seen = 1; save(); return home(); }
   if (a === 'home') return home();
+  if (['calD','calM','calW','calX'].includes(a)) return calClick(b, a);
+  if (['navPin','navOpen','navClose','navPeek','navSec'].includes(a)) return navClick(b, a);
+  if (a === 'bm') return bmToggle(b.dataset.id);
   if (a === 'fb') { const k = b.dataset.k; return go('fb', { k, ans: LS.get('hz_fb_' + k, {}) || {}, err:null }); }
   if (a === 'fbp') { const q = fbQuestions(V.k).find(x => x.id === b.dataset.q), v = b.dataset.v;
     if (q.type === 'multi') { const arr = V.ans[q.id] = V.ans[q.id] || []; const i = arr.indexOf(v); i < 0 ? arr.push(v) : arr.splice(i, 1); }
@@ -2329,7 +2677,7 @@ const Adm = (() => {
     const withAuto = asg.filter(c => c.autoKey), match = withAuto.filter(c => c.autoKey === c.type).length;
     const lp = AV.lp || 'slow';
     const lessons = CAT.lessons.filter(l => l.core ? lp === 'core' : (l.types || []).includes(lp)).slice().sort((a, b) => a.w - b.w);
-    return `<div class="head"><div><h1>Обзор программы</h1><p class="muted" style="margin:0">Данные на ${fmt(Date.now())}${D.settings && D.settings.start ? ` · старт потока ${fmt(D.settings.start)} · доступ ${D.settings.accessDays} дней, до ${fmt(new Date(dayStart(D.settings.start) + (D.settings.accessDays - 1) * DAY))}` : ' · старт потока не задан — отсчёт от назначения протокола'}</p></div></div>
+    return `<div class="head"><div><h1>Обзор программы</h1><p class="muted" style="margin:0">Данные на ${fmt(Date.now())}${D.settings && D.settings.start ? ` · старт потока ${fmt(D.settings.start)} · доступ до ${D.settings.accessEnd ? fmt(new Date(D.settings.accessEnd).getTime() - DAY) + ' включительно' : fmt(new Date(dayStart(D.settings.start) + (D.settings.accessDays - 1) * DAY))}` : ' · старт потока не задан — отсчёт от назначения протокола'}</p></div></div>
     <div class="panel todo" style="margin-bottom:16px"><h2><span>Нужно сделать</span></h2><div class="todo-g">
       <button class="tdi" data-a="navq" data-st="review"><b>${C.filter(c => flowOf(c) === 'review').length}</b><span>ждут проверки и назначения протокола</span></button>
       <button class="tdi" data-a="navq" data-st="photo"><b>${C.filter(c => flowOf(c) === 'photo').length}</b><span>ждём фото языка</span></button>
@@ -2479,7 +2827,7 @@ const Adm = (() => {
     <div style="margin-top:16px">${histBlock(c)}</div>`;
   }
   function accessTxt(c){ const a = c.access; if (!a || !a.end) return 'срок ещё не начался';
-    return `${a.closed ? 'закрыт с ' + fmt(a.end) : 'до ' + fmt(a.last) + ' · осталось ' + a.left + ' ' + plural(a.left, ['день','дня','дней'])}${a.ext ? ` · продлений: ${a.ext}` : ''}${MODE === 'demo' ? ` <button class="btn lnk" data-a="demoExtend" style="padding:0">+ продление (демо)</button>` : ''}`; }
+    return `${a.closed ? 'закрыт с ' + fmtM(a.end) : 'до ' + fmtM(a.last) + ' · осталось ' + a.left + ' ' + plural(a.left, ['день','дня','дней'])}${a.ext ? ` · продлений: ${a.ext}` : ''}${MODE === 'demo' ? ` <button class="btn lnk" data-a="demoExtend" style="padding:0">+ продление (демо)</button>` : ''}`; }
   function photoBox(c){
     return c.photo ? `<div id="photo-box"><div class="photo-ph"><span>Загружаем фото…</span></div></div>`
       : `<div class="photo-ph miss"><span><b>Фото языка ещё не загружено</b><br><small>Ученица видит карточку загрузки в кабинете</small></span></div>`;
