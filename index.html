@@ -360,6 +360,13 @@ a.file{color:inherit;text-decoration:none}
 .bub.me{background:var(--e-dk);color:#fff;align-self:flex-end}
 .bub small{display:block;opacity:.7;font-size:11px;margin-top:4px}
 .fbcard{border-color:var(--mag)!important}.fbcard .ic{background:var(--mag)!important;color:#fff}.fbcard small{color:var(--mag)!important}
+.webcard{background:var(--surface);border:2px solid var(--mag);border-radius:18px;padding:16px 18px;margin:0 0 16px}
+.webcard.live{background:var(--lav)}
+.webcard .wc-h{display:flex;gap:12px;align-items:center;margin-bottom:10px}.webcard .wc-h .ic{flex:0 0 44px;height:44px;border-radius:50%;background:var(--mag);color:#fff;display:grid;place-items:center}.webcard .wc-h .ic svg{width:24px;height:24px}
+.webcard small{display:block;color:var(--mag);font-weight:700;font-size:12px}.webcard b{font-size:16px}
+.webcard .wc-d{font-size:15px;margin:0 0 6px}.webcard .wc-d b{font-size:15px}
+.webcard p{margin:0 0 12px;font-size:14px;color:var(--grey)}
+.webcard .wc-cal{display:block;text-align:center;margin-top:10px;font-weight:700;font-size:13px;color:var(--mag)}
 .fbmeta{display:block;font-size:12px;color:var(--grey);font-weight:600;margin-top:2px}
 .qi.err{border-color:var(--mag)!important;box-shadow:0 0 0 2px var(--lav)}
 .pills.sc .pill{min-width:42px;justify-content:center;text-align:center}
@@ -729,7 +736,7 @@ details.fold .ans{margin-top:0}
 <div class="toast" id="toast" role="status"></div>
 
 <script>
-/* ═══════════ HOLISTICA DOC · ФОРМУЛА ЗДОРОВЬЯ ЖКТ · платформа (тестовая версия) ═══════════
+/* ═══════════ HOLISTICA DOC · ФОРМУЛА ЗДОРОВЬЯ ЖКТ · платформа ═══════════
    Дизайн и подача — по утверждённым прототипам «личный путь» (кабинет и анкета) и «Админка».
    Данные: Google-таблица через Apps Script (CFG.API_URL). Пустой API_URL — демо-режим в браузере. */
 
@@ -746,6 +753,15 @@ const CFG = {
   // Дата старта потока, сроки доступа и ссылка на продление задаются в листе «Настройки» Google-таблицы.
   // START_DATE здесь — только для демо-режима (ГГГГ-ММ-ДД).
   START_DATE: '',
+  // Вводный вебинар: значения по умолчанию (в рабочей версии берутся из листа «Настройки»)
+  WEBINAR: { at: '2026-11-01T11:00:00+03:00', url: 'https://a.teleboss.ru/room/cimo9nFcPc', title: 'Вводный вебинар программы' },
+  // Расписание открытия (по Москве). В рабочей версии берётся из листа «Настройки», здесь — значения по умолчанию.
+  SCHEDULE: {
+    weeks: { 0:'2026-10-31T00:00:00+03:00', 1:'2026-11-01T12:00:00+03:00', 2:'2026-11-07T06:00:00+03:00', 3:'2026-11-14T06:00:00+03:00',
+             4:'2026-11-21T06:00:00+03:00', 5:'2026-11-28T06:00:00+03:00', 6:'2026-12-12T06:00:00+03:00', 7:'2026-11-01T12:00:00+03:00' },
+    menu: { 3:'2026-11-06T12:00:00+03:00', 4:'2026-11-13T12:00:00+03:00', 5:'2026-11-20T12:00:00+03:00' },
+    final: '2026-12-20T11:00:00+03:00', finalUrl: ''
+  },
   // true — открыть все недели сразу (удобно для теста). false — недели открываются по календарю.
   OPEN_ALL_WEEKS: false,
 };
@@ -1040,11 +1056,15 @@ function fbFlag(key, a) {
   if (a.adapt && a.adapt.indexOf('Нет') === 0) f.push('нужна индивидуальная рекомендация');
   return f.join('; ');
 }
-// День программы, в который открывается анкета: пятница внутри недели (если пятниц две — последняя)
-function fbOpenDay(key, startMs, weekOpens, programDays) {
-  var w = FB_WEEK[key], a = weekOpens[w], b = (w < 6 ? weekOpens[w + 1] : programDays + 1) - 1, best = b;
-  for (var d = a; d <= b; d++) { var t = new Date(startMs + (d - 1) * 864e5); if (t.getDay() === 5) best = d; }
-  return best;
+// Когда открывается анкета: пятница 12:00 по Москве внутри недели программы (если пятниц две — последняя).
+// sched.weeks — моменты открытия недель (ISO), sched.final — завершающий вебинар.
+function fbOpenAt(key, sched) {
+  var W = (sched && sched.weeks) || {}, w = FB_WEEK[key], a = new Date(W[w]).getTime();
+  var nx = w < 6 ? new Date(W[w + 1]).getTime() : (sched.final ? new Date(sched.final).getTime() : a + 7 * 864e5);
+  if (!a || !nx) return 0;
+  var best = 0;
+  for (var t = a; t < nx; t += 864e5) { var m = new Date(t + 3 * 36e5); if (m.getUTCDay() === 5) { var d = Date.UTC(m.getUTCFullYear(), m.getUTCMonth(), m.getUTCDate(), 9, 0); if (d >= a && d < nx) best = d; } }
+  return best || nx - 864e5;
 }
 
 // Ссылки на видео и материалы уроков из файла «Ссылки_на_видео_ЖКТ.xlsx» (23.10.2026).
@@ -1268,7 +1288,7 @@ const Demo = (() => {
       ev(email,'confirmed',PNAME[type],conf);
       // прогресс
       const R=buildResult(type,quiz), today=dIn+1, state={done:{},track:{},checks:[],lx:{},seen:1};
-      R.lessons.map(byId).filter(l=>dIn+1>=CAL.weekOpens[l.w]).forEach(l=>{ if(rnd()<.75){ state.lx[l.id]={open:1+Math.floor(rnd()*3),last:ago(Math.floor(rnd()*dIn),20)}; ev(email,'open',l.t,state.lx[l.id].last); if(rnd()<.7) state.done[l.id]=1; } });
+      R.lessons.map(byId).filter(l=>Date.now()>=lessonOpenAt(l,db.settings)).forEach(l=>{ if(rnd()<.75){ state.lx[l.id]={open:1+Math.floor(rnd()*3),last:ago(Math.floor(rnd()*dIn),20)}; ev(email,'open',l.t,state.lx[l.id].last); if(rnd()<.7) state.done[l.id]=1; } });
       R.practices.slice(0,3).forEach(id=>state.done[id]=1);
       for(let day=1;day<=Math.min(49,today-(lastAgo||0));day++) trackRowsT(type,Math.floor((day-1)/7)+1).forEach((r,k)=>{ if(rnd()<(i===7?.35:.75)) state.track[day+':'+k]=1 });
       if(i===6){ msg(email,'','cl','Здравствуйте! Можно ли пить имбирный чай вечером?',ago(3,20)); msg(email,'','cu','Добрый вечер! Да, но не позже чем за 2 часа до сна и некрепкий.',ago(2,10)); msg(email,'','cl','Спасибо! А если после него тяжесть?',ago(1,21)); }
@@ -1277,12 +1297,12 @@ const Demo = (() => {
       st['Прогресс']=JSON.stringify(state);
       if(i===5) st['Правки материалов']=JSON.stringify({add:['p3'],rm:[]});
       // демо-оценки обучения за прошедшие недели
-      FB_KEYS.forEach(key=>{ if(fbOpenDay(key,dayStart(Date.now()-dIn*DAY),CAL.weekOpens,CAL.programDays)>today || rnd()<.2) return;
+      FB_KEYS.forEach(key=>{ const fo=fbOpenAt(key,SCHED(db.settings)); if(!fo||fo>Date.now() || rnd()<.2) return;
         const pick=a=>a[Math.floor(rnd()*a.length)], a={};
         fbQuestions(key).forEach(q=>{ if(!fbVisible(q,a)) return; if(q.type==='scale') a[q.id]=String(Math.min(q.o.length-1+(q.o[0]==='0'?0:1),6+Math.floor(rnd()*5)));
           else if(q.type==='one') a[q.id]=q.id==='feel'?(i===7?'Хуже':pick(['Лучше','Лучше','Без изменений'])):pick(q.o); else if(q.type==='multi') a[q.id]=[pick(q.o)];
           else if(q.id==='best'&&rnd()<.6) a[q.id]=pick(['Урок про сочетания продуктов — наконец поняла, почему тяжело после ужина','Специи: фенхель реально помогает от вздутия','Супы на ужин — сплю лучше']); });
-        (db.feedback=db.feedback||[]).push({email,key,date:ago(Math.max(0,dIn+1-fbOpenDay(key,dayStart(Date.now()-dIn*DAY),CAL.weekOpens,CAL.programDays)),19),answers:a,flag:fbFlag(key,a),protocol:PNAME[type]}); });
+        (db.feedback=db.feedback||[]).push({email,key,date:new Date(fo+7*36e5).toISOString(),answers:a,flag:fbFlag(key,a),protocol:PNAME[type]}); });
     });
     db.events.sort((a,b)=>a['Дата']<b['Дата']?-1:1);
     return db;
@@ -1425,7 +1445,7 @@ function route(){
   render(); window.scrollTo(0,0);
 }
 // ═══ Оценка обучения ═══
-const fbOpen = key => dayN() >= fbOpenDay(key, dayStart(startT()), CAL.weekOpens, CAL.programDays);
+const fbOpen = key => Date.now() >= fbOpenAt(key, SCHED());
 const fbDone = () => U.preview ? {} : (U.fb || {});
 const fbDue = () => S.user && S.user.status === STS.ok ? FB_KEYS.filter(k => fbOpen(k) && !fbDone()[k]) : [];
 function fbCard(){
@@ -1527,8 +1547,36 @@ function chatView(){
 const startT = () => START() ? new Date(START()).getTime() : U.preview ? (U.pstart ? new Date(U.pstart).getTime() : Date.now()) : (S.user.confirmedAt ? new Date(S.user.confirmedAt).getTime() : Date.now());
 const dayN = () => dayNum(startT());
 const dateOf = n => new Date(dayStart(startT()) + (n-1)*DAY);
-const weekOpen = w => U.preview || CFG.OPEN_ALL_WEEKS || dayN() >= CAL.weekOpens[w];
-const curWeek = () => Math.min(7, Math.floor((Math.min(dayN(), CAL.programDays)-1)/7)+1);
+const preStart = () => !U.preview && !!START() && dayStart(Date.now()) < dayStart(new Date(START()).getTime());
+// ── расписание: неделя открывается в заданный момент (лист «Настройки» → CFG.SCHEDULE) ──
+function SCHED(set){ const d = CFG.SCHEDULE, s = ((set !== undefined ? set : S.set) || {}).schedule || {};
+  const pick = (a, b) => { const o = Object.assign({}, a); for (const k in (b || {})) if (b[k]) o[k] = b[k]; return o; };
+  return { weeks: pick(d.weeks, s.weeks), menu: pick(d.menu, s.menu), final: s.final || d.final, finalUrl: s.finalUrl || d.finalUrl }; }
+const openAt = (w, set) => new Date(SCHED(set).weeks[w]).getTime() || 0;
+const menuWeekOf = l => { const m = /меню и сборник рецептов на (\d)/i.exec(l.t); return m ? +m[1] : 0; };
+const lessonOpenAt = (l, set) => { const mw = menuWeekOf(l), m = mw && SCHED(set).menu[mw]; return m ? new Date(m).getTime() : openAt(l.w, set); };
+const whenTxt = ms => { const d = new Date(ms), m = new Date(ms + 3 * 36e5); const hm = String(m.getUTCHours()).padStart(2, '0') + ':' + String(m.getUTCMinutes()).padStart(2, '0');
+  return d.toLocaleDateString('ru-RU', { day:'numeric', month:'long', timeZone:'Europe/Moscow' }) + (hm !== '00:00' ? ' в ' + hm : ''); };
+const weekOpen = w => U.preview || CFG.OPEN_ALL_WEEKS || Date.now() >= openAt(w);
+const lessonOpen = l => U.preview || CFG.OPEN_ALL_WEEKS || Date.now() >= lessonOpenAt(l);
+// ── Вводный вебинар: виден всем, даже до назначения протокола ──
+function webinar(){ const w = Object.assign({}, CFG.WEBINAR, (S.set && S.set.webinar) || {}); Object.keys(w).forEach(k => { if (!w[k]) w[k] = CFG.WEBINAR[k]; }); return w; }
+function finalWebinar(){ const sc = SCHED(); return { at: sc.final, url: sc.finalUrl, title: 'Завершающий вебинар программы', fin: 1 }; }
+// карточка завершающего вебинара: в уроке «Завершающий вебинар» всегда, на главной — когда открыт раздел «Завершение»
+function finalCard(inLesson){ if (!inLesson && !weekOpen(6)) return ''; return webinarCard(finalWebinar()); }
+function webinarCard(W){
+  const w = W || webinar(), at = new Date(w.at).getTime(); if (!at || Date.now() > at + 3 * 36e5) return '';
+  const live = Date.now() >= at - 15 * 6e4, tm = new Date(at);
+  const msk = new Date(at + 3 * 36e5), hh = String(msk.getUTCHours()).padStart(2, '0') + ':' + String(msk.getUTCMinutes()).padStart(2, '0');
+  const g = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const cal = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent('Формула здоровья ЖКТ — ' + w.title) + '&dates=' + g(tm) + '/' + g(new Date(at + 90 * 6e4)) + '&details=' + encodeURIComponent(w.url ? 'Ссылка на вебинар: ' + w.url : 'Ссылка будет в личном кабинете программы');
+  return `<div class="webcard${live ? ' live' : ''}"><div class="wc-h"><span class="ic">${I.play}</span><span><small>${live ? 'Вебинар уже идёт' : w.fin ? 'Завершение программы' : 'Старт программы'}</small><b>${esc(w.title)}</b></span></div>
+    <div class="wc-d"><b>${(d => d[0].toUpperCase() + d.slice(1))(tm.toLocaleDateString('ru-RU', { day:'numeric', month:'long', weekday:'long', timeZone:'Europe/Moscow' }))}</b>, ${hh} по Москве</div>
+    <p>${w.fin ? 'Подведём итоги программы, ответим на ваши вопросы и расскажем, как сохранить результат дальше.' : 'Познакомимся, расскажем, как устроена программа и как получить от неё максимум. ' + (S.user && S.user.status === STS.ok ? '' : 'Приходите, даже если протокол ещё не назначен.')}</p>
+    ${w.url ? `<a class="btn ${live ? 'mag' : ''} full" href="${esc(w.url)}" target="_blank" rel="noopener" data-a="webinar">${live ? 'Подключиться к вебинару' : 'Перейти на вебинар'}</a>` : '<p style="margin:0;font-size:14px;opacity:.85">Ссылка на эфир появится здесь ближе к дате вебинара.</p>'}
+    ${live ? '' : `<a class="wc-cal" href="${esc(cal)}" target="_blank" rel="noopener">Добавить в календарь</a>`}</div>`;
+}
+const curWeek = () => { let w = 1; for (let i = 1; i <= 6; i++) if (Date.now() >= openAt(i)) w = i; return w; };
 const accessLeft = () => { const a = S.user && S.user.access; return a && a.left != null ? a.left : Math.max(0, CAL.accessDays - dayN() + 1); };
 const extTxt = () => { const d = (S.set && S.set.extDays) || 60; return d % 30 === 0 ? (d/30) + ' ' + plural(d/30, ['месяц','месяца','месяцев']) : d + ' ' + plural(d, ['день','дня','дней']); };
 const accessClosed = () => !!S.user && !U.preview && !isStaff(S.user) && !!(S.user.access && S.user.access.closed);
@@ -1571,10 +1619,12 @@ function filesHtml(files, id){
 const SHOP_URL = 'https://www.holistica.academy/shop', SHOPS_LIST = 'https://docs.google.com/document/d/1nR4uGXy_3DH6Yf41ld-mLQ3EdAYSSMZwHXDFvg4vJzY/edit?tab=t.0';
 function lessonExtra(x){
   const t = x.t, out = [];
+  if (x.id === 'st1') { const c = webinarCard(); if (c) out.push(c); }
+  if (x.id === 'fin4') { const c = finalCard(true); if (c) out.push(c); }
   if (x.d === 'Обратная связь' || /^Ваша точка Б/.test(t)) {
     const key = /после программы|точка Б/i.test(t) ? 'final' : 'w' + x.w;
     const opened = fbOpen(key), done = fbDone()[key];
-    out.push(`<div class="card alt"><p style="margin:0 0 10px"><b>${done ? 'Спасибо, анкета уже заполнена.' : opened ? 'Анкета обратной связи открыта.' : 'Анкета откроется ' + fmt(dateOf(fbOpenDay(key, dayStart(startT()), CAL.weekOpens, CAL.programDays))) + '.'}</b> Пара минут — и мы поймём, как поддержать вас лучше.</p>${opened && !done ? `<button class="btn full" data-a="fb" data-k="${key}">Заполнить анкету</button>` : ''}</div>`);
+    out.push(`<div class="card alt"><p style="margin:0 0 10px"><b>${done ? 'Спасибо, анкета уже заполнена.' : opened ? 'Анкета обратной связи открыта.' : 'Анкета откроется ' + whenTxt(fbOpenAt(key, SCHED())) + '.'}</b> Пара минут — и мы поймём, как поддержать вас лучше.</p>${opened && !done ? `<button class="btn full" data-a="fb" data-k="${key}">Заполнить анкету</button>` : ''}</div>`);
   }
   if (x.d === 'Трекер') out.push(`<div class="card alt"><p style="margin:0 0 10px">Трекер недели теперь интерактивный: отмечайте действия прямо в кабинете — прогресс сохранится. Файл для печати — ниже.</p><button class="btn full" data-a="tracker">Открыть трекер</button></div>`);
   if (/меню и сборник рецептов/i.test(t)) out.push(`<div class="card alt"><p style="margin:0 0 10px">Меню недели и все рецепты вашего протокола — в конструкторе меню: с заменами блюд, расчётом витаминов и итогами недели.</p><button class="btn full" data-a="menu">Открыть меню и рецепты</button></div>`);
@@ -1601,7 +1651,7 @@ function renderBar(title){
     `<div class="brand">HOLISTICA<i>DOC</i></div><div class="prog">${title || 'Формула здоровья ЖКТ'}</div>` +
     (S.user && !U.preview ? `<button class="back out-btn" data-a="logout" aria-label="Выйти" title="Выйти">${I.out}</button>` : '');
 }
-function foot(){ return `<div class="foot"><b>HOLISTICA</b><i>DOC</i> · Формула здоровья ЖКТ<br>Тестовая версия платформы${MODE === 'demo' ? ' · демо-режим' : ''}</div>`; }
+function foot(){ return `<div class="foot"><b>HOLISTICA</b><i>DOC</i> · Формула здоровья ЖКТ${MODE === 'demo' ? '<br>Демо-режим' : ''}</div>`; }
 function calc(){ return `<div class="spin" aria-hidden="true"></div><p style="text-align:center;font-weight:700">${esc(V.msg || 'Загружаем…')}</p>`; }
 function fail(){
   return `<div class="top"><div class="sub">Формула здоровья ЖКТ</div><h1>Не получилось открыть кабинет</h1><p style="margin:0">${esc(V.err)}</p></div>
@@ -1670,6 +1720,7 @@ function welcome(){
     <p>Ответьте на вопросы о самочувствии и питании. По ответам куратор подберёт ваш протокол, а в кабинете откроются уроки, практики, меню, специи и фитосоставы.</p>
     <p style="margin:0">Займёт около 15 минут. Ответы сохраняются по ходу — можно сделать перерыв и вернуться.</p>
   </div>
+  ${webinarCard()}${finalCard()}
   <div class="card"><p><b>Важно.</b> Анкета заполняется один раз. Если позже захотите пройти её заново, напишите куратору.</p></div>
   <button class="btn full" data-a="startQuiz">${LS.get(draftKey(), null) ? 'Продолжить анкету' : 'Начать анкету'}</button>
   ${foot()}`;
@@ -1682,6 +1733,7 @@ function wait(){
   : `<div class="upcard"><h3 style="margin-top:0;color:var(--mag)">Загрузите фото языка</h3>
     <p>Сфотографируйте язык утром, натощак, до чистки зубов. При дневном свете, без вспышки и фильтров — так, чтобы язык был виден целиком.</p>
     ${tongueBlock(null,'wait')}</div>`}
+  ${webinarCard()}${finalCard()}
   <div class="card"><p>Спасибо, что ответили открыто и внимательно — именно это помогает подобрать программу точно под вас.</p></div>
   <button class="btn ghost full" data-a="reload">Проверить, назначен ли протокол</button>
   ${foot()}`;
@@ -1694,6 +1746,7 @@ function result(){
     <h1><span class="tag">${T.name}</span></h1>
     <p style="margin-top:12px">${T.about}</p>
   </div>
+  ${webinarCard()}${finalCard()}
   <h2><span>Что будем делать</span></h2>
   <div class="card"><ul class="dot" style="margin:0">${T.tactic.map(t => `<li>${t}</li>`).join('')}</ul></div>
   ${fl.includes('ppi') ? `<p><span class="mark">Важно:</span> вы принимаете препараты от изжоги. Ничего не отменяйте самостоятельно — любые изменения обсуждайте с врачом.</p>` : ''}
@@ -1707,7 +1760,7 @@ function result(){
 // ── главная ──
 function dash(){
   const r = RES(), T = TYPES[r.type], tp = totalProgress();
-  const nextL = r.lessons.map(byId).sort((a,b) => a.w - b.w).find(l => !U.st.done[l.id] && weekOpen(l.w));
+  const nextL = r.lessons.map(byId).sort((a,b) => a.w - b.w).find(l => !U.st.done[l.id] && lessonOpen(l));
   const dn = Math.min(dayN(), CAL.programDays), ts = dayStat(dn);
   const tiles = CATS.map(c => {
     if (c.k === 'menu') return `<button class="tile" data-a="menu"><span class="ic">${I.plate}</span><b>${c.t}</b><span class="cnt">конструктор под ваш протокол</span></button>`;
@@ -1720,14 +1773,15 @@ function dash(){
     <div class="sub">Моя программа</div>
     <h1>Формула здоровья ЖКТ</h1>
     <p style="margin:0 0 14px"><span class="tag" style="font-size:13px">${T.name}</span></p>
-    <div class="cal"><span>${dayN() <= CAL.programDays ? `День ${dayN()} из ${CAL.programDays} · неделя ${curWeek()}` : 'Программа завершена'}</span><span>${accessLeft() ? `доступ ещё ${accessLeft()} ${plural(accessLeft(), ['день','дня','дней'])}` : 'доступ закончился'}</span></div>
+    <div class="cal"><span>${preStart() ? `Старт программы ${fmt(START())}` : dayN() <= CAL.programDays ? `День ${dayN()} из ${CAL.programDays} · неделя ${curWeek()}` : 'Программа завершена'}</span><span>${accessLeft() ? `доступ ещё ${accessLeft()} ${plural(accessLeft(), ['день','дня','дней'])}` : 'доступ закончился'}</span></div>
     <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-top:10px"><span>Пройдено</span><span>${tp}%</span></div>
     <div class="pb"><i style="width:${tp}%"></i></div>
   </div>
   ${!U.preview && S.user.access && S.user.access.left != null && S.user.access.left <= 7 ? `<div class="upcard"><b style="color:var(--mag)">Доступ открыт до ${fmt(S.user.access.last)}.</b> ${S.set.extendUrl ? `Чтобы продолжить, продлите доступ на ${extTxt()} — все отметки сохранятся.<div style="margin-top:10px"><a class="btn mag" href="${esc(S.set.extendUrl)}" target="_blank" rel="noopener">Продлить доступ</a></div>` : 'Продлить доступ можно через службу заботы.'}</div>` : ''}
+  ${webinarCard()}${finalCard()}
   ${fbCard()}
   ${S.user.recs && !U.preview ? `<div class="recs"><small>Рекомендации куратора</small><p style="margin:0">${esc(S.user.recs)}</p></div>` : ''}
-  <button class="today" data-a="tracker"><span class="h"><span><small>Трекер на сегодня · ${fmt(dateOf(dn), {day:'numeric', month:'long', weekday:'short'})}</small><br><b>${ts.d === ts.n ? 'Все действия выполнены' : 'Отметьте, что уже сделали'}</b></span><span class="n">${ts.d}/${ts.n}</span></span><span class="pb"><i style="width:${ts.p}%"></i></span></button>
+  ${preStart() ? '' : `<button class="today" data-a="tracker"><span class="h"><span><small>Трекер на сегодня · ${fmt(dateOf(dn), {day:'numeric', month:'long', weekday:'short'})}</small><br><b>${ts.d === ts.n ? 'Все действия выполнены' : 'Отметьте, что уже сделали'}</b></span><span class="n">${ts.d}/${ts.n}</span></span><span class="pb"><i style="width:${ts.p}%"></i></span></button>`}
   ${newReplies().map(m => `<button class="next" data-a="open" data-id="${m.lessonId}"><span class="ic">${I.chat}</span><span><small>Куратор ответил на ваш вопрос</small><b>${esc(byId(m.lessonId) ? byId(m.lessonId).t : m.lesson)}</b></span></button>`).join('')}
   ${nextL ? `<button class="next" data-a="open" data-id="${nextL.id}"><span class="ic">${I.play}</span><span><small>Следующий урок</small><b>${esc(nextL.t)}</b></span></button>`
          : `<div class="out">Все открытые уроки пройдены. Сделайте замер самочувствия в разделе «Прогресс».</div>`}
@@ -1752,7 +1806,7 @@ function catList(){
   let html;
   if (k === 'lessons') {
     const weeks = [...new Set(items.map(l => l.w))].sort((a,b) => a - b);
-    html = weeks.map(w => `<div class="wk">${WEEKNAME[w]}${weekOpen(w) ? '' : ` · откроется ${fmt(dateOf(CAL.weekOpens[w]))}`}</div><div class="list">${items.filter(l => l.w === w).map(l => weekOpen(w) ? li(l) : liLock(l)).join('')}</div>`).join('');
+    html = weeks.map(w => `<div class="wk">${WEEKNAME[w]}${weekOpen(w) ? '' : ` · откроется ${whenTxt(openAt(w))}`}</div><div class="list">${items.filter(l => l.w === w).map(l => lessonOpen(l) ? li(l) : liLock(l)).join('')}</div>`).join('');
   } else html = `<div class="list">${items.map(li).join('')}</div>`;
   const p = progress(k);
   const intro = {
@@ -1770,7 +1824,8 @@ function catList(){
 function menuLink(){
   // конструктор (рядом, тот же сайт) берёт отсюда адрес сервера, токен и дату старта — для сохранённых дней
   const start = new Date(dayStart(startT())); const iso = start.getFullYear()+'-'+String(start.getMonth()+1).padStart(2,'0')+'-'+String(start.getDate()).padStart(2,'0');
-  LS.set('hz_menu_link', MODE === 'live' && !U.preview ? { api: CFG.API_URL, token: S.token, start: iso } : { start: iso });
+  const menu = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : SCHED().menu;
+  LS.set('hz_menu_link', MODE === 'live' && !U.preview ? { api: CFG.API_URL, token: S.token, start: iso, menu } : { start: iso, menu });
 }
 function menuView(){
   menuLink();
@@ -1784,8 +1839,8 @@ function item(){
   const doneLbl = { lessons:['Отметить как просмотренный','Урок просмотрен'], practices:['Делаю эту практику','Практика в работе'],
     spices:['Добавил(а) в рацион','В рационе'], phyto:['Обсудил(а) с врачом, принимаю','Принимаю'] }[k];
   const btn = `<button class="btn full ${d ? 'ghost' : ''}" data-a="toggle" data-id="${x.id}">${d ? I.check.replace('<svg','<svg width="18" height="18"') + ' ' + doneLbl[1] : doneLbl[0]}</button>`;
-  if (k === 'lessons' && !weekOpen(x.w))
-    return `<h1 style="margin-top:22px">${esc(x.t)}</h1><div class="card"><p>Урок откроется ${fmt(dateOf(CAL.weekOpens[x.w]))} — ${WEEKNAME[x.w].toLowerCase()}.</p></div>`;
+  if (k === 'lessons' && !lessonOpen(x))
+    return `<h1 style="margin-top:22px">${esc(x.t)}</h1><div class="card"><p>Урок откроется ${whenTxt(lessonOpenAt(x))} по Москве${menuWeekOf(x) ? '' : ' — ' + WEEKNAME[x.w].toLowerCase()}.</p></div>`;
   if (k === 'lessons') {
     const L = lessonLinks(x.id, U.links), emb = embedUrl(L.video), textLesson = !L.video && /^(Текст|Список|Рецепт|Гайд|Трекер|Меню и рецепты|Обратная связь|Задание|Сборник)$/.test(x.d);
     const player = emb ? `<div class="player"><div class="scr"><iframe src="${esc(emb)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen title="${esc(x.t)}"></iframe></div></div>`
@@ -1826,7 +1881,7 @@ function tracker(){
   const grid = `<div class="gridwrap"><table class="wg"><thead><tr><th>Действия</th>${Array.from({length:7}, (_, k) => `<th>Д${k+1}</th>`).join('')}</tr></thead><tbody>
     ${rows.map((r, i) => `<tr class="${r.a ? 'anc' : ''}"><td>${r.t}${r.o ? ' <span class="muted">(по желанию)</span>' : ''}</td>${Array.from({length:7}, (_, k) => { const n = first+k; return `<td class="${n === day ? 'tdc' : ''}"><span class="c ${U.st.track[n+':'+i] ? 'y' : ''} ${n > today ? 'f' : ''}"></span></td>`; }).join('')}</tr>`).join('')}
   </tbody></table></div>`;
-  const note = (TRACK[TYPE()] && TRACK[TYPE()][w]) ? '' : `<p class="muted small">В тестовой версии для всех типов и недель показан трекер 1-й недели вялого типа. Трекеры остальных типов и недель добавим вместе с контентом.</p>`;
+  const note = '';
   return `<h1 style="margin-top:22px">Трекер</h1>
   <p class="muted">${TYPES[TYPE()].name}. Отмечайте, что сделали за день. Будущие дни откроются по календарю программы.</p>
   <div class="tabs" role="tablist">${wt}</div>
@@ -2104,6 +2159,7 @@ function studentClick(e, b, a){
   if (a === 'cat') return go('cat', { k:b.dataset.k });
   if (a === 'menu') { track('menu', 'Конструктор меню'); return go('menu'); }
   if (a === 'open') { const id = b.dataset.id; if (catOf(id) === 'lessons') { const l = lx(id); l.open++; l.last = Date.now(); save(); track('open', byId(id).t); } return go('item', { id }); }
+  if (a === 'webinar') { track('webinar', webinar().title); return; }
   if (a === 'groupChat') { track('group_chat', PNAME[TYPE()]); return; }
   if (a === 'extopen') { track('video', byId(b.dataset.id).t); return; }
   if (a === 'dl') { track('download', byId(b.dataset.id).t); return; }
@@ -2132,7 +2188,7 @@ function saveDraftSoon(){ clearTimeout(draftT); draftT = setTimeout(saveDraft, 4
 const EVN = { login:'Вход в кабинет', password_set:'Задан пароль', password_reset:'Сброшен пароль', added_from_getcourse:'Карточка создана из выгрузки GetCourse',
   quiz_submit:'Анкета отправлена', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён',
   quiz_reset:'Анкета открыта заново', progress_reset:'Прогресс сброшен', open:'Открыт урок', done:'Отмечено выполненным',
-  video:'Открыто видео урока', download:'Открыт конспект', menu:'Открыт конструктор меню', feedback:'Заполнена оценка обучения', menu_day:'Сохранён день в конструкторе меню', menu_day_del:'Удалён день из конструктора меню', check:'Замер самочувствия',
+  video:'Открыто видео урока', download:'Открыт конспект', menu:'Открыт конструктор меню', webinar:'Перешла на вводный вебинар', feedback:'Заполнена оценка обучения', menu_day:'Сохранён день в конструкторе меню', menu_day_del:'Удалён день из конструктора меню', check:'Замер самочувствия',
   recs:'Обновлены рекомендации', note:'Обновлена заметка куратора', chat:'Сообщение в чат', reply_chat:'Ответ куратора в чате',
   comment:'Вопрос под уроком', reply_comment:'Ответ куратора под уроком', tariff:'Тариф', materials:'Правка материалов',
   ai_resolved:'Решение по ИИ', curator:'Куратор', extended:'Продление', group_chat:'Открыт общий чат протокола', ai_error:'Ошибка ИИ-проверки', ai_done:'ИИ-проверка выполнена' };
@@ -2204,7 +2260,7 @@ const Adm = (() => {
   const openThreads = () => threads().filter(t => t.list[t.list.length-1].from === 'cl');
   const chatClients = () => C.filter(c => !c.paidOnly && (c.tariff === TARIFF_IND || chatOf(c).length));
   function lessonPct(c){ const ls = eff(c, 'lessons'); return ls.length ? Math.round(ls.filter(id => c.state.done[id]).length/ls.length*100) : 0; }
-  const wkOpenC = (c, w) => CFG.OPEN_ALL_WEEKS || c.day >= CAL.weekOpens[w];
+  const wkOpenC = (c, w) => CFG.OPEN_ALL_WEEKS || Date.now() >= openAt(w, D && D.settings);
   const curWeekC = c => Math.min(7, Math.max(1, Math.floor((Math.min(c.day, CAL.programDays)-1)/7)+1));
   const weekTrack = (c, w) => c.assigned && c.day ? weekStatT(c.state.track, c.type, c.day, w) : null;
   const lastTxt = n => n === null ? 'не заходил(а)' : n === 0 ? 'сегодня' : n === 1 ? 'вчера' : `${n} ${plural(n, ['день','дня','дней'])} назад`;
@@ -2235,7 +2291,7 @@ const Adm = (() => {
   // ── каркас ──
   function side(){
     const rv = C.filter(c => ['review','photo'].includes(flowOf(c))).length;
-    $('#side').innerHTML = `<div class="brand">HOLISTICA<i>DOC</i></div><div class="prog">Формула здоровья ЖКТ<br>Тестовая версия${MODE === 'demo' ? ' · демо' : ''}</div>
+    $('#side').innerHTML = `<div class="brand">HOLISTICA<i>DOC</i></div><div class="prog">Формула здоровья ЖКТ${MODE === 'demo' ? '<br>Демо-режим' : ''}</div>
     <div class="navs">
     <button class="nav ${AV.s === 'over' ? 'on' : ''}" data-a="nav" data-s="over">${I.over}Обзор</button>
     <button class="nav ${(AV.s === 'clients' && CF.st !== 'review') || AV.s === 'client' ? 'on' : ''}" data-a="nav" data-s="clients">${I.cl}Клиенты<span class="n">${C.length}</span></button>
@@ -2440,7 +2496,7 @@ const Adm = (() => {
   }
   function fbPanel(c){
     if (!c.assigned) return '';
-    const open = FB_KEYS.filter(k => c.day && c.start && c.day >= fbOpenDay(k, dayStart(new Date(c.start).getTime()), CAL.weekOpens, CAL.programDays));
+    const open = FB_KEYS.filter(k => Date.now() >= fbOpenAt(k, SCHED(D && D.settings)));
     const sub = c.fb.length ? 'заполнено ' + c.fb.length + ' из ' + open.length + (c.fb.some(f => f.flag) ? ' · есть сигналы' : '') : open.length ? 'ещё не заполняла' : 'первая анкета откроется в пятницу 1-й недели';
     return fold('fbk', 'Оценки обучения', sub, c.fb.length ? c.fb.map(f => `<div style="margin-bottom:16px"><p style="margin:0 0 6px"><b>${FB_TITLE[f.key]}</b> · ${fmtDT(f.date)}${f.flag ? ` <span class="chip r">${esc(f.flag)}</span>` : ''}</p><div class="ans">${fbAnswersHtml(f)}</div></div>`).join('')
       : '<p class="small muted">Анкеты открываются в пятницу каждой недели. Ученица видит карточку «Оцените, как прошла неделя» на главной.</p>');
@@ -2450,7 +2506,7 @@ const Adm = (() => {
     let L = fbAll(); if (k !== 'all') L = L.filter(f => f.key === k); if (p !== 'all') L = L.filter(f => f.c.type === p);
     if (AV.flagOnly) L = L.filter(f => f.flag);
     const segK = (v, t) => `<button class="${k === v ? 'on' : ''}" data-a="fbk" data-v="${v}">${t}</button>`, segP = (v, t) => `<button class="${p === v ? 'on' : ''}" data-a="fbpr" data-v="${v}">${t}</button>`;
-    const rows = FB_KEYS.map(key => { const R = fbAll().filter(f => f.key === key && (p === 'all' || f.c.type === p)); const elig = C.filter(c => c.assigned && (p === 'all' || c.type === p) && c.day && c.day >= fbOpenDay(key, dayStart(new Date(c.start).getTime()), CAL.weekOpens, CAL.programDays)).length;
+    const rows = FB_KEYS.map(key => { const R = fbAll().filter(f => f.key === key && (p === 'all' || f.c.type === p)); const elig = C.filter(c => c.assigned && (p === 'all' || c.type === p) && Date.now() >= fbOpenAt(key, SCHED(D && D.settings))).length;
       return `<tr><td><b>${FB_TITLE[key]}</b></td><td data-l="Ответов">${R.length}${elig ? ' из ' + elig : ''}</td><td data-l="Уроки">${avgOf(R, 'lessons')}</td><td data-l="Кураторы">${avgOf(R, 'curators')}</td><td data-l="Чат">${avgOf(R, 'chatMood')}</td><td data-l="Всё понятно">${shareOf(R, 'adapt', 'Да')}</td><td data-l="Лучше">${key === 'final' ? shareOf(R, 'chFeel', 'Заметно') : shareOf(R, 'feel', 'Лучше')}</td><td data-l="Хуже">${key === 'final' ? shareOf(R, 'chFeel', 'Хуже') : shareOf(R, 'feel', 'Хуже')}</td><td data-l="Следование">${(() => { const v = R.map(f => parseInt(f.answers.follow)).filter(x => !isNaN(x)); return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) + '%' : '—'; })()}</td><td data-l="Рецепты">${avgOf(R, 'recipes')}</td></tr>`; }).join('');
     const fin = fbAll().filter(f => f.key === 'final' && (p === 'all' || f.c.type === p)), nv = fin.map(f => +f.answers.nps).filter(x => !isNaN(x));
     const nps = nv.length ? Math.round((nv.filter(x => x >= 9).length - nv.filter(x => x <= 6).length) / nv.length * 100) : null;
