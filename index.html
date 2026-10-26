@@ -561,7 +561,35 @@ button.sr-i:hover{background:var(--mint-pale)}.sr-i.lock{color:var(--grey)}
 .ltext .lt-vs span{display:block;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px}
 .ltext .lt-vs-n span{color:var(--mag)}.ltext .lt-vs-y span{color:var(--e)}
 .ltext .lt-vs-y{border-color:var(--mint-bd)!important}
+.ltext .lt-prizes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 16px}
+.ltext .lt-prizes>div{background:var(--e-dk);color:#fff;border-radius:14px;padding:12px 14px}
+.ltext .lt-prizes span{display:block;font-size:12.5px;font-weight:700;color:#A8E4C0}
+.ltext .lt-prizes b{font-size:22px;letter-spacing:.01em}
+.ltext .lt-prizes>div:first-child{background:var(--mag)}.ltext .lt-prizes>div:first-child span{color:#F6D3EC}
+.ltext .lt-ex{margin:8px 0 16px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:10px}
+.ltext .lt-ex img{border-radius:8px;width:100%}
+.ltext .lt-ex figcaption{font-weight:600;font-size:13.5px;color:var(--grey)}
+@media (max-width:520px){.ltext .lt-prizes{grid-template-columns:1fr}.ltext .lt-prizes>div{display:flex;justify-content:space-between;align-items:baseline}}
 @media (max-width:520px){.ltext .lt-grid{grid-template-columns:repeat(3,1fr)}.ltext .lt-side{flex-basis:100px}.ltext .lt-inv{gap:14px}.ltext .lt-vs{gap:8px}.ltext .lt-vs p{font-size:13.5px;padding:8px 10px 10px}}
+.rzbox{background:var(--surface);border:2px solid var(--mag);border-radius:18px;padding:16px 18px 18px;margin:0 0 16px}
+.rzbox p{margin:0 0 12px}
+.rz-h{display:flex;align-items:center;gap:12px;margin:0 0 12px}.rz-h h3{margin:0;font-size:18px;color:var(--mag)}
+.rz-seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--mint-pale);border-radius:12px;padding:4px;margin:0 0 10px}
+.rz-seg button{border:0;background:none;border-radius:9px;padding:10px 8px;font:inherit;font-weight:700;font-size:14px;color:var(--ink);cursor:pointer}
+.rz-seg button.on{background:#fff;color:var(--e);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.rz-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}.rz-pick .btn{margin:0}
+.rz-files{display:grid;gap:6px;margin:0 0 14px}
+.rz-f{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:6px 8px}
+.rz-f img{width:44px;height:44px;object-fit:cover;border-radius:8px;flex:0 0 auto}
+.rz-f .ext{flex:0 0 auto}
+.rz-n{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rz-t{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;background:var(--lav);color:var(--mag);border-radius:999px;padding:2px 8px;flex:0 0 auto}
+.rz-t.a{background:var(--mint-pale);color:var(--e)}
+.rz-x{border:0;background:none;font-size:22px;line-height:1;color:var(--grey);cursor:pointer;padding:4px 8px}
+.rz-lab{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
+.rzbox textarea{min-height:110px}
+.rz-ok{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;margin:14px 0}.rz-ok input{margin-top:3px;width:18px;height:18px;flex:0 0 auto;accent-color:var(--mag)}
+.rzbox .formok{margin-bottom:12px}
 .lcon{position:relative;background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:16px 18px 12px;margin:0 0 16px}
 .lc-h{display:flex;align-items:center;gap:12px;margin-bottom:8px}.lc-h h3{margin:0;font-size:16px}
 .lc-ic{width:36px;height:36px;border-radius:50%;background:var(--mint-pale);color:var(--e);display:grid;place-items:center}.lc-ic svg{width:19px;height:19px}
@@ -1082,7 +1110,8 @@ const CFG = {
     weeks: { 0:'2026-10-31T00:00:00+03:00', 1:'2026-11-01T12:00:00+03:00', 2:'2026-11-07T06:00:00+03:00', 3:'2026-11-14T06:00:00+03:00',
              4:'2026-11-21T06:00:00+03:00', 5:'2026-11-28T06:00:00+03:00', 6:'2026-12-12T06:00:00+03:00', 7:'2026-11-01T12:00:00+03:00' },
     menu: { 3:'2026-11-06T12:00:00+03:00', 4:'2026-11-13T12:00:00+03:00', 5:'2026-11-20T12:00:00+03:00' },
-    final: '2026-12-20T11:00:00+03:00', finalUrl: ''
+    final: '2026-12-20T11:00:00+03:00', finalUrl: '',
+    raffle: { from:'2026-12-14T00:00:00+03:00', to:'2026-12-17T23:59:00+03:00', at:'2026-12-20T00:00:00+03:00' }
   },
   // true — открыть все недели сразу (удобно для теста). false — недели открываются по календарю.
   OPEN_ALL_WEEKS: false,
@@ -2622,6 +2651,115 @@ ${ltVs('12', 'Десерт после полноценного обеда', 'Л�
 `
 };
 
+// Условия участия в розыгрыше — даты берутся из настроек потока (лист «Настройки»)
+var LT_RZ = 'materials/common/img/';
+LTEXT.st5 = function(){
+  const r = (SCHED().raffle) || {}, ms = v => new Date(v).getTime();
+  const dm = v => new Date(v).toLocaleDateString('ru-RU', { day:'numeric', month:'long', timeZone:'Europe/Moscow' });
+  const d = v => dm(v).replace(/\s\S+$/, '');
+  const from = r.from ? ms(r.from) : 0, to = r.to ? ms(r.to) : 0, at = r.at ? ms(r.at) : 0;
+  const sameM = from && to && dm(from).split(' ')[1] === dm(to).split(' ')[1];
+  const period = from && to ? (sameM ? `с ${d(from)} по ${dm(to)}` : `с ${dm(from)} по ${dm(to)}`) : 'в последнюю неделю программы';
+  const fin = openAt(6), fig = (n, cap) => `<figure class="lt-ex"><img src="${LT_RZ}${n}.webp" alt="${cap}" loading="lazy"><figcaption>${cap}</figcaption></figure>`;
+  return `
+<p class="lt-lead">В конце программы вас ждёт приятное: подарок за обратную связь каждой, кто дошёл до финала, и розыгрыш денежных призов за самые яркие результаты. Рассказываем, как участвовать, — и почему фото «до» стоит сделать уже сейчас.</p>
+
+<h3>Гарантированный приз — гайд «Аптечка в отпуск»</h3>
+<div class="lt-inv">
+<div>
+<p>Получит каждая, кто выполнит два условия:</p>
+<ol class="lt-steps">
+<li>Заполнит тест-диагностику по итогу программы — «Ваша точка Б».</li>
+<li>Прокомментирует свои результаты в свободной форме: с каким запросом пришли на программу, как её проходили (что было новым, что использовали, было ли комфортно, что вызвало особый интерес) и что изменилось в самочувствии.</li>
+</ol>
+</div>
+<div class="lt-side"><figure><img src="${LT_RZ}rz_gift.webp" alt="" loading="lazy"></figure></div>
+</div>
+
+<h3>Розыгрыш за результат — очевидный и невероятный</h3>
+<h4>Что разыгрываем</h4>
+<ol class="lt-steps">
+<li><b>Гарантированный приз всем участницам розыгрыша</b> — бонусный урок ароматерапевта Татьяны Никифоровой «Ароматерапия здоровья и красоты».</li>
+<li><b>5 денежных призов</b> среди участниц.</li>
+</ol>
+<div class="lt-prizes">
+<div><span>1 место</span><b>50 000 ₽</b></div>
+<div><span>2 и 3 места</span><b>30 000 ₽</b></div>
+<div><span>4 и 5 места</span><b>20 000 ₽</b></div>
+</div>
+<p>Розыгрыш пройдёт в нашем блоге — победительниц выберут подписчики голосованием. Приз придёт на карту или на бонусный счёт (на выбор) в течение 3 рабочих дней.</p>
+
+<h4>Как участвовать</h4>
+<p><b>${period.charAt(0).toUpperCase() + period.slice(1)}${to ? ' (до 23:59 по Москве)' : ''}</b> пришлите на выбор:</p>
+<ul>
+<li><b>анализы до и после</b> + письменный или видеоотзыв о программе и результатах;</li>
+<li>или <b>фото до и после</b> с вашими результатами (минус отёки, минус лишний вес или сантиметры в талии, плюс вес — для тех, у кого дефицит, изменения кожи и т. д.) + письменный или видеоотзыв о программе и результатах.</li>
+</ul>
+<div class="lt-note"><b>Розыгрыш — ${at ? dm(at) : 'после завершения программы'}.</b> Куда отправлять работы, расскажем в уроке «Участие в розыгрыше» — он откроется в разделе «Завершение»${fin ? ' ' + whenTxt(fin) : ''}.</div>
+<div class="lt-ins"><b>Сделайте фото «до» в первые дни программы</b><p>Без них не с чем будет сравнить. Сфотографируйтесь сейчас, даже если пока не уверены, что будете участвовать, — потом может очень захотеться. То же с анализами: если планируете сдавать, сдайте первые в начале программы.</p></div>
+
+<h3>Примеры фотографий</h3>
+<p>Фото <b>в полный рост</b> до и после программы — спереди, сзади и сбоку. Лицо можно закрыть листом с датой съёмки.</p>
+${fig('rz_front', 'Спереди')}
+${fig('rz_back', 'Сзади')}
+${fig('rz_side', 'Сбоку')}
+<p>Фото <b>на весах</b> до и после — так, чтобы было видно цифры на табло.</p>
+${fig('rz_scales', 'На весах')}
+<p>Фото <b>проблемных зон кожи</b>, если изменения касаются кожи.</p>
+${fig('rz_skin', 'Кожа до и после')}
+
+<h3>Как не надо фотографировать</h3>
+${fig('rz_bad', 'Тёмные, смазанные, снятые в зеркало или под странным углом фото не покажут ваш результат')}
+
+<h3>Как сделать хорошее фото</h3>
+<ol class="lt-steps lt-cols">
+<li>Встаньте напротив источника света — окна или лампы, — чтобы тело было хорошо освещено.</li>
+<li>Лучше всего подойдёт светлое помещение с естественным светом.</li>
+<li>Проследите, чтобы фон не отвлекал внимание.</li>
+<li>Выберите одежду одного цвета и проверьте, что она не просвечивает.</li>
+<li>Попросите кого-нибудь помочь со съёмкой — так вы сможете сосредоточиться на позе.</li>
+<li>Держите телефон примерно на уровне глаз.</li>
+<li>Проследите, чтобы тень от телефона не падала на лицо.</li>
+<li>Ориентир — фото на документы в фотосалоне.</li>
+<li>Без фильтров и эффектов, которые искажают тело.</li>
+<li>Сделайте несколько кадров и выберите лучший.</li>
+<li>Снимайте «до» и «после» в одном месте, при похожем свете и в той же одежде — так разница будет видна честно.</li>
+</ol>
+<div class="lt-warn"><div><b>Фото должны быть чёткими</b><p>Размытые и тёмные фото к участию в розыгрыше не допускаются.</p></div></div>
+`;
+};
+
+// Участие в розыгрыше (раздел «Завершение») — форма загрузки ниже текста, в lessonExtra
+LTEXT.fin3 = function(){
+  const r = SCHED().raffle || {}, dm = v => new Date(v).toLocaleDateString('ru-RU', { day:'numeric', month:'long', timeZone:'Europe/Moscow' });
+  const from = r.from ? dm(r.from) : '', to = r.to ? dm(r.to) : '', at = r.at ? dm(r.at) : '';
+  const per = from && to ? (from.split(' ')[1] === to.split(' ')[1] ? `с ${from.split(' ')[0]} по ${to}` : `с ${from} по ${to}`) : '';
+  return `
+<p class="lt-lead">Вы прошли программу — и это уже большой результат. Теперь самое приятное: покажите, что изменилось, и поучаствуйте в розыгрыше денежных призов.</p>
+<div class="lt-prizes">
+<div><span>1 место</span><b>50 000 ₽</b></div>
+<div><span>2 и 3 места</span><b>30 000 ₽</b></div>
+<div><span>4 и 5 места</span><b>20 000 ₽</b></div>
+</div>
+<p>А всем участницам розыгрыша — бонусный урок Татьяны Никифоровой «Ароматерапия здоровья и красоты».</p>
+<h3>Что отправить</h3>
+<p>${per ? `<b>${per.charAt(0).toUpperCase() + per.slice(1)}, до 23:59 по Москве</b>, загрузите` : 'Загрузите'} прямо в форму ниже на выбор:</p>
+<ul>
+<li><b>фото до и после</b> — в полный рост спереди, сзади и сбоку, на весах или фото кожи;</li>
+<li>или <b>анализы до и после</b>.</li>
+</ul>
+<p>И обязательно — <b>отзыв</b>: текстом или ссылкой на видео. Расскажите, с каким запросом пришли, как проходили программу и что изменилось в самочувствии.</p>
+<div class="lt-note">Как сделать хорошие фото, смотрите в уроке «Условия участия в розыгрыше» раздела «Перед стартом»: там примеры и инструкция. Размытые и тёмные фото к розыгрышу не допускаются.</div>
+<h3>Что будет дальше</h3>
+<ol class="lt-steps">
+<li>Мы соберём работы и опубликуем их в нашем блоге — без лиц и личных данных.</li>
+<li>${at ? at.charAt(0).toUpperCase() + at.slice(1) : 'После программы'} подписчики выберут победительниц голосованием.</li>
+<li>Мы сами свяжемся с победительницами и оформим приз — заранее ничего присылать не нужно.</li>
+</ol>
+<div class="lt-ins"><b>А подарок — точно ваш</b><p>Гайд «Аптечка в отпуск» получает каждая, кто заполнит итоговую анкету «Ваша точка Б» и прокомментирует свои результаты. Даже если в розыгрыше вы участвовать не хотите.</p></div>
+`;
+};
+
 
 const PNAME = { slow:'Вялое пищеварение', infl:'Воспалённое пищеварение', sens:'Чувствительное пищеварение', mix:'Смешанный тип' };
 const PKEY = { 'Воспаленное пищеварение':'infl' }; Object.keys(PNAME).forEach(k => PKEY[PNAME[k]] = k);
@@ -2889,11 +3027,13 @@ const Demo = (() => {
   const accessOf = d => accessCalc({ start: load().settings.start || d['Дата подтверждения'] || d['Первый вход'], endAt: load().settings.accessEnd, accessDays: load().settings.accessDays, extDays: load().settings.extDays, exts: load().ext[d['Email']] || [], until: d['Доступ до'] });
   const openOnly = st => { if (!isStaff({role:st['Роль']}) && accessOf(st).closed) throw new Error('Доступ к программе закрыт'); };
   const pub = d => ({ access: accessOf(d), email:d['Email'], name:d['Имя'], role:d['Роль'], status:d['Статус']||STS.none, autoProtocol:d['Протокол авто']||'', protocol:d['Протокол итог']||'',
-    recs:d['Комментарий куратора']||'', confirmedAt:d['Дата подтверждения']||'', filledAt:d['Дата анкеты']||'', hasPhoto:!!(load().quizzes[d['Email']]||{}).photo, hasForm:!!(load().quizzes[d['Email']]||{}).form,
+    recs:d['Комментарий куратора']||'', confirmedAt:d['Дата подтверждения']||'', filledAt:d['Дата анкеты']||'', hasPhoto:!!(load().quizzes[d['Email']]||{}).photo, hasForm:!!(load().quizzes[d['Email']]||{}).form, raffle:(load().raffle||{})[d['Email']]||null,
     tariff:d['Тариф']||'Общий', ov:parse(d['Правки материалов']), profile:parse(d['Профиль'])||{} });
   const msgsOf = e => load().messages.filter(m => m.email === e);
   const addMsg = (email, lessonId, from, who, text) => { load().messages.push({ at:now(), email, lessonId:lessonId||'', lesson: lessonId ? (byId(lessonId)||{t:''}).t : '', from, who, text }); log(email, from === 'cu' ? (lessonId ? 'reply_comment' : 'reply_chat') : (lessonId ? 'comment' : 'chat'), lessonId ? (byId(lessonId)||{t:''}).t : ''); };
   const parse = s => { try { return s ? JSON.parse(s) : null } catch(e){ return null } };
+  const demoRaffleOpen = st => { if (st['Статус'] !== STS.ok) throw new Error('Розыгрыш — для участниц программы'); const r = SCHED({ schedule: (load().settings||{}).schedule }).raffle || {};
+    if (r.from && Date.now() < Date.parse(r.from)) throw new Error('Приём работ ещё не начался'); if (r.to && Date.now() > Date.parse(r.to) + 60000) throw new Error('Приём работ завершён'); };
   const A = {
     checkEmail({email}){ const st=studentOrPaid(email); if(!st) throw new Error(NOT_PAID); return {hasPassword:!!st._pw, name:st['Имя']||''}; },
     setPassword({email,password}){ const st=studentOrPaid(email); if(!st) throw new Error(NOT_PAID);
@@ -2942,6 +3082,10 @@ const Demo = (() => {
       return { students: db.students.map(s=>{ const r=Object.assign({},s); r['Пароль задан']=s._pw?'да':'нет'; r.state=parse(s['Прогресс']); r.ov=parse(s['Правки материалов']); r.access=accessOf(s); delete r._pw; delete r['Прогресс']; delete r['Правки материалов']; return r; }),
         quizzes:db.quizzes, events:db.events, feedback:db.feedback||[], paid:db.paid, lessons:db.lessons, messages:db.messages, ai:db.ai, aiKey:false, settings:db.settings }; },
     photo({token,email}){ adminAuth(token); return {data:load().photos[email]||''}; },
+    raffleFile({token,tag,file}){ const st=auth(token); demoRaffleOpen(st); const db=load(); db.rfiles=db.rfiles||{}; (db.rfiles[st['Email']]=db.rfiles[st['Email']]||[]).push({tag,name:file.name}); return {id:'f'+Date.now()}; },
+    raffleSend({token,kind,review,video,consent}){ const st=auth(token); demoRaffleOpen(st); if(!consent) throw new Error('Отметьте согласие на публикацию — без него работу нельзя выставить на голосование');
+      const n=((load().rfiles||{})[st['Email']]||[]).length; if(!n) throw new Error('Прикрепите фото или анализы'); if(!String(review||'').trim()&&!String(video||'').trim()) throw new Error('Добавьте отзыв: текстом или ссылкой на видео');
+      const db=load(); db.raffle=db.raffle||{}; db.raffle[st['Email']]={at:now(),files:n,kind:kind==='tests'?'Анализы до/после':'Фото до/после',review,video}; log(st['Email'],'raffle'); return {at:new Date().toISOString(),files:n}; },
     uploadForm({token,file}){ const st=auth(token), q=load().quizzes[st['Email']]; if(!q) throw new Error('Сначала отправьте анкету'); q.form={name:file.name}; load().forms=load().forms||{}; load().forms[st['Email']]=file; log(st['Email'],'form'); return {}; },
     formFile({token,email}){ adminAuth(token); const f=(load().forms||{})[email]; return f?{data:f.data,name:f.name}:{data:''}; },
     menuDaysOf({token,email}){ adminAuth(token); const st=find(email); if(!st) return {days:[]};
@@ -3127,7 +3271,7 @@ const preStart = () => !U.preview && !!START() && dayStart(Date.now()) < dayStar
 // ── расписание: неделя открывается в заданный момент (лист «Настройки» → CFG.SCHEDULE) ──
 function SCHED(set){ const d = CFG.SCHEDULE, s = ((set !== undefined ? set : S.set) || {}).schedule || {};
   const pick = (a, b) => { const o = Object.assign({}, a); for (const k in (b || {})) if (b[k]) o[k] = b[k]; return o; };
-  return { weeks: pick(d.weeks, s.weeks), menu: pick(d.menu, s.menu), final: s.final || d.final, finalUrl: s.finalUrl || d.finalUrl }; }
+  return { weeks: pick(d.weeks, s.weeks), menu: pick(d.menu, s.menu), final: s.final || d.final, finalUrl: s.finalUrl || d.finalUrl, raffle: pick(d.raffle, s.raffle) }; }
 const openAt = (w, set) => new Date(SCHED(set).weeks[w]).getTime() || 0;
 const menuWeekOf = l => { const m = /меню и сборник рецептов на (\d)/i.exec(l.t); return m ? +m[1] : 0; };
 const lessonOpenAt = (l, set) => { const mw = menuWeekOf(l), m = mw && SCHED(set).menu[mw]; return m ? new Date(m).getTime() : openAt(l.w, set); };
@@ -3285,6 +3429,7 @@ function lessonExtra(x){
     <div class="botbtns"><a class="btn mag" href="${BOT_MAX}" target="_blank" rel="noopener" data-a="botlink" data-id="max">Подключить MAX</a><a class="btn mag" href="${BOT_TG}" target="_blank" rel="noopener" data-a="botlink" data-id="tg">Подключить Telegram</a></div>
     <div class="bothint"><b>Важно:</b> ссылка открывается через кабинет школы на GetCourse — так бот сразу узнаёт вас. Если GetCourse попросит войти, войдите под той же почтой, что и здесь, и нажмите кнопку ещё раз.</div></div>`);
   if (x.id === 'fin4') { const c = finalCard(true); if (c) out.push(c); }
+  if (x.id === 'fin3') out.push(raffleBlock());
   if (x.d === 'Обратная связь' || /^Ваша точка Б/.test(t)) {
     const key = /после программы|точка Б/i.test(t) ? 'final' : 'w' + x.w;
     const opened = fbOpen(key), done = fbDone()[key];
@@ -3377,6 +3522,12 @@ async function doLogin(){
 }
 
 // ── приветствие, ожидание, результат ──
+const preLessons = () => CAT.lessons.filter(l => l.w === 0 && l.core);
+const assigned = () => U.preview || (!!S.user && S.user.status === STS.ok);
+function preBlock(){
+  return `<h2><span>Перед стартом</span></h2><p class="muted small" style="margin-top:-4px">${weekOpen(0) ? 'Эти уроки доступны уже сейчас, до назначения протокола: как устроена программа, бот школы, технические вопросы и условия розыгрыша.' : 'Раздел откроется ' + whenTxt(openAt(0)) + ' по Москве.'}</p>
+  <div class="list">${preLessons().map(l => lessonOpen(l) ? li(l) : liLock(l)).join('')}</div>`;
+}
 function welcome(){
   const n = (S.user.name || '').split(' ')[0];
   return `<div class="top">
@@ -3388,6 +3539,7 @@ function welcome(){
   ${webinarCard()}
   <div class="card"><p><b>Важно.</b> Анкета заполняется один раз. Если позже захотите пройти её заново, напишите куратору.</p></div>
   <button class="btn full" data-a="startQuiz">${LS.get(draftKey(), null) ? 'Продолжить анкету' : 'Начать анкету'}</button>
+  ${preBlock()}
   ${foot()}`;
 }
 function wait(){
@@ -3403,6 +3555,7 @@ function wait(){
   ${webinarCard()}
   <div class="card"><p>Спасибо, что ответили открыто и внимательно — именно это помогает подобрать программу точно под вас.</p></div>
   <button class="btn ghost full" data-a="reload">Проверить, назначен ли протокол</button>
+  ${preBlock()}
   ${foot()}`;
 }
 function result(){
@@ -3509,7 +3662,7 @@ function menuView(){
   <iframe class="menu-frame" src="${esc(src)}" title="Конструктор меню"></iframe>`;
 }
 function lessonNav(x){
-  const ls = RES().lessons.map(byId).map((l, i) => [l, i]).sort((a, b) => a[0].w - b[0].w || a[1] - b[1]).map(p => p[0]);
+  const ls = (assigned() ? RES().lessons.map(byId) : preLessons()).map((l, i) => [l, i]).sort((a, b) => a[0].w - b[0].w || a[1] - b[1]).map(p => p[0]);
   const i = ls.findIndex(l => l.id === x.id); if (i < 0) return '';
   const p = ls[i - 1], n = ls[i + 1];
   const one = (l, dir) => {
@@ -3542,7 +3695,7 @@ function item(){
       ${U.preview ? '' : `<button class="bmbtn${bm ? ' on' : ''}" data-a="bm" data-id="${x.id}" aria-pressed="${!!bm}">${bm ? I.bmkf : I.bmk}${bm ? 'Сохранён' : 'Сохранить урок'}</button>`}</div>
     <h1>${esc(x.t)}</h1>${player}
     ${aboutHtml(ab)}
-    ${LTEXT[x.id] ? `<div class="ltext">${LTEXT[x.id]}</div>` : ''}
+    ${LTEXT[x.id] ? `<div class="ltext">${typeof LTEXT[x.id] === 'function' ? LTEXT[x.id]() : LTEXT[x.id]}</div>` : ''}
     ${x.id === 'st3' ? st3Html() : x.id === 'st4' ? st4Html() : conspectHtml(x, L)}
     ${lessonExtra(x)}
     ${resultHtml(ab)}
@@ -3782,6 +3935,69 @@ function formBlock(ctx){
     <div class="row" style="max-width:420px">${input}<label for="form-file" class="btn ghost">${V.fbusy ? 'Загружаем…' : 'Заменить файл'}</label>${ctx === 'quiz' ? `<button class="btn ghost" data-a="fDel">Удалить</button>` : ''}</div>${err}`;
   return `<div>${input}<label for="form-file" class="btn">${V.fbusy ? 'Загружаем…' : 'Прикрепить заполненный опросник'}</label></div>${err}`;
 }
+// ── Розыгрыш: приём фото / анализов и отзыва в уроке «Участие в розыгрыше» ──
+const RZ = () => V.rz || (V.rz = { kind:'photo', files:[], review:'', video:'', consent:false, busy:0, err:'' });
+function raffleWin(){ const r = SCHED().raffle || {}; return { from: Date.parse(r.from || '') || 0, to: Date.parse(r.to || '') || 0, at: Date.parse(r.at || '') || 0 }; }
+function raffleBlock(){
+  const w = raffleWin(), now = Date.now(), dm = ms => new Date(ms).toLocaleDateString('ru-RU', { day:'numeric', month:'long', timeZone:'Europe/Moscow' });
+  const sent = S.user && S.user.raffle, z = RZ();
+  const head = `<div class="rz-h"><span class="lc-ic">${I.clip}</span><h3>Ваша работа на розыгрыш</h3></div>`;
+  const sentCard = sent ? `<div class="formok">${I.check}<span><b>Работа отправлена${sent.at ? ' ' + dm(Date.parse(sent.at)) : ''}</b><small>${esc(sent.kind || '')}${sent.files ? ' · файлов: ' + sent.files : ''}. Итоги — ${w.at ? dm(w.at) : 'после программы'}, в нашем блоге.</small></span></div>` : '';
+  if (!U.preview && w.from && now < w.from) return `<section class="rzbox">${head}<p>Приём работ откроется <b>${dm(w.from)}</b> и продлится до ${w.to ? dm(w.to) + ' 23:59' : 'конца недели'} по Москве. Здесь можно будет загрузить фото или анализы и оставить отзыв.</p><p class="muted small" style="margin:0">Подготовьте фото «после» и отзыв заранее — как снимать, смотрите в уроке «Условия участия в розыгрыше».</p></section>`;
+  if (!U.preview && w.to && now > w.to + 60000) return `<section class="rzbox">${head}${sentCard || '<p style="margin:0">Приём работ завершён. Спасибо, что прошли программу до конца!</p>'}</section>`;
+  if (!U.preview && (!S.user || S.user.status !== STS.ok)) return '';
+  const files = z.files.map((f, i) => `<div class="rz-f"><span class="rz-t ${f.tag === 'после' ? 'a' : ''}">${f.tag}</span>${f.thumb ? `<img src="${f.thumb}" alt="">` : `<span class="ext p">${esc((f.name.split('.').pop() || 'файл').slice(0,4).toUpperCase())}</span>`}<span class="rz-n">${esc(f.name)}</span>${z.busy ? '' : `<button type="button" class="rz-x" data-a="rzDel" data-i="${i}" aria-label="Убрать файл">×</button>`}</div>`).join('');
+  const photo = z.kind === 'photo', acc = photo ? 'image/*' : 'image/*,.pdf';
+  const pick = (tag, lab) => `<input type="file" multiple accept="${acc}" id="rz-${tag === 'после' ? 'after' : 'before'}" class="vh"><label for="rz-${tag === 'после' ? 'after' : 'before'}" class="btn ghost">${lab}</label>`;
+  return `<section class="rzbox">${head}
+  ${sentCard}
+  <p>${sent ? 'Хотите что-то добавить? Можно дослать файлы и дополнить отзыв' : 'Загрузите материалы и отзыв'} до <b>${w.to ? dm(w.to) + ', 23:59' : 'конца приёма'}</b> по Москве.</p>
+  <div class="rz-seg" role="radiogroup">
+    <button type="button" class="${photo ? 'on' : ''}" data-a="rzKind" data-k="photo" role="radio" aria-checked="${photo}">Фото до и после</button>
+    <button type="button" class="${photo ? '' : 'on'}" data-a="rzKind" data-k="tests" role="radio" aria-checked="${!photo}">Анализы до и после</button>
+  </div>
+  <p class="muted small">${photo ? 'В полный рост спереди, сзади и сбоку, на весах или фото кожи — всё, что показывает ваш результат. Лицо можно закрыть.' : 'Фото или PDF анализов, сданных до программы и после неё. Фамилию и личные данные можно закрыть.'}</p>
+  <div class="rz-pick">${pick('до', '+ Файлы «до»')}${pick('после', '+ Файлы «после»')}</div>
+  ${files ? `<div class="rz-files">${files}</div>` : ''}
+  <label class="rz-lab" for="rzReview">Отзыв о программе и результатах</label>
+  <textarea class="inp" id="rzReview" maxlength="5000" placeholder="С каким запросом пришли, что изменилось в самочувствии, что было самым полезным">${esc(z.review)}</textarea>
+  <label class="rz-lab" for="rzVideo">Или ссылка на видеоотзыв <span class="muted">(необязательно)</span></label>
+  <input class="inp" id="rzVideo" maxlength="500" placeholder="Ссылка на Яндекс Диск, Google Drive, YouTube…" value="${esc(z.video)}">
+  <label class="rz-ok"><input type="checkbox" id="rzConsent" ${z.consent ? 'checked' : ''}><span>Согласна, что мои фото или анализы и отзыв опубликуют в блоге Holistica DOC для голосования. Лицо и личные данные не показываем.</span></label>
+  ${z.err ? `<div class="errt" role="alert">${esc(z.err)}</div>` : ''}
+  <button class="btn mag full" data-a="rzSend" ${z.busy ? 'disabled' : ''}>${z.busy ? `Загружаем ${z.busy}…` : sent ? 'Дослать на розыгрыш' : 'Отправить на розыгрыш'}</button>
+  </section>`;
+}
+async function rzAdd(input, tag){
+  const z = RZ(), list = [...(input.files || [])]; z.err = '';
+  if (z.files.length + list.length > 20) { z.err = 'Можно прикрепить до 20 файлов.'; return keepY(render); }
+  for (const f of list) {
+    try {
+      if (/^image\//.test(f.type)) { const data = await compressImage(f); z.files.push({ tag, name: f.name.replace(/\.\w+$/, '') + '.jpg', data, thumb: data }); }
+      else if (/pdf$/i.test(f.type) || /\.pdf$/i.test(f.name)) { const r = await readFileData(f); z.files.push({ tag, name: f.name, data: r.data }); }
+      else z.err = 'Подойдут фото (JPG, PNG, HEIC с камеры) или PDF.';
+    } catch (err) { if (err !== 'none') z.err = err.message || err; }
+  }
+  keepY(render);
+}
+async function rzSend(){
+  const z = RZ(); z.err = '';
+  if (U.preview) { toast('В режиме просмотра отправка недоступна'); return; }
+  if (!z.files.length && !(S.user.raffle && S.user.raffle.files)) z.err = 'Прикрепите фото или анализы — «до» и «после».';
+  else if (!S.user.raffle && (!z.files.some(f => f.tag === 'до') || !z.files.some(f => f.tag === 'после'))) z.err = 'Нужны и «до», и «после» — так видно результат.';
+  else if (!z.review.trim() && !z.video.trim() && !S.user.raffle) z.err = 'Добавьте отзыв: текстом или ссылкой на видео.';
+  else if (!z.consent) z.err = 'Отметьте согласие на публикацию — без него работу нельзя выставить на голосование.';
+  if (z.err) return keepY(render);
+  try {
+    for (let i = 0; i < z.files.length; i++) { z.busy = (i + 1) + ' из ' + z.files.length; keepY(render);
+      const f = z.files[i]; await api('raffleFile', { token:S.token, tag: f.tag, file:{ name: (z.kind === 'tests' ? 'анализы ' : '') + f.name, data: f.data } }); f.done = 1; }
+    z.busy = 'отзыв'; keepY(render);
+    const r = await api('raffleSend', { token:S.token, kind:z.kind, review:z.review, video:z.video, consent:z.consent });
+    S.user.raffle = { at:r.at, files:r.files, kind: z.kind === 'tests' ? 'Анализы до/после' : 'Фото до/после' };
+    V.rz = { kind:z.kind, files:[], review:'', video:'', consent:false, busy:0, err:'' }; toast('Работа отправлена — удачи!'); track('raffle', z.kind);
+  } catch (err) { z.err = (err.message || err) + (z.files.some(f => f.done) ? ' Уже загруженные файлы сохранены — нажмите «Отправить» ещё раз.' : ''); z.files = z.files.filter(f => !f.done); }
+  z.busy = 0; keepY(render);
+}
 function readFileData(file){ return new Promise((res, rej) => {
   if (!file) return rej('none');
   if (file.size > 10e6) return rej('Файл больше 10 МБ. Сохраните опросник в PDF или сожмите фото и попробуйте ещё раз.');
@@ -3806,6 +4022,8 @@ function compressImage(file){ return new Promise((res, rej) => {
 document.addEventListener('change', async e => {
   const t = e.target;
   if (t.id === 'pvType') { U.ptype = t.value; _RK = ''; return keepY(render); }
+  if (t.id === 'rz-before' || t.id === 'rz-after') return rzAdd(t, t.id === 'rz-after' ? 'после' : 'до');
+  if (t.id === 'rzConsent') { RZ().consent = t.checked; return; }
   if (t.id === 'form-file') {
     const ctx = t.dataset.ctx; V.ferr = ''; V.fbusy = true; keepY(render);
     try { const f = await readFileData(t.files[0]);
@@ -4270,7 +4488,7 @@ function ptPlace(){
   cd.style.cssText = `top:${cy}px;left:${cx}px;width:${cw}px`;
 }
 document.addEventListener('keydown', e => { if (PT && e.key === 'Escape') ptEnd(false); else if (PT && e.key === 'ArrowRight') ptGo(1); else if (PT && e.key === 'ArrowLeft') ptGo(-1); else if (POP.k && e.key === 'Escape') { POP.k = ''; renderPop(); } });
-document.addEventListener('input', e => { if (e.target && e.target.id === 'srch') { POP.q = e.target.value; const r = $('#srchRes'); if (r) r.innerHTML = searchRes(); } });
+document.addEventListener('input', e => { if (e.target && e.target.id === 'rzReview') { RZ().review = e.target.value; return; } if (e.target && e.target.id === 'rzVideo') { RZ().video = e.target.value; return; } if (e.target && e.target.id === 'srch') { POP.q = e.target.value; const r = $('#srchRes'); if (r) r.innerHTML = searchRes(); } });
 // ── Ирина в шапке главной: файл irina.png рядом с index.html (или ссылка в «Настройках») ──
 const IRINA = () => (S.set && S.set.irina) || CFG.IRINA_URL || 'irina.webp';
 const WIDE_VIEWS = ['dash','cat','item','progress','check','tracker','chat','fb','fbok','menu','profile'];
@@ -4357,6 +4575,9 @@ function studentClick(e, b, a){
   if (a === 'cat') return go('cat', { k:b.dataset.k });
   if (a === 'menu') { track('menu', 'Конструктор меню'); return go('menu'); }
   if (a === 'lnav') { const id = b.dataset.id, l = lx(id); l.open++; l.last = Date.now(); save(); track('open', byId(id).t); V = { s:'item', id }; render(); window.scrollTo(0,0); return; }
+  if (a === 'rzKind') { RZ().kind = b.dataset.k; return keepY(render); }
+  if (a === 'rzDel') { RZ().files.splice(+b.dataset.i, 1); return keepY(render); }
+  if (a === 'rzSend') return rzSend();
   if (a === 'open') { const id = b.dataset.id; if (catOf(id) === 'lessons') { const l = lx(id); l.open++; l.last = Date.now(); save(); track('open', byId(id).t); } return go('item', { id }); }
   if (a === 'webinar') { track('webinar', webinar().title); return; }
   if (a === 'groupChat') { track('group_chat', PNAME[TYPE()]); return; }
