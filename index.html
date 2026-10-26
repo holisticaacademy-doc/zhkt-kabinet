@@ -416,6 +416,118 @@ table.wg td.tdc{background:var(--lav)!important}
   body.navpin .pvbar{left:292px}
 }
 @media (prefers-reduced-motion:reduce){.snav,.snav-bd{transition:none}}
+
+/* ── шапка с Ириной ── */
+.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end;padding:22px 24px 0;overflow:hidden;
+  background:radial-gradient(90% 120% at 100% 0%,rgba(122,193,67,.22),transparent 60%),linear-gradient(135deg,#14372E,#1E4D3E)}
+.hero .hr-a{padding-bottom:22px;min-width:0;position:relative;z-index:1}
+.hero .sub{margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hero .sub .tag{font-size:12px}
+.hero h1{font-size:28px;line-height:1.15;margin:0 0 6px}
+.hero .hr-s{color:#DDEFE4;margin:0 0 12px;font-size:15px;max-width:34ch}
+.hero .cal{flex-wrap:wrap;row-gap:2px;margin-bottom:12px;justify-content:flex-start;gap:4px 18px}.hero .cal span{white-space:nowrap}
+.hr-p{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;color:#1B3A2F;border-radius:16px;padding:10px 10px 10px 16px;max-width:560px}
+.hr-pt{flex:1 1 160px;display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;font-size:13px;font-weight:600}
+.hr-pt b{font-size:14px}.hr-pt .pb{grid-column:1/-1;background:#E3EFE7;height:7px;margin:4px 0 0}.hr-pt .pb i{background:var(--lime)}
+.hr-p .btn{min-height:42px;padding:10px 18px;font-size:14px;white-space:nowrap}
+.hr-ph{align-self:end;width:clamp(150px,22vw,250px);margin-right:-8px}
+.hr-ph img{display:block;width:100%;height:auto;max-height:280px;object-fit:contain;object-position:bottom}
+@media (max-width:640px){
+  .hero{grid-template-columns:1fr;padding:20px 18px 18px}
+  .hero .hr-a{padding-bottom:0}
+  .hero h1{font-size:23px;max-width:62%}.hero .hr-s{max-width:60%;font-size:14px}
+  .hr-ph{position:absolute;right:-6px;top:10px;width:42%;max-width:180px;z-index:0}
+  .hr-p{position:relative;z-index:1}
+}
+/* ── шапка: поиск, уведомления, профиль ── */
+.bar-sp{flex:1}
+.bar .bi{position:relative;background:transparent;width:40px;height:40px}.bar .bi:hover,.bar .bi.on{background:var(--mint-pale)}
+.bar .bi svg{width:21px;height:21px}
+.bdot{position:absolute;top:3px;right:2px;min-width:17px;height:17px;border-radius:9px;background:var(--mag);color:#fff;font-size:10.5px;font-weight:800;display:grid;place-items:center;padding:0 4px;border:2px solid var(--bg)}
+.pop-bd{position:fixed;inset:0;z-index:40}
+.pop{position:fixed;z-index:41;top:60px;right:max(12px,calc((100vw - 1760px)/2 + 24px));width:min(420px,calc(100vw - 24px));max-height:min(70vh,560px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.18);padding:10px}
+.pop-h{display:flex;justify-content:space-between;align-items:center;padding:6px 8px 8px}.pop-h b{font-size:15px}.pop-h .linkbtn{font-size:12.5px;padding:0}
+.nt{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;width:100%;text-align:left;border:none;background:none;padding:10px 8px;border-radius:12px;color:inherit}
+.nt:hover{background:var(--mint-pale)}
+.nt-ic{width:36px;height:36px;border-radius:50%;background:var(--mag);color:#fff;display:grid;place-items:center}.nt-ic svg{width:18px;height:18px}
+.nt-x b{display:block;font-size:13.5px;line-height:1.3}.nt-x span{display:block;font-size:13px;color:var(--grey);margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.nt-x small{display:block;font-size:11.5px;color:var(--grey);margin-top:3px}
+.pop-empty{text-align:center;padding:18px 12px;color:var(--grey);font-size:13.5px}.pop-empty svg{width:30px;height:30px;color:var(--mint-bd)}.pop-empty p{margin:6px 0 0}
+.srch-in{display:flex;align-items:center;gap:8px;border:2px solid var(--mint-bd);border-radius:12px;padding:6px 6px 6px 12px;margin:2px 2px 8px}
+.srch-in>svg{width:19px;height:19px;color:var(--grey);flex:0 0 auto}
+.srch-in input{flex:1;min-width:0;border:none;outline:none;background:none;font:inherit;font-size:15px;color:var(--ink);padding:6px 0}
+.srch-in .sn-x{display:grid!important;width:30px;height:30px}
+.sr-g{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--grey);padding:10px 8px 4px}
+.sr-i{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;background:none;padding:8px;border-radius:10px;color:inherit}
+button.sr-i:hover{background:var(--mint-pale)}.sr-i.lock{color:var(--grey)}
+.sr-t{flex:1;min-width:0}.sr-t b{display:block;font-size:14px;font-weight:600;line-height:1.3}.sr-t span{display:block;font-size:12px;color:var(--grey)}
+.sr-i mark{background:var(--mint);color:inherit;border-radius:3px;padding:0 1px}
+@media (max-width:520px){.pop{top:58px;right:12px;left:12px;width:auto}.bar .bi{width:36px;height:36px}.bar .in{gap:6px}}
+/* ── урок: заставка, «о чём», результат, материалы, переходы ── */
+.player .scr{container-type:inline-size}
+.player .vcov{position:absolute;inset:0;z-index:3;border:0;cursor:pointer;text-align:left;color:#fff;font:inherit;overflow:hidden;
+  display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:2.2cqw;padding:5cqw 5.5cqw;
+  background:radial-gradient(120% 90% at 100% 0%,rgba(122,193,67,.28),transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(160,25,126,.32),transparent 60%),linear-gradient(135deg,#14372E,#1E4D3E)}
+.player .vcov::after{content:"";position:absolute;right:-8%;bottom:-30%;width:55%;aspect-ratio:1;border-radius:50%;border:1.5px solid rgba(168,228,192,.18);box-shadow:0 0 0 28px rgba(168,228,192,.05),0 0 0 60px rgba(168,228,192,.035);pointer-events:none}
+.player .vc-br{font-weight:800;font-size:clamp(10px,2.2cqw,15px);letter-spacing:.08em}
+.player .vc-br i{font-style:normal;color:var(--lime);font-size:.78em;margin-left:3px}
+.player .vc-tx{position:relative;z-index:1;max-width:88%;align-self:end;min-height:0}
+.player .vc-tx small{position:static;display:block;font-size:clamp(10px,2cqw,13px);font-weight:600;color:#A8E4C0;margin-bottom:1.4cqw}
+.player .vc-tx b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden;font-size:clamp(15px,4.1cqw,30px);line-height:1.18;font-weight:800;text-wrap:balance}
+.player .vc-pl{position:relative;z-index:1;justify-self:start;display:inline-flex;align-items:center;gap:1.6cqw;background:var(--mag);border-radius:999px;padding:1.3cqw 2.8cqw 1.3cqw 1.4cqw;font-weight:700;font-size:clamp(11px,2.2cqw,15px);transition:transform .2s}
+.player .vc-pl svg{width:clamp(20px,4.2cqw,30px);height:clamp(20px,4.2cqw,30px);padding:clamp(4px,.9cqw,7px);border-radius:50%;background:#fff;fill:var(--mag)}
+.player .vcov:hover .vc-pl{transform:scale(1.04)}
+.player .vcov:focus-visible{outline:3px solid var(--lime);outline-offset:-3px}
+@container (max-width:420px){.player .vc-tx{max-width:100%}.player .vc-tx b{-webkit-line-clamp:3}}
+.labout{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;background:var(--mint-pale);border-radius:18px;padding:16px 18px;margin:0 0 16px}
+.la-ic{width:44px;height:44px;border-radius:50%;background:var(--surface);color:var(--e);display:grid;place-items:center;border:1.5px solid var(--line)}.la-ic svg{width:22px;height:22px}
+.labout h3{margin:2px 0 4px;font-size:16px}.labout p{margin:0;color:var(--grey);font-size:14.5px;line-height:1.5}
+.lres{background:var(--lav);border-radius:18px;padding:16px 18px;margin:0 0 16px}
+.lres h3{display:flex;align-items:center;gap:10px;margin:0 0 10px;color:var(--mag);font-size:16px}
+.lr-ic{width:30px;height:30px;display:grid;place-items:center;color:var(--mag)}.lr-ic svg{width:26px;height:26px}
+.lres ul{list-style:none;margin:0;padding:0}.lres li{display:flex;gap:10px;align-items:flex-start;margin:0 0 7px;font-size:14.5px;line-height:1.45}
+.lres li svg{flex:0 0 16px;width:16px;height:16px;margin-top:3px;color:var(--mag)}
+.mfiles{border:1.5px solid var(--line);border-radius:18px;overflow:hidden;margin:0 0 16px;background:var(--surface)}
+.mf-h{display:flex;align-items:center;gap:12px;background:var(--mint-pale);padding:12px 16px}
+.mf-hi{width:36px;height:36px;border-radius:50%;background:var(--surface);color:var(--e);display:grid;place-items:center}.mf-hi svg{width:19px;height:19px}
+.mf-h b{font-size:16px;flex:1}.mf-n{font-size:12.5px;color:var(--grey);font-weight:600}
+.mf-r{display:grid;grid-template-columns:40px minmax(0,1fr) 32px;gap:12px;align-items:center;width:100%;padding:12px 16px;border:none;border-top:1px solid var(--line);background:none;text-align:left;color:inherit;text-decoration:none;font:inherit}
+.mf-r:hover{background:var(--soft)}
+.mf-i{width:40px;height:40px;border-radius:10px;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--e)}.mf-i svg{width:22px;height:22px}
+.mf-t b{display:block;font-size:14.5px;font-weight:600;line-height:1.3}.mf-t span{display:block;font-size:12px;color:var(--grey);margin-top:2px}
+.mf-d{display:grid;place-items:center;color:var(--e)}.mf-d svg{width:20px;height:20px}
+.lnav{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 6px;align-items:stretch}.lnav>*{height:100%}
+.lnav-b{display:flex;align-items:center;gap:12px;min-width:0;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--ink);font:inherit;cursor:pointer;transition:border-color .2s,background .2s}
+.lnav-b:hover{border-color:var(--mint-bd);background:var(--mint-pale)}
+.lnav-b.next{justify-content:flex-end;text-align:right;background:var(--e-dk);border-color:var(--e-dk);color:#fff}.lnav-b.next:hover{background:var(--e)}
+.lnav-b.next small{color:#A8E4C0}.lnav-b.next .ln-ar{background:rgba(255,255,255,.14);color:#fff}
+.lnav-b.off{cursor:default;opacity:.55}.lnav-b.off:hover{border-color:var(--line);background:var(--surface)}
+.lnav-b.next.off{background:var(--surface);border-color:var(--line);color:var(--ink)}.lnav-b.next.off small{color:var(--mag)}
+.lnav-b .ln-tx{min-width:0;display:flex;flex-direction:column;gap:2px}
+.lnav-b small{font-size:11.5px;font-weight:700;color:var(--mag)}
+.lnav-b b{font-size:14px;line-height:1.3;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.lnav-b .ln-ar{flex:0 0 auto;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--mint-pale);color:var(--e);font-weight:800}
+@media (max-width:520px){.lnav{grid-template-columns:1fr}.lnav>span:empty{display:none}}
+/* ── профиль ── */
+.pf-card{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:6px 18px 14px;margin:0 0 14px}
+.pf-h{font-size:15px;margin:12px 0 6px;color:var(--grey);text-transform:uppercase;letter-spacing:.05em}
+.pf-f{display:block;margin:10px 0}.pf-f>span{display:block;font-size:13px;font-weight:700;margin-bottom:5px}.pf-f>span i{font-style:normal;font-weight:600;color:var(--grey)}
+.pf-f small{display:block;color:var(--grey);font-size:12px;margin-top:4px}
+.pf-ro{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14px}.pf-ro span{color:var(--grey)}.pf-ro i{font-style:normal;color:var(--grey);font-weight:400}
+.pf-hist{margin:12px 0 4px;font-size:13px;display:flex;flex-direction:column;gap:3px}.pf-hist span{color:var(--grey)}
+.pf-more{display:grid;gap:10px;margin-top:18px}
+@media (min-width:900px){.lay-main>.pf-card{max-width:760px}}
+/* ── обзор платформы ── */
+.pt{position:fixed;inset:0;z-index:60}
+.pt-spot{position:fixed;border-radius:16px;box-shadow:0 0 0 9999px rgba(8,28,22,.62);outline:3px solid var(--mag);transition:all .25s ease;pointer-events:none}
+.pt-spot.none{inset:0;width:auto!important;height:auto!important;outline:none;border-radius:0;box-shadow:none;background:rgba(8,28,22,.62)}
+.pt-card{position:fixed;background:var(--surface);color:var(--ink);border-radius:18px;padding:18px 18px 14px;box-shadow:0 18px 50px rgba(0,0,0,.28);transition:top .25s ease,left .25s ease}
+.pt-card.center{top:50%!important;left:50%!important;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px))!important}
+.pt-card h3{font-size:17px;margin:0 0 8px;line-height:1.3;color:var(--e)}.pt-card p{font-size:14px;line-height:1.5;margin:0;color:var(--grey)}
+.pt-n{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mag);margin-bottom:6px}
+.pt-dots{display:flex;gap:5px;margin:14px 0 12px;flex-wrap:wrap}.pt-dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}.pt-dots i.was{background:var(--mint-bd)}.pt-dots i.on{background:var(--mag);width:18px;border-radius:9px}
+.pt-b{display:flex;justify-content:space-between;align-items:center;gap:10px}.pt-b>span{display:flex;gap:8px;margin-left:auto}
+.pt-b .btn{min-height:40px;padding:8px 16px;font-size:14px}.pt-card.center .pt-b .btn:last-child{margin-left:auto}
+.pt-skip{border:none;background:none;color:var(--grey);font-weight:600;font-size:13px;text-decoration:underline;text-underline-offset:3px;padding:6px 2px}
+@media (prefers-reduced-motion:reduce){.pt-spot,.pt-card{transition:none}}
 /* ── календарь программы ── */
 .today .pb{display:block}
 .c2{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px 14px 10px}
@@ -842,6 +954,7 @@ details.fold .ans{margin-top:0}
 <div id="U">
   <div class="bar"><div class="in" id="bar"></div></div>
   <div id="snav"></div>
+  <div id="pop"></div>
   <main class="wrap" id="app" aria-live="polite"></main>
   <div id="pv"></div>
 </div>
@@ -1189,6 +1302,222 @@ function fbOpenAt(key, sched) {
 // Значения из листа «Уроки» Google-таблицы перекрывают эти.
 var LESSON_LINKS = {"slow1_1": {"v": "https://kinescope.io/gUHbu1ApHi7wdywsXhMhcU", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/ffdd825939e7a8dde102ef5918e7ee0a.pdf", "pdf"]]}, "slow1_2": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/eb30705e2402381f2a98459aad54bd7b.pdf", "pdf"]]}, "slow1_3": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/911ede80456f32daa07c77c974f42a03.pdf", "pdf"]]}, "slow1_4": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/8e79b5a76032eb74e4dfae048358a848.pdf", "pdf"]]}, "slow1_5": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/8e7e03b7a377afb414cf055484933208.pdf", "pdf"]]}, "slow1_6": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/cbe29135bb18ed72328b9c3d40567784.pdf", "pdf"]]}, "slow1_7": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/2f473bd70558a658b03a392dce879c55.pdf", "pdf"]]}, "slow2_1": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/9820b19d6d6629675ea7e5ce9443181b.pdf", "pdf"]]}, "slow2_2": {"v": "https://kinescope.io/df62SCQgtS8tCRo9ioS4Fw", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/41d4d7ac4bf4d028c7740b138b845a7a.pdf", "pdf"]]}, "slow2_3": {"v": "https://kinescope.io/v7syHiGVYaRpxLicADrx3E", "f": [["Презентация", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/2f11e2a929b9d476f0b503b605eac144.pdf", "pdf"], ["Трекер самочувствия — шаблон", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/17584fe4ddc8332b95f1b2b2088dba30.pdf", "pdf"], ["Трекер самочувствия пример", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/a5abffb5d19cd89767eaae07b6f2b45e.pdf", "pdf"], ["Дневник пример Формула ЖКТ", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/0c950094b1bcea55337336d2bc56bde8.docx", "docx"], ["Трекер самочувствия — шаблон", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f7671346ccd39cdc2b103a573e1c2cdf.docx", "docx"]]}, "slow2_4": {"v": "https://kinescope.io/uAFTDdsq3bxC59nfujsJFF", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/6762fd83178be2a84ba248f769486a53.pdf", "pdf"]]}, "slow2_5": {"v": "https://kinescope.io/qJqjfNAuQUuMbmgMSXkZiy", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/626ef8cc932980e3813e1bd7acd84832.pdf", "pdf"]]}, "slow2_6": {"v": "https://kinescope.io/mgTDnmCRrmv8EECaU9vjLv", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/54e3eb7a5e153f8f9689fbeffad88405.pdf", "pdf"]]}, "slow2_7": {"v": "https://kinescope.io/376fe7rEBotysiKdVGG59E", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5e99d2157b8d8bd1d41120c99c029740.pdf", "pdf"]]}, "slow2_8": {"v": "https://kinescope.io/f4ZwbUxsa6eb4mtGcvWNRp", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/6fa2552fe1f1a8749d90dd6ec677780c.pdf", "pdf"]]}, "slow3_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/203a223bef4992b0de435f9dea1bfbb3.pdf", "pdf"]]}, "slow3_3": {"v": "https://kinescope.io/niNBPSRg6SKfGP2n4eL2V4", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/92cf931301034ba57a492933a95e53c3.pdf", "pdf"]]}, "slow3_4": {"v": "https://kinescope.io/4BHgWiGq1CUdwYhrdcaFJM", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5daea428f8128d1fb69d58fce1de5b04.pdf", "pdf"]]}, "slow3_5": {"v": "https://kinescope.io/7beJaqffvG1SyQAeYQu7b5", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/512793cd4678b04e0c4cdec74919213c.pdf", "pdf"]]}, "slow3_6": {"v": "https://kinescope.io/oPVWHjJJneuLzKML3wZZGg", "f": [["Презентация", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5a527b542277a38f022e105c541836c6.pdf", "pdf"], ["Таблица сочетания продуктов", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f74cd2fffa7b0b195e48a37acacb1f66.pdf", "pdf"]]}, "slow3_7": {"v": "https://kinescope.io/nRnfgYZYvrAaBPtz6gL3av", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/170f3a79fc90445731aba7f9b5284034.pdf", "pdf"]]}, "slow3_8": {"v": "https://kinescope.io/5MEqYr9hsRngoPDKvb8gMa", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/e278d03816dc9a9b01f0e3800d0b2550.pdf", "pdf"]]}, "slow3_9": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/ca8057c5ae89e6295579aee27a1eeaa0.pdf", "pdf"]]}, "slow4_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/7e7c3f630a02fb77f5d8027960f8d2c2.pdf", "pdf"]]}, "slow4_3": {"v": "https://kinescope.io/xfkNaBRYB4norfKxj8Ttr4", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/399079b15fafadc755a090837b3d735e.pdf", "pdf"]]}, "slow4_4": {"v": "https://kinescope.io/oV8u9kiLZ5QPMdPWNXkLJW", "f": []}, "slow4_5": {"v": "https://kinescope.io/3boNyhbYsHkVZMbshDc3YU", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/d86cd92ea9fdcadb9ba3604bce7d5963.pdf", "pdf"]]}, "slow4_6": {"v": "https://kinescope.io/5izf4WjRkABfnavw9yTKcf", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/27aa506b9220f2f0053107dce7032961.pdf", "pdf"]]}, "slow4_7": {"v": "https://kinescope.io/pKp8tqpHm4Yd7tcw4sLaaJ", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/60754a967e0d4c8b8ef823b2dc45f6f5.pdf", "pdf"]]}, "slow4_8": {"v": "https://kinescope.io/22aCRLWfGomzy6AGBs555k", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/72d748db94b3c48c44e2c382ab24d79a.pdf", "pdf"]]}, "slow4_9": {"v": "https://kinescope.io/iC6zgwzxFDhzXDJ5HtRVHq", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5206d903a248e03a54e46ea505ef2007.pdf", "pdf"]]}, "slow4_10": {"v": "https://kinescope.io/6sPnRboqLazV5hWbKRuhQZ", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/1349f4709998a4bf18a55d0ac6803c40.pdf", "pdf"]]}, "slow5_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/531a139ed1df32a9d23d9de2e781f63d.pdf", "pdf"]]}, "slow5_3": {"v": "https://kinescope.io/dgPhWJcv5wWhmeP8msg3jM", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/d30f6f3ba9ed2bd0dd980eba01100238.pdf", "pdf"]]}, "slow5_4": {"v": "https://kinescope.io/8nDq43jNEnLAa5nF2zmeV9", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f3c2ed53b2923ca87d5600ca2e321da3.pdf", "pdf"]]}, "slow5_5": {"v": "https://kinescope.io/fLPDFBP6w5rRPrdJCuvHXm", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/1cc68e618cd10898e9181e5fb8fc8e9d.pdf", "pdf"]]}, "slow5_6": {"v": "https://kinescope.io/qo11wJne2uE6WeytE7NVZh", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/84788ee943a5ccda0584a0e0155cb2c1.pdf", "pdf"]]}, "slow5_7": {"v": "https://kinescope.io/f2qHuxPeGRmaVG9Thyxs69", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/a183f95d55089c583a9b5f38517615a2.pdf", "pdf"]]}, "slow5_8": {"v": "https://kinescope.io/j6ZhPy4hhEXLVWSeLuSmpy", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/dad49a06762f697362f798bc3907317e.pdf", "pdf"]]}, "infl1_1": {"v": "https://kinescope.io/gUHbu1ApHi7wdywsXhMhcU", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/4a6abafe7024edc1f9ca0d308914e25d.pdf", "pdf"]]}, "infl1_2": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/e21b1186a0b6c8c6173707362ce49fb7.pdf", "pdf"]]}, "infl1_3": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/02396c9a4f779145f7049c2c4ffaffe7.pdf", "pdf"]]}, "infl1_4": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/0666f0c50526dd92e8e5815ebe3a90f5.pdf", "pdf"]]}, "infl1_5": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/b5b06c28433ba2607db383b38d5f437a.pdf", "pdf"]]}, "infl1_6": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f8eb5bf011b0c949dbaa73ec2c7ed421.pdf", "pdf"]]}, "infl1_7": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/e82d90cef1e0b8c8a7077f13b4941cb0.pdf", "pdf"]]}, "infl2_1": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/690a60d656a5d8e6576f6c02c6404608.pdf", "pdf"]]}, "infl2_2": {"v": "https://kinescope.io/jYWcawPNrTJxxn3Zgup9wn", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/fd280619203f6c8232587b322328c54a.pdf", "pdf"]]}, "infl2_3": {"v": "https://kinescope.io/bdeA1nc3WSPsh98ZGipWoH", "f": [["Презентация", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/2f11e2a929b9d476f0b503b605eac144.pdf", "pdf"], ["Трекер самочувствия — шаблон", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/17584fe4ddc8332b95f1b2b2088dba30.pdf", "pdf"], ["Трекер самочувствия пример", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/a5abffb5d19cd89767eaae07b6f2b45e.pdf", "pdf"], ["Дневник пример Формула ЖКТ", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/0c950094b1bcea55337336d2bc56bde8.docx", "docx"], ["Трекер самочувствия — шаблон", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f7671346ccd39cdc2b103a573e1c2cdf.docx", "docx"]]}, "infl2_4": {"v": "https://kinescope.io/97tVwZyD2cafj1mCb25yFC", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/6762fd83178be2a84ba248f769486a53.pdf", "pdf"]]}, "infl2_5": {"v": "https://kinescope.io/92c7yj47ozEaxQsK38zJbk", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/54e3eb7a5e153f8f9689fbeffad88405.pdf", "pdf"]]}, "infl2_6": {"v": "https://kinescope.io/rJGAWek2Lbgkqfr1Hhqrfv", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/626ef8cc932980e3813e1bd7acd84832.pdf", "pdf"]]}, "infl2_7": {"v": "https://kinescope.io/6P6dz3gEnVTdKizBTM4xdz", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f04d4f33167b6420253ec9dbca46e498.pdf", "pdf"]]}, "infl2_8": {"v": "", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/e5988c8b819d24c04ccae6dad732fded.pdf", "pdf"]]}, "infl3_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/8590945df02fb1d4bcdd09d91f01394f.pdf", "pdf"]]}, "infl3_3": {"v": "https://kinescope.io/936dXHGWfqbiJqTxYfBVif", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/b500dce1c27397da53987591625dd1a8.pdf", "pdf"]]}, "infl3_4": {"v": "https://kinescope.io/dxvHXunpdA4EBPjMrXbr5c", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/8cc81811d8a3626c6e8b67c29f908135.pdf", "pdf"]]}, "infl3_5": {"v": "https://kinescope.io/tZ8yPi9ydUYpyw1fAV2gVo", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/708178e1a71c606d12d42bc70c5881ec.pdf", "pdf"]]}, "infl3_6": {"v": "https://kinescope.io/cqxKBrvVBA8JxVaUY7xPvr", "f": [["Презентация", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5a527b542277a38f022e105c541836c6.pdf", "pdf"], ["Таблица сочетания продуктов", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f74cd2fffa7b0b195e48a37acacb1f66.pdf", "pdf"]]}, "infl3_7": {"v": "https://kinescope.io/8SjeuZEsta56ucNTg9Fm2f", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/4b54f2730429517932dac57e2dc7c6c9.pdf", "pdf"]]}, "infl3_8": {"v": "https://kinescope.io/rrh3uFZx693JVHpssUnZWy", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/bcbbc51478eabbe813219c6fef5cfe15.pdf", "pdf"]]}, "infl3_10": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/ca8057c5ae89e6295579aee27a1eeaa0.pdf", "pdf"]]}, "infl4_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/94131a02325d31af00820bd5b344758f.pdf", "pdf"]]}, "infl4_3": {"v": "https://kinescope.io/heFuKGYGUrTsqwhBNvn1o3", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/270621d1ea85d80935363022eae6b8a8.pdf", "pdf"]]}, "infl4_4": {"v": "https://kinescope.io/cafYR8UYrfCtCEYX87UDyF", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/27aa506b9220f2f0053107dce7032961.pdf", "pdf"]]}, "infl4_5": {"v": "https://kinescope.io/hTeaE28xt8cL54DpjaBBNc", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/60754a967e0d4c8b8ef823b2dc45f6f5.pdf", "pdf"]]}, "infl4_6": {"v": "https://kinescope.io/eFzyggidTjZ9XFUHEyeAPU", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/72d748db94b3c48c44e2c382ab24d79a.pdf", "pdf"]]}, "infl4_7": {"v": "https://kinescope.io/suW855s2reCmypqZHss88e", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5206d903a248e03a54e46ea505ef2007.pdf", "pdf"]]}, "infl4_8": {"v": "https://kinescope.io/kw3YHiESs9z4ydqUsPsoxX", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/1349f4709998a4bf18a55d0ac6803c40.pdf", "pdf"]]}, "infl4_9": {"v": "https://kinescope.io/rD2rksxUKUnrvkxLfZCJzw", "f": []}, "infl4_10": {"v": "https://kinescope.io/dbrRNM1EkiKfmXb5bPvPRp", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/6fb6609286d6565f06e139678d293c44.pdf", "pdf"]]}, "infl4_11": {"v": "", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/4194707b7127a1f832d7110298f8bc8c.pdf", "pdf"]]}, "infl4_12": {"v": "", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/c4f3044f018895deff8e2063f82ebb77.pdf", "pdf"]]}, "infl5_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/128359bf91220bbebf0c4b11d38af0cb.pdf", "pdf"]]}, "infl5_3": {"v": "https://kinescope.io/hGXihXVxKxp3iN5kz6orgb", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f3c2ed53b2923ca87d5600ca2e321da3.pdf", "pdf"]]}, "infl5_4": {"v": "https://kinescope.io/j2KvpSsVXhQn8rpaa9U2VA", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/1cc68e618cd10898e9181e5fb8fc8e9d.pdf", "pdf"]]}, "infl5_5": {"v": "https://kinescope.io/0fZSasxPWyge7kwokSPmi7", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/84788ee943a5ccda0584a0e0155cb2c1.pdf", "pdf"]]}, "infl5_6": {"v": "https://kinescope.io/22kiQVAiq4fTsv8byQTBuH", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/a183f95d55089c583a9b5f38517615a2.pdf", "pdf"]]}, "infl5_7": {"v": "", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5cf08e2efb3bd5d389bb227ddb2c37cf.pdf", "pdf"]]}, "sens1_1": {"v": "https://kinescope.io/xAcNNQud6bTTji8K7hReJA", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/4ec560cbf12b0ae94ee9e2854cad4e9f.pdf", "pdf"]]}, "sens1_2": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/03faf4c160d51264c55eff6c6336de8a.pdf", "pdf"]]}, "sens1_3": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/b105ef9ba09999494760da44ff32bbcd.pdf", "pdf"]]}, "sens1_4": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/33fef87c04275f5f11c9f3312cda5777.pdf", "pdf"]]}, "sens1_5": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/321bf786c008ce8c65f5db9ac3edebbf.pdf", "pdf"]]}, "sens1_6": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/b2c608c3dd3d308f90defffd17c08582.pdf", "pdf"]]}, "sens2_1": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/40c969316ba5acaafffabdc337771500.pdf", "pdf"]]}, "sens2_2": {"v": "https://kinescope.io/pDfX24raVj6Q1p7gmf6DM6", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5e6ff08fb8648a23a12584d71b762be8.pdf", "pdf"]]}, "sens2_3": {"v": "https://kinescope.io/0dq37D8PhErBP1Y7vcAaBw", "f": [["Презентация", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/2f11e2a929b9d476f0b503b605eac144.pdf", "pdf"], ["Трекер самочувствия — шаблон", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/17584fe4ddc8332b95f1b2b2088dba30.pdf", "pdf"], ["Трекер самочувствия пример", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/a5abffb5d19cd89767eaae07b6f2b45e.pdf", "pdf"], ["Дневник пример Формула ЖКТ", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/0c950094b1bcea55337336d2bc56bde8.docx", "docx"], ["Трекер самочувствия — шаблон", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f7671346ccd39cdc2b103a573e1c2cdf.docx", "docx"]]}, "sens2_4": {"v": "https://kinescope.io/wuW3aYZPc8sCddsAJSuYhm", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/6762fd83178be2a84ba248f769486a53.pdf", "pdf"]]}, "sens2_5": {"v": "https://kinescope.io/a7JtK1VMDuW1qzr5APyEFo", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/626ef8cc932980e3813e1bd7acd84832.pdf", "pdf"]]}, "sens2_6": {"v": "https://kinescope.io/aruPAkyUvJMAu9sUHvuBHf", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/54e3eb7a5e153f8f9689fbeffad88405.pdf", "pdf"]]}, "sens2_7": {"v": "https://kinescope.io/63ErBoizYgsHwz271i653R", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/dd2bac0817c05715372a4d8bbb7b90fe.pdf", "pdf"]]}, "sens2_8": {"v": "https://kinescope.io/hxmicJ9fcDBCejiyDFujsJ", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/1021940e2d89d252c45bf4702ba6c853.pdf", "pdf"]]}, "sens2_9": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/e32322c9fcab299931a13012ec2dfdd7.pdf", "pdf"]]}, "sens2_10": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/01781d7f1e6661509ccf1b2407470103.pdf", "pdf"]]}, "sens3_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/258a991a331892635a667de7d962f44f.pdf", "pdf"]]}, "sens3_3": {"v": "https://kinescope.io/f4WN3iZ4MbCizksmedUSaM", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/a447800841a4e2e04e6430aa9a492d25.pdf", "pdf"]]}, "sens3_4": {"v": "https://kinescope.io/efSgqwmGj1a4RSCeEUZZ3V", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/22a37304ea694c2459c0827f9ba30532.pdf", "pdf"]]}, "sens3_5": {"v": "https://kinescope.io/rsKajUnjVAD3ifsUvD5zir", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/16a848626caa1dd81cb48e2e90ae511d.pdf", "pdf"]]}, "sens3_6": {"v": "https://kinescope.io/oKZAKH7L3x7wehHpkUZiSv", "f": [["Презентация", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5a527b542277a38f022e105c541836c6.pdf", "pdf"], ["Таблица сочетания продуктов", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f74cd2fffa7b0b195e48a37acacb1f66.pdf", "pdf"]]}, "sens3_7": {"v": "https://kinescope.io/ncvZFSHnqcuEkCgTtUPpbu", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5475420f96851de295e147e59e87825b.pdf", "pdf"]]}, "sens3_8": {"v": "https://kinescope.io/uwdoNZh7mFobj9eSawDzRs", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/0dfca183c91881473e4cee9759a101c3.pdf", "pdf"]]}, "sens3_10": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/ca8057c5ae89e6295579aee27a1eeaa0.pdf", "pdf"]]}, "sens4_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/0ed9e797e292ec1421c91d1939482955.pdf", "pdf"]]}, "sens4_3": {"v": "https://kinescope.io/fUJ18j5Hvgvfvpd5ysdfm1", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/1ceed2924446d903f3a9b0852129e93f.pdf", "pdf"]]}, "sens4_4": {"v": "https://kinescope.io/15Qi2pjS5rm91G5VPcocBs", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/27aa506b9220f2f0053107dce7032961.pdf", "pdf"]]}, "sens4_5": {"v": "https://kinescope.io/7wTyJeu6kAtQ72QtUVrjdo", "f": []}, "sens4_6": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/994c1068354e25979df4982f6b6f9404.pdf", "pdf"]]}, "sens4_7": {"v": "https://kinescope.io/9h257CzwVXgsUMkCR3df4M", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/78eb9fda3cdfe3e3566b1dcd244946f8.pdf", "pdf"]]}, "sens4_8": {"v": "https://kinescope.io/e87bna31FHxZGtLRbXvskN", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/60754a967e0d4c8b8ef823b2dc45f6f5.pdf", "pdf"]]}, "sens4_9": {"v": "https://kinescope.io/d68ztuigGUf2scpLpQ7pE8", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/72d748db94b3c48c44e2c382ab24d79a.pdf", "pdf"]]}, "sens4_10": {"v": "https://kinescope.io/eM4PXV9GFwR82oxDLhcBNX", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5206d903a248e03a54e46ea505ef2007.pdf", "pdf"]]}, "sens4_11": {"v": "https://kinescope.io/tiypaZhmaCQBoezbWY1Ugf", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/1349f4709998a4bf18a55d0ac6803c40.pdf", "pdf"]]}, "sens4_12": {"v": "https://kinescope.io/2inSSBeZ32wWfZxb2SVXen", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/6fb6609286d6565f06e139678d293c44.pdf", "pdf"]]}, "sens5_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/6fe945a76078578e228fad392568bfb2.pdf", "pdf"]]}, "sens5_3": {"v": "https://kinescope.io/s9CakKyRiMWuzwQQp8nDDj", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f3c2ed53b2923ca87d5600ca2e321da3.pdf", "pdf"]]}, "sens5_4": {"v": "https://kinescope.io/w2G1x6o2AhqJuLiD8rRufY", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/1cc68e618cd10898e9181e5fb8fc8e9d.pdf", "pdf"]]}, "sens5_5": {"v": "https://kinescope.io/2rvLGLRWcmLTtHbj22xKC9", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/84788ee943a5ccda0584a0e0155cb2c1.pdf", "pdf"]]}, "sens5_6": {"v": "https://kinescope.io/0uDcdTghst2UDgjKTtnqvx", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/a183f95d55089c583a9b5f38517615a2.pdf", "pdf"]]}, "sens5_7": {"v": "https://kinescope.io/mgTnMCEEL3avY6cM8hA8KA", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/e93d811596609c40d1614717d6d1e145.pdf", "pdf"]]}, "mix1_1": {"v": "https://kinescope.io/4QSfaGCa6bTiSjZaMrWHkN", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/78edd231d591fbdf00423f11bd14647a.pdf", "pdf"]]}, "mix1_3": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/53571455d01482fe280aea4bfa5576ad.pdf", "pdf"]]}, "mix1_4": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/ddc9c776a55e5292357ec7e0a0b337d8.pdf", "pdf"]]}, "mix1_5": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/889ddd92e12515ed960f3b12f02f8d0f.pdf", "pdf"]]}, "mix1_6": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f405760b6ee4bff8791a399198c9971d.pdf", "pdf"]]}, "mix1_7": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/031d4243aa2c291a3f5f286e022dcd8c.pdf", "pdf"]]}, "mix1_8": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/cbe29135bb18ed72328b9c3d40567784.pdf", "pdf"]]}, "mix2_1": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/95d369c897a88f62603ac51c8b46d98e.pdf", "pdf"]]}, "mix2_2": {"v": "https://kinescope.io/quTjLAGGjYkKicpyhWtBbF", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/bdb935c72186afdbd846e105dc394be3.pdf", "pdf"]]}, "mix2_3": {"v": "https://kinescope.io/sJ5SHd3n22RGV4UXdUguah", "f": [["Презентация", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/2f11e2a929b9d476f0b503b605eac144.pdf", "pdf"], ["Трекер самочувствия — шаблон", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/17584fe4ddc8332b95f1b2b2088dba30.pdf", "pdf"], ["Трекер самочувствия пример", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/a5abffb5d19cd89767eaae07b6f2b45e.pdf", "pdf"], ["Дневник пример Формула ЖКТ", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/0c950094b1bcea55337336d2bc56bde8.docx", "docx"], ["Трекер самочувствия — шаблон", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f7671346ccd39cdc2b103a573e1c2cdf.docx", "docx"]]}, "mix2_4": {"v": "https://kinescope.io/wi4d3uaynCXercotbKduCn", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/6762fd83178be2a84ba248f769486a53.pdf", "pdf"]]}, "mix2_5": {"v": "https://kinescope.io/i54SPfXHqjaREekQzrY9oH", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/626ef8cc932980e3813e1bd7acd84832.pdf", "pdf"]]}, "mix2_6": {"v": "https://kinescope.io/aZ83hSfQdKmqTFj56JQe6p", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/54e3eb7a5e153f8f9689fbeffad88405.pdf", "pdf"]]}, "mix2_7": {"v": "https://kinescope.io/sr1uQ3TB3otDmcdwpsxo14", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/7e01f668bf5568d41e175c4a7ee9301e.pdf", "pdf"]]}, "mix2_8": {"v": "https://kinescope.io/hfVRZv2s5dpK8uXZFcncSW", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/6c2f77592eb36914f0a58f4bbc0c8108.pdf", "pdf"]]}, "mix3_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/c9374f436c53fc8a3ea94963d983332f.pdf", "pdf"]]}, "mix3_3": {"v": "https://kinescope.io/0r3jeMBEhgzByLszoi9xCS", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/b70c600c7d2dcd2c5585af5a9c1e73eb.pdf", "pdf"]]}, "mix3_4": {"v": "https://kinescope.io/6x4fchHTTT59SG2mdDNsf4", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/1780d2647ddf88330c32fa050f970bc4.pdf", "pdf"]]}, "mix3_5": {"v": "", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/9803095cd2933f5568523fc90d874917.pdf", "pdf"]]}, "mix3_6": {"v": "https://kinescope.io/wuxQywvznzf7JgrFgvmPgz", "f": [["Презентация", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5a527b542277a38f022e105c541836c6.pdf", "pdf"], ["Таблица сочетания продуктов", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f74cd2fffa7b0b195e48a37acacb1f66.pdf", "pdf"]]}, "mix3_7": {"v": "https://kinescope.io/vRpYSucxKc9srfvUsMB6MN", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/bc87af04a1c2871aecd739283c9dcd7f.pdf", "pdf"]]}, "mix3_8": {"v": "https://kinescope.io/0X5K5sjVPrqgauMBdMd98g", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/9050e39ea1b58dd656a08c1c77ea2f4f.pdf", "pdf"]]}, "mix3_9": {"v": "https://kinescope.io/8Fojeyq55UEUfTxZBEUPKx", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/23bdcf5a3628f43474882dc6c5af2c44.pdf", "pdf"]]}, "mix3_10": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/ca8057c5ae89e6295579aee27a1eeaa0.pdf", "pdf"]]}, "mix4_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/e13f52820ca3bbbedb1e4a0433289f34.pdf", "pdf"]]}, "mix4_3": {"v": "https://kinescope.io/ihhMWXVajZjkVZkVBPZXuD", "f": []}, "mix4_4": {"v": "https://kinescope.io/wsY7rgmsM2i76vhexRMVyL", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/27aa506b9220f2f0053107dce7032961.pdf", "pdf"]]}, "mix4_5": {"v": "https://kinescope.io/ijPLy1SNcgBMArWAXBrSz2", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/60754a967e0d4c8b8ef823b2dc45f6f5.pdf", "pdf"]]}, "mix4_6": {"v": "https://kinescope.io/t7GxotDc7o8xRKZFM76gY6", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/72d748db94b3c48c44e2c382ab24d79a.pdf", "pdf"]]}, "mix4_7": {"v": "https://kinescope.io/77GYCYGDJWZcQAvzgQgXtZ", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/5206d903a248e03a54e46ea505ef2007.pdf", "pdf"]]}, "mix4_8": {"v": "https://kinescope.io/jKxnhaXqSHjKvKKfeTogL1", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/1349f4709998a4bf18a55d0ac6803c40.pdf", "pdf"]]}, "mix5_2": {"v": "", "f": [["Трекер для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/e1e7cc630d8be0e7b997f9dc97887274.pdf", "pdf"]]}, "mix5_3": {"v": "https://kinescope.io/7Wer6b3KCkE7kJMqQVvFGF", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/df53ecf1020ca0900a648ee0cd429738.pdf", "pdf"]]}, "mix5_4": {"v": "https://kinescope.io/rQK7PLTKWEsp1wgXctroeq", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/f3c2ed53b2923ca87d5600ca2e321da3.pdf", "pdf"]]}, "mix5_5": {"v": "https://kinescope.io/tqLs7vJXUWxqsn9RsMRdz8", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/1cc68e618cd10898e9181e5fb8fc8e9d.pdf", "pdf"]]}, "mix5_6": {"v": "https://kinescope.io/gUc1baGNcWiRut4hzmuxiP", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/84788ee943a5ccda0584a0e0155cb2c1.pdf", "pdf"]]}, "mix5_7": {"v": "https://kinescope.io/mABPyYRkyJa5WExc23oz9S", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/a183f95d55089c583a9b5f38517615a2.pdf", "pdf"]]}, "mix5_9": {"v": "https://kinescope.io/ooRLZmn1kgty2i8uxZUz16", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/76732e4550dfbe4bdfd1b7dd7ecdcd37.pdf", "pdf"]]}, "mix5_10": {"v": "https://kinescope.io/qQS4hpo1ApYCt84wLFcov4", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/de61a652bad36ecd0399924441ce4d51.pdf", "pdf"]]}, "bn1": {"v": "https://kinescope.io/4ZcwbTwhob3HT9zA8PoxSi", "f": [["Презентация", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/7ce556b70d80e39c2b47b0226ff61b7d.pdf", "pdf"], ["Конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/24d49e57a48f687be41cceac291c520b.pdf", "pdf"]]}, "bn2": {"v": "https://kinescope.io/iDCdRZPvMiTj5uHCMxRx21", "f": [["Презентация", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/6c85fd8ed921d5b545663ae17e64ca1e.pdf", "pdf"], ["Конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/308cbfcdcafdc132881f96b0c3c8650d.pdf", "pdf"]]}, "bn3": {"v": "https://kinescope.io/dbrRNM1EkiKfmXb5bPvPRp", "f": [["Презентация и конспект", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/6fb6609286d6565f06e139678d293c44.pdf", "pdf"]]}, "fin2": {"v": "", "f": [["Материал урока для печати", "https://kurs.holistica.academy/pl/fileservice/user/file/download/h/fa6442a058104df4fc9991a52c00517a.pdf", "pdf"]]}, "fin6": {"v": "https://kinescope.io/jtvHz3pULrgPFYR3xSGSJB", "f": []}};
 
+// ── «О чём этот урок» и «В результате вы:» — черновики по названию урока ──
+// Ключ — название урока (одинаковые уроки разных протоколов делят текст).
+// Лист «Уроки» (колонки «О чём урок» и «Результат урока», по пункту на строку) перекрывает эти тексты.
+var LESSON_ABOUT = {
+  // ── перед стартом ──
+  'Вводный эфир с Ириной Шиманской': ['Знакомимся с программой и с Ириной: как устроены семь недель, что ждёт вас на каждом этапе и как получить от программы максимум, не перегружая себя.',
+    ['Поймёте, как устроено обучение и в каком темпе идти', 'Узнаете, каких результатов можно достичь за программу', 'Получите рекомендации, с чего начать в первые дни', 'Сформируете свой план на 7 недель']],
+  'Подключить Бот-Деканат школы': ['Короткая инструкция: как подключить бота школы, чтобы не пропускать эфиры, открытие уроков и важные напоминания.',
+    ['Подключите бота за пару минут', 'Будете получать напоминания об эфирах и новых уроках', 'Узнаете, куда писать, если что-то не работает']],
+  'Как проходит программа': ['Карта программы: что открывается по неделям, когда приходит меню, как работают трекер, конструктор меню и обратная связь с кураторами.',
+    ['Поймёте логику семи недель', 'Узнаете, когда открываются уроки и меню', 'Разберётесь, где искать ответ куратора и как задать вопрос']],
+  'Технические вопросы': ['Ответы на частые вопросы: вход в кабинет, видео, файлы, сохранение прогресса и что делать, если что-то не открывается.',
+    ['Решите большинство технических вопросов сами', 'Узнаете, куда писать, если вопрос не решился']],
+  'Условия участия в розыгрыше': ['Правила розыгрыша программы: кто участвует, что нужно сделать и когда подводим итоги.',
+    ['Узнаете условия участия', 'Поймёте, что и к какому сроку нужно выполнить']],
+  // ── неделя 1 ──
+  'Вступительный урок — вялое пищеварение': ['Разбираем ваш тип пищеварения: почему оно работает медленно, как это проявляется в самочувствии и на чём строится программа именно для вас.',
+    ['Поймёте, что происходит с вашим пищеварением', 'Увидите связь между симптомами и типом пищеварения', 'Узнаете, на чём строится ваш протокол', 'Поймёте, с чего начать подготовку']],
+  'Вступительный урок — воспалённое пищеварение': ['Разбираем ваш тип пищеварения: откуда берётся «огонь» в ЖКТ, как он проявляется в самочувствии и как программа помогает его мягко успокоить.',
+    ['Поймёте, что происходит с вашим пищеварением', 'Увидите связь между симптомами и типом пищеварения', 'Узнаете, на чём строится ваш протокол', 'Поймёте, с чего начать подготовку']],
+  'Вступительный урок — чувствительное пищеварение': ['Разбираем ваш тип пищеварения: почему ЖКТ так остро реагирует на еду, стресс и режим и как программа помогает вернуть ему спокойствие.',
+    ['Поймёте, что происходит с вашим пищеварением', 'Увидите связь между симптомами и типом пищеварения', 'Узнаете, на чём строится ваш протокол', 'Поймёте, с чего начать подготовку']],
+  'Вступительный урок': ['Разбираем смешанный тип пищеварения: почему симптомы бывают разными, от чего это зависит и как программа учитывает эту изменчивость.',
+    ['Поймёте, что происходит с вашим пищеварением', 'Увидите связь между симптомами и типом пищеварения', 'Узнаете, на чём строится ваш протокол', 'Поймёте, с чего начать подготовку']],
+  'Список специй': ['Специи, которые понадобятся на программе: какие купить, в каком виде и сколько, чтобы спокойно готовить по меню всех недель.',
+    ['Будете знать, какие специи купить и сколько', 'Поймёте, чем молотые отличаются от цельных', 'Узнаете, где удобно купить всё сразу']],
+  'Рецепты фитосборов «Гранат-5» и «Горький сбор»': ['Рецепты фитосборов вашего протокола: из чего они состоят, как их приготовить и как вводить в режим дня.',
+    ['Научитесь готовить фитосборы дома', 'Поймёте, как и когда их принимать', 'Узнаете, о чём важно предупредить врача']],
+  'Рецепты фитосборов: Трифала отвар, Отвар Иролтуева': ['Как приготовить отвар Трифалы и отвар Иролтуева, когда их принимать и как вводить постепенно.',
+    ['Научитесь готовить отвары дома', 'Поймёте, как и когда их принимать', 'Узнаете, о чём важно предупредить врача']],
+  'Рецепты фитосборов: экстракт артишока, Рута-6, Жиру': ['Фитосоставы чувствительного протокола: что они дают пищеварению, как их принимать и как вводить без перегрузки.',
+    ['Поймёте, зачем каждый фитосостав в программе', 'Узнаете схему приёма', 'Узнаете, о чём важно предупредить врача']],
+  'Мягкие желчегонные напитки': ['Простые напитки, которые мягко поддерживают отток желчи и помогают пищеварению «проснуться» по утрам.',
+    ['Научитесь готовить 2–3 мягких желчегонных напитка', 'Поймёте, в какое время их пить', 'Узнаете, когда от них лучше отказаться']],
+  'Рецепты противовоспалительных чаёв': ['Чаи, которые успокаивают воспалённое пищеварение: состав, пропорции и когда их пить в течение дня.',
+    ['Научитесь заваривать противовоспалительные чаи', 'Поймёте, какой чай выбрать под самочувствие', 'Узнаете, чем сафлор отличается от шафрана']],
+  'Мягкие желчегонные, спазмолитические, противовоспалительные чаи': ['Чаи для чувствительного пищеварения: какие снимают спазм, какие мягко поддерживают желчь, а какие успокаивают слизистую.',
+    ['Научитесь заваривать чаи под разные задачи', 'Поймёте, какой чай выбрать под самочувствие', 'Узнаете, как вводить их постепенно']],
+  'Чаи для поддержки пищеварения': ['Чаи для смешанного типа: как выбирать напиток по самочувствию в конкретный день и как правильно заваривать.',
+    ['Научитесь заваривать чаи программы', 'Поймёте, как выбрать чай под своё состояние', 'Узнаете, в какое время их пить']],
+  'Травы и фитосборы для программы': ['Какие травы и фитосборы понадобятся на программе смешанного типа и как с ними обращаться.',
+    ['Будете знать, что купить к старту', 'Поймёте схему приёма', 'Узнаете, о чём важно предупредить врача']],
+  'Облепиховое масло': ['Облепиховое масло в программе: зачем оно воспалённому пищеварению, как выбрать качественное и как принимать.',
+    ['Поймёте, чем облепиховое масло помогает слизистой', 'Научитесь выбирать хорошее масло', 'Узнаете схему приёма и ограничения']],
+  'Настой льна и овсяный кисель': ['Два обволакивающих напитка для слизистой: как приготовить настой льна и овсяный кисель и как включить их в день.',
+    ['Научитесь готовить настой льна и овсяный кисель', 'Поймёте, когда их лучше пить', 'Узнаете, как хранить напитки']],
+  'Настой льна и овсяный кисель (чувствительное пищеварение)': ['Обволакивающие напитки для чувствительного ЖКТ: как приготовить настой льна и овсяный кисель и как пить их без дискомфорта.',
+    ['Научитесь готовить настой льна и овсяный кисель', 'Поймёте, когда их лучше пить', 'Узнаете, как вводить их постепенно']],
+  'Нутрицевтики и суперфуды для программы': ['Что из нутрицевтиков и суперфудов действительно пригодится на программе, а без чего можно спокойно обойтись.',
+    ['Поймёте, что стоит купить, а что — нет', 'Узнаете, как вводить новое по одному', 'Узнаете, когда нужна консультация врача']],
+  'Инвентарь для программы': ['Что понадобится на кухне, чтобы готовить по меню программы без лишних трат и сложностей.',
+    ['Составите список нужного инвентаря', 'Поймёте, что можно заменить тем, что уже есть дома']],
+  'Оборудование для программы': ['Что понадобится на кухне, чтобы готовить по меню программы без лишних трат и сложностей.',
+    ['Составите список нужного оборудования', 'Поймёте, что можно заменить тем, что уже есть дома']],
+  'Рецепт — Цампа': ['Цампа — традиционная тибетская еда из обжаренной муки. Разбираем, как её приготовить и почему она хороша для вашего пищеварения.',
+    ['Научитесь готовить цампу', 'Поймёте, в какой приём пищи она подходит лучше всего']],
+  'Рецепт — Ферментированные овощи': ['Как дома приготовить ферментированные овощи и в каком количестве добавлять их к еде.',
+    ['Научитесь ферментировать овощи дома', 'Поймёте, сколько и с чем их есть', 'Узнаете, как хранить заготовки']],
+  'Домашний йогурт': ['Как приготовить домашний йогурт и почему на программе он лучше магазинного.',
+    ['Научитесь готовить домашний йогурт', 'Поймёте, когда и с чем его есть']],
+  'Чат программы — смешанное пищеварение': ['Как устроен чат вашего протокола: о чём там говорим, как задавать вопросы и где искать ответы кураторов.',
+    ['Подключитесь к чату протокола', 'Узнаете правила чата', 'Поймёте, какие вопросы задавать в чате, а какие — куратору лично']],
+  // ── неделя 2 ──
+  'Трекер на 2-ю неделю': ['Трекер привычек второй недели: какие действия отмечать каждый день и как не потерять мотивацию.',
+    ['Будете знать, что делать каждый день этой недели', 'Сможете видеть свой прогресс в цифрах']],
+  'Трекер на 3-ю неделю': ['Трекер привычек третьей недели: к утренним привычкам добавляем питание по меню.',
+    ['Будете знать, что делать каждый день этой недели', 'Сможете видеть свой прогресс в цифрах']],
+  'Трекер на 4-ю неделю': ['Трекер привычек четвёртой недели: закрепляем режим и добавляем практики вашего протокола.',
+    ['Будете знать, что делать каждый день этой недели', 'Сможете видеть свой прогресс в цифрах']],
+  'Трекер на 5-ю неделю': ['Трекер привычек пятой недели: проверяем, что из нового уже стало вашим.',
+    ['Будете знать, что делать каждый день этой недели', 'Увидите, какие привычки уже закрепились']],
+  'Признаки вялого пищеварения и почему они возникают': ['Тяжесть после еды, сонливость, отёки, медленный стул — разбираем, откуда берутся эти признаки и как они связаны между собой.',
+    ['Узнаете признаки вялого пищеварения', 'Поймёте причины, которые его запускают', 'Увидите, на что можно повлиять уже сейчас']],
+  'Признаки воспалённого пищеварения и почему они возникают': ['Изжога, раздражительность, жидкий стул, высыпания — разбираем, откуда берутся эти признаки и как они связаны между собой.',
+    ['Узнаете признаки воспалённого пищеварения', 'Поймёте причины, которые его запускают', 'Увидите, на что можно повлиять уже сейчас']],
+  'Признаки чувствительного пищеварения и почему они возникают': ['Вздутие, спазмы, нестабильный стул, реакция на стресс — разбираем, откуда берутся эти признаки и как они связаны между собой.',
+    ['Узнаете признаки чувствительного пищеварения', 'Поймёте причины, которые его запускают', 'Увидите, на что можно повлиять уже сейчас']],
+  'Причины формирования смешанного типа пищеварения': ['Почему пищеварение ведёт себя по-разному в разные дни и что формирует смешанный тип.',
+    ['Поймёте, откуда берётся смешанный тип', 'Научитесь замечать, какое состояние у вас сегодня', 'Увидите, на что можно повлиять уже сейчас']],
+  'Как отслеживать улучшения самочувствия на программе для здоровья ЖКТ': ['Как замечать изменения, даже небольшие: на какие признаки смотреть и как пользоваться замером самочувствия в кабинете.',
+    ['Научитесь отслеживать изменения самочувствия', 'Сделаете первый замер в разделе «Прогресс»', 'Поймёте, какие изменения ждать и когда']],
+  'Как работает пищеварение': ['Путь еды от тарелки до кишечника: что происходит на каждом этапе и почему сбой в одном месте отзывается во всём организме.',
+    ['Поймёте, как устроено пищеварение', 'Увидите связь между этапами и своими симптомами', 'Будете понимать, зачем в программе каждая рекомендация']],
+  'Режим дня для здоровья ЖКТ': ['Почему пищеварению важен ритм: во сколько вставать, есть и ложиться, чтобы ЖКТ работал как часы.',
+    ['Составите свой режим дня', 'Поймёте, почему время еды не менее важно, чем сама еда', 'Узнаете, как перестроиться мягко']],
+  'Сон, стресс, отдых, эмоции: что управляет работой ЖКТ?': ['Связь кишечника и нервной системы: почему стресс и недосып так быстро отражаются на пищеварении и что с этим делать.',
+    ['Поймёте связь эмоций и пищеварения', 'Освоите простые способы снять напряжение', 'Узнаете, как сон влияет на ЖКТ']],
+  'Готовим ЖКТ к работе (вялое пищеварение)': ['Мягкая подготовка перед сменой питания: что начать делать на этой неделе, чтобы переход на меню прошёл легко.',
+    ['Будете знать, что делать на этой неделе', 'Подготовите ЖКТ к меню программы', 'Узнаете, как понять, что всё идёт хорошо']],
+  'Готовим ЖКТ к работе (воспалённое пищеварение)': ['Мягкая подготовка перед сменой питания: что начать делать на этой неделе, чтобы переход на меню прошёл спокойно.',
+    ['Будете знать, что делать на этой неделе', 'Подготовите ЖКТ к меню программы', 'Узнаете, как понять, что всё идёт хорошо']],
+  'Готовим ЖКТ к работе (чувствительное пищеварение)': ['Мягкая подготовка перед сменой питания: что начать делать на этой неделе, чтобы переход на меню прошёл без дискомфорта.',
+    ['Будете знать, что делать на этой неделе', 'Подготовите ЖКТ к меню программы', 'Узнаете, как понять, что всё идёт хорошо']],
+  'Готовим ЖКТ к работе': ['Мягкая подготовка перед сменой питания: что начать делать на этой неделе, чтобы переход на меню прошёл легко.',
+    ['Будете знать, что делать на этой неделе', 'Подготовите ЖКТ к меню программы', 'Узнаете, как понять, что всё идёт хорошо']],
+  'Напитки на программе': ['Что пить на программе: вода, тёплая кипячёная вода, чаи и напитки вашего протокола — сколько и когда.',
+    ['Поймёте, что и когда пить в течение дня', 'Узнаете, от каких напитков лучше отказаться', 'Научитесь пить так, чтобы помогать пищеварению']],
+  'Бульоны': ['Бульоны для чувствительного пищеварения: какие варить, как и почему они так нужны слизистой.',
+    ['Научитесь варить бульоны программы', 'Поймёте, когда и сколько их пить']],
+  'Ванночки для ног': ['Простая тёплая практика на вечер: как делать ванночки для ног и почему они расслабляют пищеварение.',
+    ['Освоите вечернюю практику для расслабления', 'Узнаете, когда её делать не стоит']],
+  'Промежуточная обратная связь': ['Пара минут, чтобы рассказать, как прошла неделя: что получается, что даётся сложно и где нужна помощь.',
+    ['Поделитесь впечатлениями о неделе', 'Получите поддержку там, где сложно', 'Поможете нам сделать программу лучше']],
+  // ── неделя 3 ──
+  'Список продуктов, меню и сборник рецептов на 3-ю неделю программы': ['Меню на неделю, список покупок и все рецепты — в конструкторе меню. Разбираем, как им пользоваться и с чего начать.',
+    ['Будете знать, что купить на неделю', 'Начнёте готовить по меню программы', 'Научитесь заменять блюда на равноценные']],
+  'Список продуктов, меню и сборник рецептов на 4-ю неделю программы': ['Меню четвёртой недели, список покупок и рецепты — в конструкторе меню.',
+    ['Будете знать, что купить на неделю', 'Продолжите готовить по меню программы', 'Научитесь собирать свой день']],
+  'Список продуктов, меню и сборник рецептов на 5-ю неделю программы': ['Меню пятой недели, список покупок и рецепты — в конструкторе меню.',
+    ['Будете знать, что купить на неделю', 'Продолжите готовить по меню программы', 'Посмотрите итоги питания за неделю']],
+  'Еда: какая делает мне хуже, а какая — лучше?': ['Как понять, какие продукты подходят именно вам: разбираем частые «провокаторы» и продукты, которые помогают вашему типу пищеварения.',
+    ['Научитесь замечать реакцию на продукты', 'Поймёте, что ограничить, а что добавить', 'Перестанете бояться еды']],
+  'Напитки': ['Напитки в течение дня: как пить, чтобы помогать пищеварению, и какие напитки вашего протокола выбрать.',
+    ['Поймёте, что и когда пить', 'Узнаете, какие напитки поддерживают ваш тип']],
+  'Правила еды: лайфхаки и кулинарные приёмы, чтобы переваривать пищу лучше': ['Не только что есть, но и как: кулинарные приёмы и простые привычки за столом, которые облегчают работу ЖКТ.',
+    ['Освоите кулинарные приёмы для лёгкого переваривания', 'Узнаете простые правила за столом', 'Сможете сразу применить их в меню']],
+  'Сочетание продуктов': ['Какие продукты хорошо сочетаются, а какие вместе дают тяжесть и вздутие. Разбираем на примерах из меню.',
+    ['Поймёте принципы сочетания продуктов', 'Научитесь собирать тарелку без тяжести', 'Будете понимать подсказки конструктора меню']],
+  'Мои идеальные завтрак, обед, ужин, перекусы': ['Собираем приёмы пищи под ваш тип пищеварения: что поставить на завтрак, обед и ужин и как перекусывать без вреда.',
+    ['Соберёте свои идеальные приёмы пищи', 'Поймёте, как перекусывать с пользой', 'Сможете собирать день в конструкторе меню']],
+  'Принимаем фитосоставы': ['Схема приёма фитосоставов вашего протокола: в каком порядке вводить, как сочетать с едой и сколько длится курс.',
+    ['Получите понятную схему приёма', 'Поймёте, как вводить фитосоставы постепенно', 'Узнаете противопоказания и о чём предупредить врача']],
+  'Гайд — Еда вне дома': ['Как оставаться в программе в кафе, в гостях и в поездке: что выбирать в меню и как не сорваться.',
+    ['Будете знать, что заказать в кафе', 'Научитесь собирать тарелку в гостях', 'Перестанете бояться выходить из дома']],
+  'Прогревания': ['Тёплые практики для пищеварения: как и когда делать прогревания, чтобы поддержать работу ЖКТ.',
+    ['Освоите практику прогреваний', 'Узнаете, когда её делать не стоит']],
+  // ── неделя 4 ──
+  'Специи для вялого пищеварения': ['Специи, которые «разжигают» медленное пищеварение: какие выбрать, как добавлять и сколько.',
+    ['Узнаете специи для своего типа', 'Научитесь добавлять их в блюда', 'Поймёте, где важна осторожность']],
+  'Специи для воспалённого пищеварения': ['Специи, которые не раздражают, а успокаивают воспалённое пищеварение: какие выбрать и как добавлять.',
+    ['Узнаете специи для своего типа', 'Научитесь добавлять их в блюда', 'Поймёте, где важна осторожность']],
+  'Специи для чувствительного пищеварения': ['Мягкие специи для чувствительного ЖКТ: какие снимают спазм и вздутие и как вводить их без дискомфорта.',
+    ['Узнаете специи для своего типа', 'Научитесь добавлять их в блюда', 'Поймёте, где важна осторожность']],
+  'Специи для смешанного пищеварения': ['Специи для смешанного типа: как выбирать их под самочувствие и как добавлять в блюда.',
+    ['Узнаете специи для своего типа', 'Научитесь выбирать специи под состояние дня', 'Поймёте, где важна осторожность']],
+  'Гимнастика — активация пищеварительного ритма': ['Короткий комплекс упражнений, который мягко «будит» пищеварение и помогает кишечнику работать ритмично.',
+    ['Освоите комплекс на 10–15 минут', 'Поймёте, когда его лучше делать']],
+  'Гимнастика — расслабление и восстановление ЖКТ': ['Спокойный комплекс упражнений, который снимает напряжение в животе и помогает восстановлению.',
+    ['Освоите комплекс на 10–15 минут', 'Поймёте, когда его лучше делать']],
+  'Гимнастика — восстановление комфортной работы ЖКТ': ['Мягкий комплекс упражнений для чувствительного ЖКТ: снимает спазм и помогает кишечнику расслабиться.',
+    ['Освоите комплекс на 10–15 минут', 'Поймёте, когда его лучше делать']],
+  'Гимнастика — гармонизация работы ЖКТ': ['Комплекс упражнений для смешанного типа: помогает выровнять работу пищеварения.',
+    ['Освоите комплекс на 10–15 минут', 'Поймёте, когда его лучше делать']],
+  'Прогревания (вялое пищеварение)': ['Тёплые практики для медленного пищеварения: как и когда делать прогревания.',
+    ['Освоите практику прогреваний', 'Узнаете, когда её делать не стоит']],
+  'Прогревания (чувствительное пищеварение)': ['Мягкие тёплые практики для чувствительного ЖКТ: как прогревания помогают снять спазм.',
+    ['Освоите практику прогреваний', 'Узнаете, когда её делать не стоит']],
+  'Вздутие живота, и что с ним делать — часть 1': ['Откуда берётся вздутие и почему оно бывает разным. Начинаем разбираться в причинах и первых шагах.',
+    ['Поймёте основные причины вздутия', 'Узнаете, что можно сделать уже сегодня', 'Научитесь отличать, когда нужен врач']],
+  'Вздутие живота, и что с ним делать — часть 2. Синдром раздражённого кишечника': ['Синдром раздражённого кишечника: как он проявляется, как связан со стрессом и чем помогает питание и режим.',
+    ['Поймёте, что такое СРК', 'Увидите связь СРК со стрессом и питанием', 'Узнаете, что поддерживает кишечник в программе']],
+  'Вздутие живота, и что с ним делать — часть 3. Синдром избыточного бактериального роста': ['Синдром избыточного бактериального роста: как его заподозрить, какие обследования обсудить с врачом и как поддержать себя питанием.',
+    ['Поймёте, что такое СИБР', 'Узнаете, какие обследования обсудить с врачом', 'Поймёте, как питание помогает при СИБР']],
+  'Нарушение перистальтики кишечника: запоры': ['Почему кишечник работает медленно и что помогает ему вернуть ритм: вода, еда, движение и режим.',
+    ['Поймёте причины запоров', 'Узнаете, что помогает наладить стул', 'Поймёте, когда нужно обратиться к врачу']],
+  'Хеликобактер пилори, что с ней делать': ['Что такое хеликобактер, как он связан с самочувствием и как поддержать желудок питанием вместе с наблюдением у врача.',
+    ['Поймёте, что такое хеликобактер', 'Узнаете, что обсудить с врачом', 'Поймёте, как поддержать желудок питанием']],
+  'Заживляем слизистую: дополнительные меры': ['Дополнительные меры, которые помогают слизистой восстановиться: питание, напитки и привычки.',
+    ['Узнаете, что поддерживает слизистую', 'Добавите в день 1–2 новые меры', 'Поймёте, как оценить результат']],
+  'Устраняем воспаление в ЖКТ: дополнительные меры': ['Что ещё можно сделать, чтобы успокоить воспаление в ЖКТ: питание, режим и мягкие практики.',
+    ['Узнаете дополнительные меры против воспаления', 'Добавите в день 1–2 новые меры', 'Поймёте, как оценить результат']],
+  'Поддержка здоровья ЖКТ при удалённом желчном пузыре': ['Как жить и есть без желчного пузыря: что меняется в пищеварении и как ему помочь.',
+    ['Поймёте, что меняется без желчного пузыря', 'Узнаете, как адаптировать питание', 'Поймёте, на что обращать внимание']],
+  'Удалённый желчный': ['Как жить и есть без желчного пузыря: что меняется в пищеварении и как ему помочь.',
+    ['Поймёте, что меняется без желчного пузыря', 'Узнаете, как адаптировать питание', 'Поймёте, на что обращать внимание']],
+  // ── неделя 5 ──
+  'Активируем пищеварение: дополнительные меры': ['Что ещё помогает разогнать медленное пищеварение: практики, напитки и привычки, которые закрепляют результат.',
+    ['Узнаете дополнительные меры для вашего типа', 'Добавите в день 1–2 новые меры', 'Поймёте, как оценить результат']],
+  'Голодание и фастинг': ['Нужны ли голодания вашему типу пищеварения, кому они подходят, а кому противопоказаны и как делать разгрузку бережно.',
+    ['Поймёте, подходит ли вам фастинг', 'Узнаете, как сделать разгрузку бережно', 'Узнаете, когда голодание противопоказано']],
+  'Гибкий ЗОЖ: долгосрочная стратегия поддержки здоровья': ['Как сохранить результат после программы без жёстких запретов: правило «большей части времени» и гибкие привычки.',
+    ['Составите свою стратегию после программы', 'Поймёте, как не откатиться назад', 'Перестанете делить еду на «можно» и «нельзя»']],
+  'Бережный детокс: кому, как и когда делать': ['Что на самом деле значит «детокс», кому и когда он полезен и как провести его мягко, без вреда.',
+    ['Поймёте, нужен ли вам детокс', 'Узнаете, как провести его бережно', 'Узнаете, когда от него лучше отказаться']],
+  'Тяга к сладкому, вечерняя еда, отсутствие утреннего аппетита: что делать': ['Разбираем три частые ситуации: откуда тяга к сладкому, почему тянет есть вечером и что делать, если утром не хочется завтракать.',
+    ['Поймёте причины тяги к сладкому', 'Узнаете, как перестроить вечернюю еду', 'Вернёте утренний аппетит мягко']],
+  'Вялое пищеварение — что делать дальше?': ['Как жить после программы: что оставить навсегда, что можно возвращать и как понять, что пищеварению снова нужна поддержка.',
+    ['Составите план после программы', 'Поймёте, что можно возвращать в рацион', 'Будете знать, как поддержать себя дальше']],
+  'Воспалённое пищеварение — что делать дальше?': ['Как жить после программы: что оставить навсегда, что можно возвращать и как понять, что пищеварению снова нужна поддержка.',
+    ['Составите план после программы', 'Поймёте, что можно возвращать в рацион', 'Будете знать, как поддержать себя дальше']],
+  'Чувствительное пищеварение — что делать дальше?': ['Как жить после программы: что оставить навсегда, что можно возвращать и как понять, что пищеварению снова нужна поддержка.',
+    ['Составите план после программы', 'Поймёте, что можно возвращать в рацион', 'Будете знать, как поддержать себя дальше']],
+  'Смешанное пищеварение — что делать дальше?': ['Как жить после программы: что оставить навсегда, что можно возвращать и как понять, что пищеварению снова нужна поддержка.',
+    ['Составите план после программы', 'Поймёте, что можно возвращать в рацион', 'Будете знать, как поддержать себя дальше']],
+  'Обратная связь после программы': ['Расскажите, как прошли эти недели: что изменилось, что помогло больше всего и что нам стоит улучшить.',
+    ['Подведёте итоги своих изменений', 'Поможете нам сделать программу лучше']],
+  // ── завершение ──
+  'Ваша точка Б': ['Фиксируем, где вы сейчас: сравниваем самочувствие с началом программы и отмечаем, что изменилось.',
+    ['Увидите свои изменения за программу', 'Поймёте, над чем работать дальше']],
+  'Гайд — Аптечка в отпуск': ['Что взять с собой в поездку, чтобы поддержать пищеварение вдали от дома.',
+    ['Соберёте свою аптечку в дорогу', 'Будете знать, что делать при дискомфорте в поездке']],
+  'Участие в розыгрыше': ['Последний шаг для участия в розыгрыше: что отправить и к какому сроку.',
+    ['Узнаете, что нужно сделать для участия', 'Не пропустите срок']],
+  'Завершающий вебинар': ['Подводим итоги программы вместе: отвечаем на вопросы и рассказываем, как сохранить результат дальше.',
+    ['Подведёте итоги программы', 'Получите ответы на свои вопросы', 'Узнаете, как сохранить результат']],
+  'Материалы программы (итоговый сборник)': ['Все материалы программы в одном месте — чтобы возвращаться к ним после окончания доступа.',
+    ['Сохраните все материалы себе', 'Сможете возвращаться к ним в любое время']],
+  'Бонусный урок от Татьяны Никифоровой: «Ароматерапия здоровья и красоты»': ['Бонусный урок о том, как эфирные масла могут поддержать самочувствие, сон и настроение в повседневной жизни.',
+    ['Узнаете основы ароматерапии', 'Подберёте масла для своих задач', 'Узнаете правила безопасного применения']],
+  // ── бонусы ──
+  'Изжога, рефлюкс, ГЭРБ. Часть 1': ['Откуда берутся изжога и рефлюкс, как они связаны с образом жизни и питанием и что поддерживает желудок.',
+    ['Поймёте причины изжоги и рефлюкса', 'Узнаете, какие привычки их усиливают', 'Поймёте, что обсудить с врачом']],
+  'Изжога, рефлюкс, ГЭРБ. Часть 2': ['Продолжаем разбирать ГЭРБ: питание, режим и практики, которые облегчают состояние.',
+    ['Узнаете, как питание помогает при ГЭРБ', 'Добавите в день практики, снижающие дискомфорт', 'Поймёте, когда нужно обратиться к врачу']],
+  'Паразитология: история, классификация паразитов': ['Вводный урок блока: какие бывают паразиты, как ими заражаются и почему не стоит паниковать раньше времени.',
+    ['Узнаете основные группы паразитов', 'Поймёте пути заражения', 'Узнаете, когда стоит обследоваться']],
+  'Простейшие. Лямблии: лечение и профилактика': ['Лямблии: как проявляются, как их выявляют и как защитить себя и семью. Лечение назначает врач — разбираем, как поддержать организм рядом с ним.',
+    ['Узнаете, как проявляются лямблии', 'Поймёте, какие анализы обсудить с врачом', 'Узнаете правила профилактики']],
+  'Простейшие: описторхоз и клонорхоз': ['Описторхоз и клонорхоз: откуда берутся, кто в группе риска и как себя защитить.',
+    ['Поймёте, кто в группе риска', 'Узнаете, какие обследования обсудить с врачом', 'Узнаете правила профилактики']],
+  'Отряд круглые черви': ['Круглые черви: как ими заражаются, как это проявляется и как обезопасить себя и детей.',
+    ['Узнаете пути заражения', 'Поймёте, какие обследования обсудить с врачом', 'Узнаете правила профилактики']],
+  'Шпаргалка для участников': ['Короткая памятка по блоку паразитологии — всё главное на одной странице.',
+    ['Сохраните памятку себе', 'Будете знать главные правила профилактики']]
+};
+
 
 const PNAME = { slow:'Вялое пищеварение', infl:'Воспалённое пищеварение', sens:'Чувствительное пищеварение', mix:'Смешанный тип' };
 const PKEY = { 'Воспаленное пищеварение':'infl' }; Object.keys(PNAME).forEach(k => PKEY[PNAME[k]] = k);
@@ -1229,6 +1558,15 @@ function keepY(fn){ const y=window.scrollY; fn(); window.scrollTo(0,y); }
 const supportLink = (cls='btn ghost full') => `<a class="${cls}" href="${esc(CFG.SUPPORT_URL)}" target="_blank" rel="noopener">Написать в службу заботы</a>`;
 
 const I = {
+ target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
+ clip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.5 12 20a5 5 0 0 1-7-7l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7L9.7 17.7a1.7 1.7 0 0 1-2.4-2.4L15 7.6"/></svg>',
+ dl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>',
+ fpdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3.5H7a1.5 1.5 0 0 0-1.5 1.5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3.5V8h4.5"/><text x="12" y="17" text-anchor="middle" font-size="5.2" font-weight="800" fill="currentColor" stroke="none" font-family="Montserrat,Arial,sans-serif">PDF</text></svg>',
+ fdoc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3.5H7a1.5 1.5 0 0 0-1.5 1.5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3.5V8h4.5M9 12.5h6M9 16h6"/></svg>',
+ fvid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="m10 9 5 3-5 3z" fill="currentColor"/></svg>',
+ bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5a6 6 0 0 1 12 0c0 5 2 6.5 2 6.5H4s2-1.5 2-6.5"/><path d="M10 19.5a2 2 0 0 0 4 0"/></svg>',
+ search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>',
+ user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.8-3.8 3.9-5.8 7.5-5.8s6.7 2 7.5 5.8"/></svg>',
  bmk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg>',
  bmkf:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg>',
  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 12 4l8.5 6.5V20a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z"/></svg>',
@@ -1448,7 +1786,7 @@ const Demo = (() => {
   const openOnly = st => { if (!isStaff({role:st['Роль']}) && accessOf(st).closed) throw new Error('Доступ к программе закрыт'); };
   const pub = d => ({ access: accessOf(d), email:d['Email'], name:d['Имя'], role:d['Роль'], status:d['Статус']||STS.none, autoProtocol:d['Протокол авто']||'', protocol:d['Протокол итог']||'',
     recs:d['Комментарий куратора']||'', confirmedAt:d['Дата подтверждения']||'', filledAt:d['Дата анкеты']||'', hasPhoto:!!(load().quizzes[d['Email']]||{}).photo,
-    tariff:d['Тариф']||'Общий', ov:parse(d['Правки материалов']) });
+    tariff:d['Тариф']||'Общий', ov:parse(d['Правки материалов']), profile:parse(d['Профиль'])||{} });
   const msgsOf = e => load().messages.filter(m => m.email === e);
   const addMsg = (email, lessonId, from, who, text) => { load().messages.push({ at:now(), email, lessonId:lessonId||'', lesson: lessonId ? (byId(lessonId)||{t:''}).t : '', from, who, text }); log(email, from === 'cu' ? (lessonId ? 'reply_comment' : 'reply_chat') : (lessonId ? 'comment' : 'chat'), lessonId ? (byId(lessonId)||{t:''}).t : ''); };
   const parse = s => { try { return s ? JSON.parse(s) : null } catch(e){ return null } };
@@ -1462,6 +1800,14 @@ const Demo = (() => {
       if(st._pw!==hash(st['Email']+password)) throw new Error('Неверный пароль'); return {token:session(st)}; },
     me({token}){ const st=auth(token); const q=load().quizzes[st['Email']]||null, u=pub(st), closed=u.access.closed&&!isStaff({role:st['Роль']});
       return {user:u, quiz:q, state:parse(st['Прогресс']), lessons:closed?{}:load().lessons, messages:msgsOf(st['Email']), settings:load().settings, feedback:Object.fromEntries((load().feedback||[]).filter(f=>f.email===st['Email'].toLowerCase()).map(f=>[f.key,f.date]))}; },
+    saveProfile({token,profile}){ const st=auth(token), d=profile||{}, cur=parse(st['Профиль'])||{};
+      const t=(v,n)=>String(v==null?'':v).trim().slice(0,n||80), num=(v,lo,hi)=>{ const x=Number(String(v||'').replace(',','.')); return x>=lo&&x<=hi?Math.round(x*10)/10:''; };
+      const name=t(d.name); if(!name) throw new Error('Укажите имя');
+      const w=num(d.weight,30,250), wa=num(d.waist,40,200);
+      if(d.weight&&!w) throw new Error('Проверьте вес: от 30 до 250 кг'); if(d.waist&&!wa) throw new Error('Проверьте обхват талии: от 40 до 200 см');
+      const hist=cur.hist||[]; if((w&&w!==cur.weight)||(wa&&wa!==cur.waist)) hist.push({at:now(),weight:w,waist:wa});
+      const out={phone:t(d.phone,30),city:t(d.city,60),birth:/^\d{4}-\d{2}-\d{2}$/.test(t(d.birth))?t(d.birth):'',weight:w,waist:wa,hist:hist.slice(-60),at:now()};
+      st['Имя']=name; st['Профиль']=JSON.stringify(out); log(st['Email'],'profile',''); return {profile:out,name}; },
     feedbackSubmit({token,key,answers}){ const st=auth(token); if(!FB_KEYS.includes(key)) throw new Error('Неизвестная анкета'); const a=answers||{};
       fbQuestions(key).forEach(q=>{ if(q.req&&fbVisible(q,a)&&!a[q.id]) throw new Error('Ответьте на все обязательные вопросы'); });
       const db=load(); db.feedback=(db.feedback||[]).filter(f=>!(f.email===st['Email'].toLowerCase()&&f.key===key)); db.feedback.push({email:st['Email'].toLowerCase(),key,date:now(),answers:a,flag:fbFlag(key,a),protocol:st['Протокол итог']||''}); log(st['Email'],'feedback',FB_TITLE[key]); return {}; },
@@ -1722,7 +2068,7 @@ function calEvents(){
 }
 function calOpen(e){ return U.preview || CFG.OPEN_ALL_WEEKS || Date.now() >= e.at; }
 function calRow(e){
-  const op = calOpen(e), done = e.id && U.st.done[e.id], tm = e.kind === 'web' || hmOf(e.at) !== '00:00' ? hmOf(e.at) : '';
+  const op = calOpen(e), done = e.id && U.st.done[e.id], tm = hmOf(e.at);
   const ic = done ? I.check : op ? '' : I.lock;
   const inner = `<span class="c2-t">${tm || '—'}</span><span class="c2-x"><b>${esc(e.t)}</b><span>${esc(e.sub)}${!op ? ' · откроется' : done ? ' · пройдено' : ''}</span></span><span class="c2-s${done ? ' ok' : ''}">${ic}</span>`;
   if (e.kind === 'web') return e.url && Date.now() < e.at + 3 * 36e5 ? `<a class="c2-r web" href="${esc(e.url)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="c2-r web">${inner}</div>`;
@@ -1817,9 +2163,6 @@ function lessonLinks(id, sheet){
   const s = (sheet || {})[id] || {}, d = (typeof LESSON_LINKS !== 'undefined' && LESSON_LINKS[id]) || {};
   return { video: s.video || d.v || '', files: s.file ? parseFiles(s.file) : (d.f || []), hide: !!s.hide };
 }
-function filesHtml(files, id){
-  return files.length ? `<h2><span>Материалы урока</span></h2><div class="files">${files.map(([lab, u, ext]) => `<a class="file" href="${esc(u)}" target="_blank" rel="noopener" data-a="dl" data-id="${id}"><span class="ext ${ext === 'pdf' ? 'p' : 'w'}">${esc((ext || 'pdf').toUpperCase().replace('DOCX', 'DOC'))}</span><span class="tx"><b>${esc(lab)}</b><span>откроется в новой вкладке</span></span><span class="ch">${I.chev}</span></a>`).join('')}</div>` : '';
-}
 // дополнительные блоки урока: промокод, кнопки на встроенные трекер, анкету и конструктор
 const SHOP_URL = 'https://www.holistica.academy/shop', SHOPS_LIST = 'https://docs.google.com/document/d/1nR4uGXy_3DH6Yf41ld-mLQ3EdAYSSMZwHXDFvg4vJzY/edit?tab=t.0';
 function lessonExtra(x){
@@ -1853,8 +2196,9 @@ function home(){ hist = []; V = { s:'dash' }; render(); window.scrollTo(0,0); }
 function renderBar(title, wide){
   const showBack = hist.length > 0 && !['welcome','dash','login','wait','result','calc','fail','closed'].includes(V.s);
   $('#bar').innerHTML = (wide ? `<button class="back burger" data-a="navOpen" aria-label="Меню программы" title="Меню программы">${I.burger}</button>` : '') + (showBack ? `<button class="back" data-a="back" aria-label="Назад">${I.back}</button>` : '') +
-    `<div class="brand">HOLISTICA<i>DOC</i></div><div class="prog">${title || 'Формула здоровья ЖКТ'}</div>` +
-    (S.user && !U.preview ? `<button class="back out-btn" data-a="logout" aria-label="Выйти" title="Выйти">${I.out}</button>` : '');
+    `<div class="brand">HOLISTICA<i>DOC</i></div>` + (wide ? (() => { const n = notifList().length;
+      return `<span class="bar-sp"></span><button class="back bi" data-a="search" aria-label="Поиск" title="Поиск">${I.search}</button><button class="back bi" data-a="bell" aria-label="Уведомления${n ? ': ' + n : ''}" title="Уведомления">${I.bell}${n ? `<span class="bdot">${n > 9 ? '9+' : n}</span>` : ''}</button><button class="back bi${V.s === 'profile' ? ' on' : ''}" data-a="profile" aria-label="Мой профиль" title="Мой профиль">${I.user}</button>`; })()
+    : `<div class="prog">${title || 'Формула здоровья ЖКТ'}</div>` + (S.user && !U.preview ? `<button class="back out-btn" data-a="logout" aria-label="Выйти" title="Выйти">${I.out}</button>` : ''));
 }
 function foot(){ return `<div class="foot"><b>HOLISTICA</b><i>DOC</i> · Формула здоровья ЖКТ${MODE === 'demo' ? '<br>Демо-режим' : ''}</div>`; }
 function calc(){ return `<div class="spin" aria-hidden="true"></div><p style="text-align:center;font-weight:700">${esc(V.msg || 'Загружаем…')}</p>`; }
@@ -1975,14 +2319,16 @@ function dash(){
       <span class="cnt">${n} ${plural(n, c.one)}${p.d ? ` · готово ${p.d}` : ''}</span>
       <span class="pb"><i style="width:${p.p}%"></i></span></button>`;
   }).join('');
-  return `<div class="top dtop"><div class="dt-a">
-    <div class="sub">Моя программа</div>
+  const goL = cont ? cont.l : nextL;
+  if (!PT && !PT_AUTO && !U.preview && !U.st.tour) { PT_AUTO = 1; setTimeout(() => { if (V.s === 'dash' && !PT && !U.st.tour && !U.preview) ptStart(); }, 700); }
+  return `<div class="top hero"><div class="hr-a">
+    <div class="sub">Моя программа · <span class="tag">${T.name}</span></div>
     <h1>Формула здоровья ЖКТ</h1>
-    <p style="margin:0"><span class="tag" style="font-size:13px">${T.name}</span></p></div><div class="dt-b">
+    <p class="hr-s">7-недельная программа для лёгкого пищеварения и стабильной энергии</p>
     <div class="cal"><span>${preStart() ? `Старт программы ${fmt(START())}` : dayN() <= CAL.programDays ? `День ${dayN()} из ${CAL.programDays} · неделя ${curWeek()}` : 'Программа завершена'}</span><span>${accessLeft() ? `доступ ещё ${accessLeft()} ${plural(accessLeft(), ['день','дня','дней'])}` : 'доступ закончился'}</span></div>
-    <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-top:10px"><span>Пройдено</span><span>${tp}%</span></div>
-    <div class="pb"><i style="width:${tp}%"></i></div></div>
-  </div>
+    <div class="hr-p"><div class="hr-pt"><span>Ваш прогресс</span><b>${tp}%</b><span class="pb"><i style="width:${tp}%"></i></span></div>
+      ${goL ? `<button class="btn mag" data-a="open" data-id="${goL.id}">${cont ? 'Продолжить обучение' : 'Начать урок'} <span aria-hidden="true">→</span></button>` : `<button class="btn mag" data-a="cat" data-k="lessons">К урокам <span aria-hidden="true">→</span></button>`}</div>
+  </div><div class="hr-ph"><img src="${esc(IRINA())}" alt="Ирина Шиманская" onerror="this.parentNode.remove()"></div></div>
   ${!U.preview && S.user.access && S.user.access.left != null && S.user.access.left <= 7 ? `<div class="upcard"><b style="color:var(--mag)">Доступ открыт до ${fmtM(S.user.access.last)}.</b> ${S.set.extendUrl ? `Чтобы продолжить, продлите доступ на ${extTxt()} — все отметки сохранятся.<div style="margin-top:10px"><a class="btn mag" href="${esc(S.set.extendUrl)}" target="_blank" rel="noopener">Продлить доступ</a></div>` : 'Продлить доступ можно через службу заботы.'}</div>` : ''}
   ${webinarCard()}
   ${fbCard()}
@@ -2043,6 +2389,20 @@ function menuView(){
   <p class="muted">Собирайте меню на день из рецептов вашего протокола. <a class="lnk" href="${esc(src)}" target="_blank" rel="noopener">Открыть в отдельной вкладке</a></p>
   <iframe class="menu-frame" src="${esc(src)}" title="Конструктор меню"></iframe>`;
 }
+function lessonNav(x){
+  const ls = RES().lessons.map(byId).map((l, i) => [l, i]).sort((a, b) => a[0].w - b[0].w || a[1] - b[1]).map(p => p[0]);
+  const i = ls.findIndex(l => l.id === x.id); if (i < 0) return '';
+  const p = ls[i - 1], n = ls[i + 1];
+  const one = (l, dir) => {
+    if (!l) return '<span></span>';
+    const lab = dir === 'prev' ? 'Предыдущий урок' : 'Следующий урок';
+    const arrow = `<span class="ln-ar">${dir === 'prev' ? '←' : '→'}</span>`;
+    if (!lessonOpen(l)) return `<div class="lnav-b ${dir} off" aria-disabled="true">${dir === 'prev' ? arrow : ''}<span class="ln-tx"><small>${lab} · откроется ${whenTxt(lessonOpenAt(l))}</small><b>${esc(l.t)}</b></span>${dir === 'next' ? arrow : ''}</div>`;
+    return `<button class="lnav-b ${dir}" data-a="lnav" data-id="${l.id}">${dir === 'prev' ? arrow : ''}<span class="ln-tx"><small>${lab}${l.w !== x.w ? ' · ' + esc(WEEKSHORT[l.w]) : ''}</small><b>${esc(l.t)}</b></span>${dir === 'next' ? arrow : ''}</button>`;
+  };
+  return `<nav class="lnav" aria-label="Переход между уроками">${one(p, 'prev')}${one(n, 'next')}</nav>`;
+}
+const vpTxt = id => { const v = (U.st.vp || {})[id]; return v && !v[3] && v[0] > 15 ? 'Продолжить с ' + mmss(v[0]) : 'Смотреть урок'; };
 function item(){
   const x = byId(V.id), k = catOf(x.id), d = U.st.done[x.id];
   const doneLbl = { lessons:['Отметить как просмотренный','Урок просмотрен'], practices:['Делаю эту практику','Практика в работе'],
@@ -2051,20 +2411,23 @@ function item(){
   if (k === 'lessons' && !lessonOpen(x))
     return `<h1 style="margin-top:22px">${esc(x.t)}</h1><div class="card"><p>Урок откроется ${whenTxt(lessonOpenAt(x))} по Москве${menuWeekOf(x) ? '' : ' — ' + WEEKNAME[x.w].toLowerCase()}.</p></div>`;
   if (k === 'lessons') {
-    const L = lessonLinks(x.id, U.links), emb = embedUrl(L.video), textLesson = !L.video && /^(Текст|Список|Рецепт|Гайд|Трекер|Меню и рецепты|Обратная связь|Задание|Сборник)$/.test(x.d);
+    const L = lessonLinks(x.id, U.links), emb = embedUrl(L.video), textLesson = !L.video && (['infl1_5','infl1_6','infl1_7'].includes(x.id) || /^(Текст|Список|Рецепт|Гайд|Трекер|Меню и рецепты|Обратная связь|Задание|Сборник)$/.test(x.d)), ab = lessonAbout(x);
+    const cover = `<button type="button" class="vcov" data-a="vcov" aria-label="Смотреть урок: ${esc(x.t)}"><span class="vc-br">HOLISTICA<i>DOC</i></span><span class="vc-tx"><small>${esc(WEEKSHORT[x.w] || '')} · Формула здоровья ЖКТ</small><b>${esc(x.t)}</b></span><span class="vc-pl"><svg viewBox="0 0 24 24"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>${vpTxt(x.id)}</span></button>`;
     const kid = /kinescope\.io\/embed\/(\w+)/.exec(emb || ''), vp = (U.st.vp || {})[x.id];
-    const player = kid ? `<div class="player"><div class="scr"><div id="kp" data-id="${x.id}" data-url="https://kinescope.io/${kid[1]}" data-emb="${esc(emb)}"></div></div></div>${vp && !vp[3] && vp[0] > 15 ? `<p class="muted small" style="margin:-4px 0 12px">Вы остановились на ${mmss(vp[0])} — видео продолжится с этого места.</p>` : ''}`
-      : emb ? `<div class="player"><div class="scr"><iframe src="${esc(emb)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen title="${esc(x.t)}"></iframe></div></div>`
+    const player = kid ? `<div class="player"><div class="scr">${cover}<div id="kp" data-id="${x.id}" data-url="https://kinescope.io/${kid[1]}" data-emb="${esc(emb)}"></div></div></div>${vp && !vp[3] && vp[0] > 15 ? `<p class="muted small" style="margin:-4px 0 12px">Вы остановились на ${mmss(vp[0])} — видео продолжится с этого места.</p>` : ''}`
+      : emb ? `<div class="player"><div class="scr">${cover}<iframe src="${esc(emb)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen title="${esc(x.t)}"></iframe></div></div>`
       : L.video ? `<div class="video"><a class="pl" href="${esc(L.video)}" target="_blank" rel="noopener" data-a="extopen" data-id="${x.id}" aria-label="Открыть урок"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 4.5l13 7.5-13 7.5z"/></svg></a><small>Урок откроется в новой вкладке</small></div>`
       : textLesson ? '' : `<div class="video"><span class="pl"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 4.5l13 7.5-13 7.5z"/></svg></span><small>${x.d === 'Вебинар' ? 'Запись эфира появится здесь после трансляции' : 'Видео урока появится здесь, когда его добавят на платформу'}</small></div>`;
     const bm = U.st.saved && U.st.saved[x.id];
     return `<div class="meta" style="margin-top:22px"><span class="chip">${WEEKSHORT[x.w]}</span><span class="chip">${esc(x.d)}</span>
       ${U.preview ? '' : `<button class="bmbtn${bm ? ' on' : ''}" data-a="bm" data-id="${x.id}" aria-pressed="${!!bm}">${bm ? I.bmkf : I.bmk}${bm ? 'Сохранён' : 'Сохранить урок'}</button>`}</div>
     <h1>${esc(x.t)}</h1>${player}
-    <div class="why"><b>Почему этот урок вам.</b> ${lessonWhy(x)}</div>
+    ${aboutHtml(ab)}
     ${lessonExtra(x)}
+    ${resultHtml(ab)}
     ${filesHtml(L.files, x.id)}
     ${btn}
+    ${lessonNav(x)}
     <h2><span>Вопрос куратору</span></h2>
     ${lessonMsgs(x.id).length ? `<div class="chat">${bubbles(lessonMsgs(x.id), 'cl')}</div>` : `<p class="muted small">Если по уроку возник вопрос — напишите. Куратор ответит здесь, под уроком.</p>`}
     <textarea class="inp" id="msgIn" maxlength="3000" placeholder="Ваш вопрос по уроку" style="margin-top:10px;min-height:80px"></textarea>
@@ -2436,11 +2799,157 @@ function mountVideo(){
     });
   }).catch(fallback);
 }
-const WIDE_VIEWS = ['dash','cat','item','progress','check','tracker','chat','fb','fbok','menu'];
+// ── О чём урок / результат ──
+function lessonAbout(x){
+  const s = (U.links || {})[x.id] || {}, d = (typeof LESSON_ABOUT !== 'undefined' && LESSON_ABOUT[x.t]) || null;
+  const about = s.about || (d && d[0]) || '', res = s.res ? s.res.split(/\n+/).map(t => t.replace(/^[-•–—\s]+/, '').trim()).filter(Boolean) : (d ? d[1] : []);
+  return { about, res };
+}
+function aboutHtml(a){ return a.about ? `<section class="labout"><span class="la-ic">${I.book}</span><div><h3>О чём этот урок</h3><p>${esc(a.about)}</p></div></section>` : ''; }
+function resultHtml(a){ return a.res.length ? `<section class="lres"><h3><span class="lr-ic">${I.target}</span>В результате вы:</h3><ul>${a.res.map(t => `<li>${I.ck}<span>${esc(t)}</span></li>`).join('')}</ul></section>` : ''; }
+// ── Материалы к уроку ──
+function filesHtml(files, id){
+  if (!files.length) return '';
+  const extOf = (ext, u) => (ext || (/\.(\w{2,4})(\?|$)/.exec(u || '') || [])[1] || 'pdf').toLowerCase();
+  const icon = e => e === 'pdf' ? I.fpdf : /^(mp4|mov|webm)$/.test(e) ? I.fvid : I.fdoc;
+  const row = ([lab, u, ext]) => { const e = extOf(ext, u); return `<a class="mf-r" href="${esc(u)}" target="_blank" rel="noopener" data-a="dl" data-id="${id}"><span class="mf-i">${icon(e)}</span><span class="mf-t"><b>${esc(lab)}</b><span>${esc(e === 'docx' ? 'DOC' : e.toUpperCase())}</span></span><span class="mf-d" aria-hidden="true">${I.dl}</span></a>`; };
+  const many = files.length > 3, open = !many || (V.fx === id), shown = open ? files : files.slice(0, 2), rest = files.length - 2;
+  return `<section class="mfiles"><div class="mf-h"><span class="mf-hi">${I.clip}</span><b>Материалы к уроку</b><span class="mf-n">${files.length} ${plural(files.length, ['файл','файла','файлов'])}</span></div>
+    ${shown.map(row).join('')}
+    ${open ? '' : `<button class="mf-r mf-more" data-a="fx" data-id="${id}"><span class="mf-i">${I.fdoc}</span><span class="mf-t"><b>Дополнительные материалы</b><span>${rest} ${plural(rest, ['файл','файла','файлов'])}</span></span><span class="mf-d">${I.chev}</span></button>`}</section>`;
+}
+// ── Колокольчик: ответы куратора в чате и под уроками ──
+const POP = { k: '', q: '' };
+function notifList(){
+  const out = [];
+  const cm = chatMsgsU().filter(m => m.from === 'cu' && tsOf(m) > (U.st.seenChat || 0));
+  if (cm.length) { const m = cm[cm.length - 1]; out.push({ at: tsOf(m), a: 'chat', t: 'Куратор ответил в чате', x: m.text, n: cm.length }); }
+  newReplies().forEach(m => out.push({ at: tsOf(m), a: 'open', id: m.lessonId, t: 'Ответ под уроком «' + ((byId(m.lessonId) || {}).t || m.lesson || 'урок') + '»', x: m.text }));
+  return out.sort((a, b) => b.at - a.at);
+}
+function popHtml(){
+  if (POP.k === 'bell') {
+    const L = notifList();
+    return `<div class="pop-bd" data-a="popClose"></div><div class="pop bellp" role="dialog" aria-label="Уведомления"><div class="pop-h"><b>Уведомления</b>${L.length ? '<button class="linkbtn" data-a="notifRead">Отметить прочитанными</button>' : ''}</div>
+      ${L.length ? L.map(n => `<button class="nt" data-a="${n.a}" ${n.id ? `data-id="${n.id}"` : ''}><span class="nt-ic">${I.chat}</span><span class="nt-x"><b>${esc(n.t)}${n.n > 1 ? ` · ${n.n}` : ''}</b><span>${esc(String(n.x || '').slice(0, 120))}</span><small>${fmtDT(n.at)}</small></span></button>`).join('')
+        : `<div class="pop-empty">${I.bell}<p>Новых ответов пока нет. Когда куратор ответит в чате или под уроком, здесь появится отметка.</p></div>`}</div>`;
+  }
+  if (POP.k === 'search') return `<div class="pop-bd" data-a="popClose"></div><div class="pop srchp" role="dialog" aria-label="Поиск"><div class="srch-in">${I.search}<input id="srch" type="search" placeholder="Найти урок, практику, специю…" value="${esc(POP.q)}" autocomplete="off"><button class="sn-x" data-a="popClose" aria-label="Закрыть">✕</button></div><div id="srchRes">${searchRes()}</div></div>`;
+  return '';
+}
+const normQ = t => String(t || '').toLowerCase().replace(/ё/g, 'е');
+function searchRes(){
+  const q = normQ(POP.q).trim(); if (q.length < 2) return '<p class="muted small" style="margin:10px 4px">Введите хотя бы две буквы названия.</p>';
+  const r = RES(), words = q.split(/\s+/), hit = x => words.every(w => normQ(x.t).includes(w));
+  const groups = [['lessons', 'Уроки'], ['practices', 'Практики'], ['spices', 'Специи'], ['phyto', 'Фитосоставы']].map(([k, t]) => [t, r[k].map(byId).filter(hit), k]).filter(g => g[1].length);
+  if (!groups.length) return `<p class="muted small" style="margin:10px 4px">Ничего не нашлось по запросу «${esc(POP.q)}».</p>`;
+  const mark = t => { let h = esc(t); words.forEach(w => { const i = normQ(h).indexOf(w); if (i > -1) h = h.slice(0, i) + '<mark>' + h.slice(i, i + w.length) + '</mark>' + h.slice(i + w.length); }); return h; };
+  return groups.map(([t, list, k]) => `<div class="sr-g">${t} · ${list.length}</div>` + list.slice(0, 30).map(x => {
+    const op = k !== 'lessons' || lessonOpen(x), sub = k === 'lessons' ? WEEKNAME[x.w] : x.d || '';
+    return op ? `<button class="sr-i" data-a="open" data-id="${x.id}"><span class="sr-t"><b>${mark(x.t)}</b><span>${esc(sub)}</span></span>${U.st.done[x.id] ? `<span class="sn-st ok">${I.check}</span>` : ''}</button>`
+      : `<div class="sr-i lock"><span class="sr-t"><b>${mark(x.t)}</b><span>${esc(sub)} · откроется ${whenTxt(lessonOpenAt(x))}</span></span><span class="sn-lk">${I.lock}</span></div>`; }).join('')).join('');
+}
+function renderPop(){ const el = $('#pop'); if (!el) return; el.innerHTML = popHtml(); if (POP.k === 'search') { const i = $('#srch'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } } }
+function popClick(b, a){
+  if (a === 'bell' || a === 'search') { POP.k = POP.k === a ? '' : a; NAV.open = false; renderNav(document.body.classList.contains('wide')); return renderPop(); }
+  if (a === 'popClose') { POP.k = ''; return renderPop(); }
+  if (a === 'notifRead') { U.st.seenChat = Date.now(); U.st.seenL = U.st.seenL || {}; newReplies().forEach(m => U.st.seenL[m.lessonId] = Date.now()); save(); POP.k = ''; return render(); }
+}
+// ── Профиль ──
+function profView(){
+  const u = S.user, p = u.profile || {}, q = ((U.quiz || {}).personal) || {}, e = V.err || '';
+  const ro = (l, v) => `<div class="pf-ro"><span>${l}</span><b>${v ? esc(v) : '<i>—</i>'}</b></div>`;
+  const inp = (id, l, v, o) => `<label class="pf-f"><span>${l}${o && o.opt ? ' <i>по желанию</i>' : ''}</span><input class="inp" id="pf-${id}" type="${(o && o.type) || 'text'}" value="${esc(v || '')}" ${o && o.ph ? `placeholder="${esc(o.ph)}"` : ''} ${o && o.extra || ''}>${o && o.hint ? `<small>${o.hint}</small>` : ''}</label>`;
+  const hist = (p.hist || []).slice(-6).reverse();
+  return `<h1 style="margin-top:22px">Мой профиль</h1>
+  <p class="muted">Данные из входной анкеты. Имя, вес и обхват талии можно обновлять — так вы и куратор увидите динамику.</p>
+  <div class="pf-card"><h2 class="pf-h">Обо мне</h2>
+    ${inp('name', 'Имя', u.name || q.fio, { extra: 'maxlength="80" autocomplete="name"' })}
+    ${ro('Почта', u.email)}
+    ${inp('phone', 'Телефон', p.phone, { opt: 1, type: 'tel', ph: '+7 900 000-00-00', extra: 'maxlength="30" autocomplete="tel"' })}
+    ${inp('birth', 'Дата рождения', p.birth, { opt: 1, type: 'date', extra: 'max="' + new Date().toISOString().slice(0, 10) + '"' })}
+    ${inp('city', 'Город', p.city, { opt: 1, ph: 'Москва', extra: 'maxlength="60" autocomplete="address-level2"' })}
+  </div>
+  <div class="pf-card"><h2 class="pf-h">Параметры</h2>
+    ${ro('Рост', q.height ? q.height + ' см' : '')}
+    ${inp('weight', 'Вес, кг', p.weight || q.weight, { type: 'number', extra: 'inputmode="decimal" step="0.1" min="30" max="250"', hint: q.weight ? 'В анкете: ' + q.weight + ' кг' : '' })}
+    ${inp('waist', 'Обхват талии, см', p.waist || q.waist, { type: 'number', extra: 'inputmode="decimal" step="0.5" min="40" max="200"', hint: q.waist ? 'В анкете: ' + q.waist + ' см' : '' })}
+    ${hist.length ? `<div class="pf-hist"><b>История изменений</b>${hist.map(h => `<span>${fmt(h.at)} — ${h.weight ? h.weight + ' кг' : ''}${h.weight && h.waist ? ', ' : ''}${h.waist ? 'талия ' + h.waist + ' см' : ''}</span>`).join('')}</div>` : ''}
+  </div>
+  ${e ? `<div class="errbox" role="alert">${esc(e)}</div>` : ''}
+  ${U.preview ? '<p class="muted small">В режиме просмотра куратора профиль не сохраняется.</p>' : `<button class="btn full" data-a="pfSave" ${V.busy ? 'disabled' : ''} style="margin-top:14px">${V.busy ? 'Сохраняем…' : 'Сохранить'}</button>`}
+  <div class="pf-more">
+    <button class="btn ghost full" data-a="tourStart">Как пользоваться платформой</button>
+    ${U.preview ? '' : `<button class="btn ghost full" data-a="logout">Выйти из кабинета</button>`}
+  </div>${foot()}`;
+}
+async function profSave(){
+  const g = id => ($('#pf-' + id) || {}).value || '';
+  const pr = { name: g('name').trim(), phone: g('phone'), birth: g('birth'), city: g('city'), weight: g('weight'), waist: g('waist') };
+  if (!pr.name) { V.err = 'Укажите имя'; return keepY(render); }
+  V.busy = true; V.err = ''; keepY(render);
+  try { const r = await api('saveProfile', { token: S.token, profile: pr }); S.user.profile = r.profile; S.user.name = r.name; V.busy = false; toast('Профиль сохранён'); keepY(render); }
+  catch (x) { V.busy = false; V.err = x.message; keepY(render); }
+}
+// ── Обзор платформы для новичка (после назначения протокола) ──
+let PT = null, PT_EL = null, PT_AUTO = 0;
+function ptSteps(){
+  const d = isDesk();
+  return [
+    { c: 1, t: 'Добро пожаловать в программу!', x: 'Ваш протокол назначен, кабинет собран под вас. Покажем за минуту, где что находится. Обзор можно пропустить и посмотреть позже — в профиле.' },
+    { sel: '.hero', t: 'Ваша программа', x: 'День программы, срок доступа и общий прогресс. Кнопка «Продолжить обучение» откроет урок, на котором вы остановились.' },
+    { sel: '.today', t: 'Трекер на сегодня', x: 'Ежедневные привычки протокола. Отмечайте, что сделали, — так видно, как вы держите ритм.' },
+    { sel: '.duo .next:not(.cont)', t: 'Следующий урок', x: 'Уроки идут в рекомендованном порядке. Если видео посмотрено не до конца, кабинет запомнит место.' },
+    { sel: '.tiles', t: 'Разделы программы', x: 'Уроки, практики, меню и рецепты, специи и фитосоставы — только то, что подходит вашему протоколу.' },
+    d ? { sel: NAV.pin ? '.snav' : '.srail', t: 'Меню навигации', x: 'Все уроки по неделям, сохранённые уроки и быстрые переходы. Закрытые уроки — с замочком, он исчезнет, когда урок откроется. Панель можно свернуть.' }
+      : { sel: '.bar .burger', t: 'Меню навигации', x: 'Здесь все уроки по неделям, сохранённые уроки и быстрые переходы. Закрытые уроки — с замочком.' },
+    { sel: d ? '.lay-side .c2' : '.c2-mob', t: 'Календарь программы', x: 'Когда откроются новые уроки, меню и анкеты. Нажмите на дату — увидите, что откроется в этот день.' },
+    { sel: '.bar [data-a=search]', t: 'Поиск', x: 'Найдите урок по названию — например, «вздутие» или «напитки».' },
+    { sel: '.bar [data-a=bell]', t: 'Уведомления', x: 'Когда куратор ответит в чате или под уроком, на колокольчике появится отметка.' },
+    { sel: '.bar [data-a=profile]', t: 'Профиль', x: 'Ваши данные из анкеты. Здесь можно обновить вес и обхват талии и снова посмотреть этот обзор.' },
+    { c: 1, last: 1, t: 'Готово! Можно начинать', x: 'Начните с урока «Как проходит программа» и не забывайте отмечать трекер. Если появится вопрос — пишите куратору под уроком.' }
+  ];
+}
+function ptList(){ return ptSteps().filter(s => s.c || (document.querySelector(s.sel) && document.querySelector(s.sel).getBoundingClientRect().width)); }
+function ptStart(){ if (V.s !== 'dash') home(); POP.k = ''; renderPop(); PT = { i: 0 }; setTimeout(ptShow, 60); }
+function ptEnd(done){ PT = null; if (PT_EL) { PT_EL.remove(); PT_EL = null; } window.removeEventListener('resize', ptPlace); if (!U.preview) { U.st.tour = done ? 'done' : (U.st.tour || 'skipped'); save(); } }
+function ptShow(){
+  const S0 = ptList(), n = S0.length, s = S0[Math.min(PT.i, n - 1)];
+  if (!PT_EL) { PT_EL = document.createElement('div'); PT_EL.className = 'pt'; PT_EL.setAttribute('role', 'dialog'); PT_EL.setAttribute('aria-modal', 'true'); document.body.appendChild(PT_EL);
+    PT_EL.addEventListener('click', e => { const b = e.target.closest('[data-pt]'); if (!b) return; const a = b.dataset.pt; if (a === 'next') ptGo(1); else if (a === 'prev') ptGo(-1); else if (a === 'skip') ptEnd(false); else if (a === 'done') ptEnd(true); });
+    window.addEventListener('resize', ptPlace); }
+  const t = s.sel ? document.querySelector(s.sel) : null; PT.t = t && t.getBoundingClientRect().width ? t : null;
+  const first = PT.i === 0, last = !!s.last;
+  PT_EL.innerHTML = `<div class="pt-spot${PT.t ? '' : ' none'}"></div><div class="pt-card${PT.t ? '' : ' center'}">
+    ${first || last ? '' : `<div class="pt-n">Шаг ${PT.i} из ${n - 2}</div>`}<h3>${s.t}</h3><p>${s.x}</p>
+    <div class="pt-dots">${S0.map((_, i) => `<i class="${i === PT.i ? 'on' : i < PT.i ? 'was' : ''}"></i>`).join('')}</div>
+    <div class="pt-b">${last ? '<button class="btn" data-pt="done">Начать</button>' : first ? '<button class="pt-skip" data-pt="skip">Пропустить</button><button class="btn" data-pt="next">Начать обзор</button>'
+      : `<button class="pt-skip" data-pt="skip">Пропустить</button><span><button class="btn ghost" data-pt="prev">Назад</button><button class="btn" data-pt="next">${PT.i === n - 2 ? 'Завершить' : 'Далее'}</button></span>`}</div></div>`;
+  if (PT.t) { const r = PT.t.getBoundingClientRect(); if (r.top < 70 || r.bottom > innerHeight - 20) window.scrollTo({ top: Math.max(0, scrollY + r.top - 90), behavior: 'auto' }); }
+  ptPlace();
+}
+function ptGo(d){ const n = ptList().length; PT.i = Math.max(0, Math.min(n - 1, PT.i + d)); ptShow(); }
+function ptPlace(){
+  if (!PT || !PT_EL) return; const sp = PT_EL.querySelector('.pt-spot'), cd = PT_EL.querySelector('.pt-card'), t = PT.t; if (!t) return;
+  const r = t.getBoundingClientRect(), pad = 6, vw = innerWidth, vh = innerHeight;
+  const top = Math.max(4, r.top - pad), left = Math.max(4, r.left - pad), w = Math.min(vw - 8, r.width + pad * 2), h = Math.min(vh - top - 4, r.height + pad * 2);
+  sp.style.cssText = `top:${top}px;left:${left}px;width:${w}px;height:${Math.max(30, h)}px`;
+  const cw = Math.min(380, vw - 24), ch = cd.offsetHeight;
+  if (vw < 640) { cd.style.cssText = `left:12px;right:12px;width:auto;${r.top + r.height / 2 > vh / 2 ? 'top:12px' : 'bottom:12px'}`; return; }
+  let cy = top + h + 12 + ch < vh ? top + h + 12 : (top - 12 - ch > 0 ? top - 12 - ch : Math.max(12, (vh - ch) / 2));
+  let cx = Math.min(Math.max(12, left), vw - cw - 12);
+  if (r.width < 400 && r.height > vh * .5) { cx = left + w + 12 + cw < vw ? left + w + 12 : Math.max(12, left - cw - 12); cy = Math.max(12, Math.min(vh - ch - 12, r.top)); }
+  cd.style.cssText = `top:${cy}px;left:${cx}px;width:${cw}px`;
+}
+document.addEventListener('keydown', e => { if (PT && e.key === 'Escape') ptEnd(false); else if (PT && e.key === 'ArrowRight') ptGo(1); else if (PT && e.key === 'ArrowLeft') ptGo(-1); else if (POP.k && e.key === 'Escape') { POP.k = ''; renderPop(); } });
+document.addEventListener('input', e => { if (e.target && e.target.id === 'srch') { POP.q = e.target.value; const r = $('#srchRes'); if (r) r.innerHTML = searchRes(); } });
+// ── Ирина в шапке главной: файл irina.png рядом с index.html (или ссылка в «Настройках») ──
+const IRINA = () => (S.set && S.set.irina) || CFG.IRINA_URL || 'irina.png';
+const WIDE_VIEWS = ['dash','cat','item','progress','check','tracker','chat','fb','fbok','menu','profile'];
 function render(){
-  const titles = { fb:'Оценка обучения', fbok:'Спасибо', chat:'Чат', quiz:'Анкета', progress:'Прогресс', check:'Замер', tracker:'Трекер', login:'Вход', menu:'Меню', redflag:'Анкета' };
+  const titles = { profile:'Профиль', fb:'Оценка обучения', fbok:'Спасибо', chat:'Чат', quiz:'Анкета', progress:'Прогресс', check:'Замер', tracker:'Трекер', login:'Вход', menu:'Меню', redflag:'Анкета' };
   if (accessClosed() && !['login','calc','fail'].includes(V.s)) V = { s:'closed' };
-  const map = { closed:closedView, login:vLogin, welcome, quiz:quizStep, redflag, calc, wait, result, dash, cat:catList, item, progress:prog, check, tracker, menu:menuView, fail, chat:chatView, fb:fbView, fbok:fbOkView };
+  const map = { profile:profView, closed:closedView, login:vLogin, welcome, quiz:quizStep, redflag, calc, wait, result, dash, cat:catList, item, progress:prog, check, tracker, menu:menuView, fail, chat:chatView, fb:fbView, fbok:fbOkView };
   if (V.s === 'item' && !U.preview && lessonMsgs(V.id).some(m => m.from === 'cu')) { U.st.seenL = U.st.seenL || {}; const last = Math.max(...lessonMsgs(V.id).map(tsOf)); if (last > (U.st.seenL[V.id] || 0)) { U.st.seenL[V.id] = last; save(); } }
   if (['chat','item'].includes(V.s)) { if (!pollT) startPoll(); } else stopPoll();
   RENDER_N++;
@@ -2448,6 +2957,9 @@ function render(){
   document.body.classList.toggle('wide', wide);
   renderBar(titles[V.s], wide);
   renderNav(wide);
+  if (POP.k && (!wide || render.lastV !== V)) POP.k = '';
+  render.lastV = V;
+  renderPop();
   const html = map[V.s]();
   $('#app').innerHTML = side ? `<div class="lay"><div class="lay-main">${html}</div><aside class="lay-side">${calMonth()}</aside></div>` : html;
   mountVideo();
@@ -2457,6 +2969,13 @@ function render(){
 }
 function studentClick(e, b, a){
   if (b.closest('.snav') && !/^nav/.test(a)) NAV.open = false;
+  if (['bell','search','popClose','notifRead'].includes(a)) return popClick(b, a);
+  if (POP.k) { POP.k = ''; renderPop(); }
+  if (a === 'profile') return V.s === 'profile' ? null : go('profile', { err:'' });
+  if (a === 'pfSave') return profSave();
+  if (a === 'tourStart') return ptStart();
+  if (a === 'fx') { V.fx = b.dataset.id; return keepY(render); }
+  if (a === 'vcov') { const sc = b.parentNode; b.remove(); try { if (KP && KP.play) KP.play(); else { const f = sc && sc.querySelector('iframe'); if (f && !/autoplay=1/.test(f.src)) f.src += (f.src.includes('?') ? '&' : '?') + 'autoplay=1'; } } catch (err) {} return; }
   if (a === 'back') return back();
   if (a === 'logout') return logout();
   if (a === 'retry') return boot();
@@ -2506,6 +3025,7 @@ function studentClick(e, b, a){
   if (a === 'fbSend') return fbSend();
   if (a === 'cat') return go('cat', { k:b.dataset.k });
   if (a === 'menu') { track('menu', 'Конструктор меню'); return go('menu'); }
+  if (a === 'lnav') { const id = b.dataset.id, l = lx(id); l.open++; l.last = Date.now(); save(); track('open', byId(id).t); V = { s:'item', id }; render(); window.scrollTo(0,0); return; }
   if (a === 'open') { const id = b.dataset.id; if (catOf(id) === 'lessons') { const l = lx(id); l.open++; l.last = Date.now(); save(); track('open', byId(id).t); } return go('item', { id }); }
   if (a === 'webinar') { track('webinar', webinar().title); return; }
   if (a === 'groupChat') { track('group_chat', PNAME[TYPE()]); return; }
@@ -2571,7 +3091,7 @@ const Adm = (() => {
       const start = (d.settings && d.settings.start) || CFG.START_DATE || s['Дата подтверждения'] || '';
       return { email:e, name:s['Имя'] || x.name || e, status, assigned, filled, quiz:filled ? q : null, autoKey, type,
         first:s['Первый вход'] || '', lastAt:s['Последний вход'] || '', last:daysAgo(s['Последний вход']), hasPw:s['Пароль задан'] === 'да',
-        recs:s['Комментарий куратора'] || '', note:s['Заметка куратора'] || '', curator:s['Куратор'] || '',
+        recs:s['Комментарий куратора'] || '', note:s['Заметка куратора'] || '', curator:s['Куратор'] || '', profile:(() => { try { return JSON.parse(s['Профиль'] || 'null') || {}; } catch (e) { return {}; } })(),
         confirmedAt:s['Дата подтверждения'] || '', filledAt:s['Дата анкеты'] || '', protoName:s['Протокол итог'] || '',
         red:filled ? (q.redFlags || []) : [], photo:!!(filled && q.photo), state:normState(s.state), start,
         day:assigned && start ? dayNum(new Date(start).getTime()) : 0, events:evs[e] || [], paidOnly:!!x.paidOnly,
@@ -2964,6 +3484,8 @@ const Adm = (() => {
     const r = (q, v) => `<div class="ar"><span>${esc(q)}</span><b>${esc(v)}</b></div>`;
     const qs = {}; Q.blocks.forEach(b => b.q.forEach(x => qs[x[0]] = x));
     const lab = id => (a.labels && a.labels[id]) || (a.raw && a.raw[id] ? labelOf(ITEMS.find(i => i.id === id), a.raw[id]) : (qs[id] && a.answers[id] ? Q.scales[qs[id][4]][a.answers[id]-1] : ''));
+    const pf = c.profile || {};
+    if (pf.at) rows.push(`<div class="as"><div class="ah">Профиль (обновлён ${fmt(pf.at)})</div>${[pf.weight && r('Вес сейчас', pf.weight + ' кг'), pf.waist && r('Талия сейчас', pf.waist + ' см'), pf.phone && r('Телефон', pf.phone), pf.birth && r('Дата рождения', fmt(pf.birth, { day:'numeric', month:'long', year:'numeric' })), pf.city && r('Город', pf.city), (pf.hist || []).length > 1 && r('Изменений веса/талии', String(pf.hist.length))].filter(Boolean).join('') || r('—', '')}</div>`);
     rows.push(`<div class="as"><div class="ah">Личные данные</div>${[p.fio && r('ФИО', p.fio), p.sex && r('Пол', p.sex), p.age && r('Возраст', p.age + ' лет'), p.height && r('Рост / вес', p.height + ' см / ' + p.weight + ' кг'), p.bmi && r('ИМТ', p.bmi), p.waist && r('Обхват талии', p.waist + ' см')].filter(Boolean).join('') || r('—', '')}</div>`);
     rows.push(`<div class="as"><div class="ah">Диагнозы</div>${(a.diagnoses || []).length ? a.diagnoses.map(d => r(d, d === CHOL && a.chol ? a.chol : '✓')).join('') : r('Нет установленных диагнозов', '')}</div>`);
     QBLOCKS.forEach(bl => { const it = bl.items.filter(i => a.answers && a.answers[i.id]); if (!it.length) return;
