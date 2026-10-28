@@ -358,6 +358,7 @@ ul.sp-ul{margin:6px 0 14px;padding-left:20px}ul.sp-ul li{margin:0 0 6px;line-hei
 body.mdl-on{overflow:hidden}
 @keyframes mdlf{from{opacity:0}}@keyframes mdlu{from{opacity:0;transform:translate(-50%,-46%)}}
 @media (max-width:520px){.tabs[role=tablist]{display:grid;grid-template-columns:1fr 1fr;gap:8px;overflow:visible}.tabs[role=tablist] button{width:100%;justify-content:center;text-align:center;white-space:nowrap;padding-left:8px;padding-right:8px}}
+.exg{font-size:15px;margin:18px 0 8px;color:var(--grey);font-weight:700}
 
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
@@ -1620,11 +1621,51 @@ var DIAGNOSES = [
   ['Псориаз',false],
 ];
 var CHOL = 'Повышенный холестерин';
-/* ТЕСТОВЫЙ список продуктов — заменим продуктами из меню программы */
+/* Продукты из меню программы, которые часто плохо переносят. Отмеченное куратор учитывает при подборе и подсказывает замены */
+var EXCL_GROUPS = ['Молочное и яйца','Злаки','Бобовые, орехи, семена','Рыба, мясо, морепродукты','Овощи и грибы','Фрукты и ягоды','Другое'];
 var EXCLUDABLE = [
-  {code:'milk',     name:'Молоко и молочные продукты'},
-  {code:'legumes',  name:'Бобовые (чечевица, нут, фасоль)'},
-  {code:'tomatoes', name:'Томаты'},
+  {code:'milk',     g:0, name:'Молоко, йогурт, сметана, творог'},
+  {code:'cheese',   g:0, name:'Сыры (адыгейский, козий)'},
+  {code:'butter',   g:0, name:'Сливочное масло и гхи'},
+  {code:'egg',      g:0, name:'Яйца'},
+  {code:'gluten',   g:1, name:'Пшеница и глютен: хлеб, мука, манка, булгур, кускус'},
+  {code:'oats',     g:1, name:'Овёс: хлопья, овсяный кисель, овсяное молоко'},
+  {code:'barley',   g:1, name:'Ячмень: перловка, цампа'},
+  {code:'buckwheat',g:1, name:'Гречка'},
+  {code:'corn',     g:1, name:'Кукуруза (крахмал)'},
+  {code:'legumes',  g:2, name:'Бобовые: нут, чечевица, маш, фасоль, горошек'},
+  {code:'soy',      g:2, name:'Соя: тофу, соевый соус, мисо, соевый протеин'},
+  {code:'nuts',     g:2, name:'Орехи: миндаль, кешью, кедровые, грецкие'},
+  {code:'sesame',   g:2, name:'Кунжут и тахини'},
+  {code:'seeds',    g:2, name:'Тыквенные семечки'},
+  {code:'fish',     g:3, name:'Рыба'},
+  {code:'seafood',  g:3, name:'Морепродукты: креветки, кальмар'},
+  {code:'beef',     g:3, name:'Говядина'},
+  {code:'poultry',  g:3, name:'Курица и индейка'},
+  {code:'offal',    g:3, name:'Субпродукты: печень, язык, сердечки'},
+  {code:'tomatoes', g:4, name:'Томаты, томатная паста, вяленые томаты'},
+  {code:'pepper',   g:4, name:'Болгарский перец'},
+  {code:'eggplant', g:4, name:'Баклажаны'},
+  {code:'potato',   g:4, name:'Картофель'},
+  {code:'onion',    g:4, name:'Лук: репчатый, порей, зелёный'},
+  {code:'garlic',   g:4, name:'Чеснок'},
+  {code:'cabbage',  g:4, name:'Капуста: белокочанная, пекинская, брокколи, цветная, брюссельская'},
+  {code:'celery',   g:4, name:'Сельдерей'},
+  {code:'beet',     g:4, name:'Свёкла'},
+  {code:'mushrooms',g:4, name:'Грибы'},
+  {code:'citrus',   g:5, name:'Цитрусовые: апельсин, грейпфрут, помело, лимон, лайм'},
+  {code:'kiwi',     g:5, name:'Киви и ананас'},
+  {code:'apple',    g:5, name:'Яблоки и груши'},
+  {code:'stone',    g:5, name:'Абрикосы и сливы'},
+  {code:'berries',  g:5, name:'Ягоды: черника, малина, смородина, клюква'},
+  {code:'dried',    g:5, name:'Сухофрукты: курага, чернослив, изюм, финики'},
+  {code:'avocado',  g:5, name:'Авокадо'},
+  {code:'coconut',  g:6, name:'Кокос: кокосовое молоко, кокосовый йогурт'},
+  {code:'ferment',  g:6, name:'Квашеная капуста и солёные огурцы'},
+  {code:'seaweed',  g:6, name:'Водоросли: нори, спирулина'},
+  {code:'honey',    g:6, name:'Мёд'},
+  {code:'cocoa',    g:6, name:'Какао'},
+  {code:'cilantro', g:6, name:'Кинза'},
 ];
 var CONSENT_VERSION = '2026-09-30-draft';
 var STEP_NAMES = ['Данные','Диагнозы','Боли','Тяжесть','Изжога','Тошнота','Вздутие','Стул','Кожа и волосы','Общее состояние','Лекарства','Цели','Продукты','Важное','Фото языка','Проверка'];
@@ -4559,9 +4600,9 @@ function welcome(){
     <p>Ответьте на вопросы о самочувствии и питании. По ответам куратор подберёт ваш протокол, а в кабинете откроются уроки, практики, меню, специи и фитосоставы.</p>
     <p style="margin:0">Займёт около 15 минут. Ответы сохраняются по ходу — можно сделать перерыв и вернуться.</p>
   </div>
-  ${webinarCard()}
   <div class="card"><p><b>Важно.</b> Анкета заполняется один раз. Если позже захотите пройти её заново, напишите куратору.</p></div>
-  <button class="btn full" data-a="startQuiz">${LS.get(draftKey(), null) ? 'Продолжить анкету' : 'Начать анкету'}</button>
+  <button class="btn mag full" data-a="startQuiz">${LS.get(draftKey(), null) ? 'Продолжить анкету' : 'Заполнить анкету'}</button>
+  <div style="margin-top:16px">${webinarCard()}</div>
   ${preBlock()}
   ${a2hsCard()}
   ${foot()}`;
@@ -4646,16 +4687,32 @@ function dash(){
   <div style="margin-top:16px">${finalCard()}</div>
   ${foot()}`;
 }
+// Подпись типа урока: «Текстовый урок», «Видеоурок», «Вебинар», «Процедура», «Практика»…
+const TEXT_IDS = ['infl1_5','infl1_6','infl1_7','mix1_2'];
+function kindOf(x){
+  if (!x) return ''; const d = x.d || '';
+  if (catOf(x.id) !== 'lessons') return d;
+  if (d === 'Текст' || d === 'Список') return 'Текстовый урок';
+  if (d === 'Гимнастика') return 'Практика · гимнастика';
+  if (d === 'Обратная связь') return 'Анкета';
+  if (d === 'Сборник') return 'Сборник материалов';
+  if (d === 'Бонус') return 'Бонусный урок';
+  if (d !== 'Урок') return d;
+  if (/Прогреван|Ванночк|процедур/i.test(x.t)) return 'Процедура';
+  const L = lessonLinks(x.id, U.links || {});
+  if (L.video) return 'Видеоурок';
+  return (TEXT_IDS.includes(x.id) || (typeof LTEXT !== 'undefined' && LTEXT[x.id])) ? 'Текстовый урок' : 'Видеоурок';
+}
 function li(x){
   const d = U.st.done[x.id];
   const ck = catOf(x.id);
-  let sub = x.d || (ck === 'spices' && x.amt ? x.amt.join(' · ') : ck === 'phyto' && x.how ? x.how.find(h => /раз в день|Пейте|вечером|утром|Курс|Начните/.test(h)) || '' : '');
+  let sub = (ck === 'lessons' ? kindOf(x) : x.d) || (ck === 'spices' && x.amt ? x.amt.join(' · ') : ck === 'phyto' && x.how ? x.how.find(h => /раз в день|Пейте|вечером|утром|Курс|Начните/.test(h)) || '' : '');
   if (sub.length > 90) sub = sub.slice(0, 88).replace(/\s+\S*$/, '') + '…';
   if (catOf(x.id) === 'lessons' && U.st.lx[x.id] && !d) sub += ' · открыт';
   return `<button class="li ${d ? 'done' : ''}" data-a="open" data-id="${x.id}"><span class="st">${d ? I.check : ''}</span>
   <span class="tx"><b>${esc(x.t)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</span><span class="ch">${I.chev}</span></button>`;
 }
-function liLock(x){ return `<div class="li lock" aria-disabled="true"><span class="st">${I.lock}</span><span class="tx"><b>${esc(x.t)}</b><span>${esc(x.d)}</span></span></div>`; }
+function liLock(x){ return `<div class="li lock" aria-disabled="true"><span class="st">${I.lock}</span><span class="tx"><b>${esc(x.t)}</b><span>${esc(kindOf(x))}</span></span></div>`; }
 function catList(){
   const k = V.k, c = CATS.find(x => x.k === k), r = RES();
   const items = r[k].map(byId);
@@ -4716,7 +4773,7 @@ function item(){
   if (k === 'lessons' && !lessonOpen(x))
     return `<h1 style="margin-top:22px">${esc(x.t)}</h1><div class="card"><p>Урок откроется ${whenTxt(lessonOpenAt(x))} по Москве${menuWeekOf(x) ? '' : ' — ' + WEEKNAME[x.w].toLowerCase()}.</p></div>`;
   if (k === 'lessons') {
-    const L = lessonLinks(x.id, U.links), emb = embedUrl(L.video), textLesson = !L.video && (['infl1_5','infl1_6','infl1_7','mix1_2'].includes(x.id) || !!LTEXT[x.id] || /^(Текст|Список|Рецепт|Гайд|Трекер|Меню и рецепты|Обратная связь|Задание|Сборник)$/.test(x.d)), ab = lessonAbout(x);
+    const L = lessonLinks(x.id, U.links), emb = embedUrl(L.video), textLesson = !L.video && (TEXT_IDS.includes(x.id) || !!LTEXT[x.id] || /^(Текст|Список|Рецепт|Гайд|Трекер|Меню и рецепты|Обратная связь|Задание|Сборник)$/.test(x.d)), ab = lessonAbout(x);
     const cover = `<button type="button" class="vcov" data-a="vcov" aria-label="Смотреть урок: ${esc(x.t)}"><span class="vc-br">HOLISTICA<i>DOC</i></span><span class="vc-tx"><small>${esc(WEEKSHORT[x.w] || '')} · Формула здоровья ЖКТ</small><b>${esc(x.t)}</b></span><span class="vc-pl"><svg viewBox="0 0 24 24"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>${vpTxt(x.id)}</span></button>`;
     const kid = /kinescope\.io\/embed\/(\w+)/.exec(emb || ''), vp = (U.st.vp || {})[x.id];
     const player = kid ? `<div class="player"><div class="scr">${cover}<div id="kp" data-id="${x.id}" data-url="https://kinescope.io/${kid[1]}" data-emb="${esc(emb)}"></div></div></div>${vp && !vp[3] && vp[0] > 15 ? `<p class="muted small" style="margin:-4px 0 12px">Вы остановились на ${mmss(vp[0])} — видео продолжится с этого места.</p>` : ''}`
@@ -4724,7 +4781,7 @@ function item(){
       : L.video ? `<div class="video"><a class="pl" href="${esc(L.video)}" target="_blank" rel="noopener" data-a="extopen" data-id="${x.id}" aria-label="Открыть урок"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 4.5l13 7.5-13 7.5z"/></svg></a><small>Урок откроется в новой вкладке</small></div>`
       : textLesson ? '' : `<div class="video"><span class="pl"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 4.5l13 7.5-13 7.5z"/></svg></span><small>${x.d === 'Вебинар' ? 'Запись эфира появится здесь после трансляции' : 'Видео урока появится здесь, когда его добавят на платформу'}</small></div>`;
     const bm = U.st.saved && U.st.saved[x.id];
-    return `<div class="meta" style="margin-top:22px"><span class="chip">${WEEKSHORT[x.w]}</span><span class="chip">${esc(x.d)}</span>
+    return `<div class="meta" style="margin-top:22px"><span class="chip">${WEEKSHORT[x.w]}</span><span class="chip">${esc(kindOf(x))}</span>
       ${U.preview ? '' : `<button class="bmbtn${bm ? ' on' : ''}" data-a="bm" data-id="${x.id}" aria-pressed="${!!bm}">${bm ? I.bmkf : I.bmk}${bm ? 'Сохранён' : 'Сохранить урок'}</button>`}</div>
     <h1>${esc(x.t)}</h1>${player}
     ${aboutHtml(ab)}
@@ -4886,11 +4943,10 @@ function quizStep(){
   } else if (n === 12) {
     body = `<h2><span>С какой целью вы пришли на программу?</span></h2>${fld('Какие задачи хотите решить? Что уже делали, чтобы решить свои запросы по ЖКТ?', 'goals', {area:1, max:800, ph:'Опишите своими словами', hint:'Максимум 800 символов'})}`;
   } else if (n === 13) {
-    body = `<h2><span>Какие продукты убрать из вашего меню?</span></h2>
-    <div class="testnote">Тестовый список из трёх продуктов — заменим продуктами из меню программы.</div>
-    <p>Отметьте продукты, которые вы не любите или плохо переносите. Мы не будем включать их в ваше меню.</p>
-    <div class="dg">${EXCLUDABLE.map(p => opt(p.name, QD.excluded.includes(p.code), 'excl', p.code)).join('')}</div>
-    <div style="margin-top:14px">${fld('Другое — если нужного продукта нет в списке', 'productsOther', {area:1, max:400, ph:'Например: болгарский перец, кинза', hint:'Можно оставить пустым'})}</div>`;
+    body = `<h2><span>Какие продукты вы не переносите?</span></h2>
+    <p>Отметьте продукты из меню программы, после которых у вас бывают вздутие, боль, тяжесть, изжога, нарушение стула или сыпь. Куратор учтёт это при подборе протокола и подскажет, чем их заменить.</p>
+    <p class="small muted">Отмечайте только то, что вы действительно плохо переносите, — не просто не любите. Если таких продуктов нет, нажмите «Дальше».</p>
+    ${EXCL_GROUPS.map((g, gi) => `<h3 class="exg">${g}</h3><div class="dg">${EXCLUDABLE.filter(p => p.g === gi).map(p => opt(p.name, QD.excluded.includes(p.code), 'excl', p.code)).join('')}</div>`).join('')}`;
   } else if (n === 14) {
     body = `<h2><span>Что ещё нам важно о вас знать?</span></h2>
     ${fld('Расскажите о том, чего не было в вопросах, но что стоит учесть при подборе программы: особенности питания, режима, самочувствия, недавние обследования или операции', 'free', {area:1, max:1500, ph:'Пишите своими словами — как удобно', hint:'Необязательно. Максимум 1500 символов'})}`;
@@ -4929,7 +4985,7 @@ function summaryHtml(){
   QBLOCKS.forEach(bl => { const it = bl.items.filter(i => QD.ans[i.id]); if (!it.length) return;
     const rr = it.map(i => r(i.t, QD.ans[i.id].label)); if (bl.n === 7 && QD.b7prod) rr.push(r('Продукты-триггеры', QD.b7prod)); sec(STEP_NAMES[bl.n-1], rr); });
   sec('Лекарства и цели', [QD.meds && r('Лекарства', QD.meds), QD.goals && r('Цели', QD.goals)].filter(Boolean));
-  sec('Убрать из меню', [QD.excluded.length && r('Продукты', QD.excluded.map(c => EXCLUDABLE.find(p => p.code === c).name).join(', ')), QD.productsOther && r('Другое', QD.productsOther)].filter(Boolean));
+  sec('Не переношу', [QD.excluded.length && r('Продукты', QD.excluded.map(c => (EXCLUDABLE.find(p => p.code === c) || { name:c }).name).join(', ')), QD.productsOther && r('Другое', QD.productsOther)].filter(Boolean));
   sec('Что ещё важно знать', [QD.free && r('Ваш комментарий', QD.free)].filter(Boolean));
   sec('Фото языка', [r('Фото', QD.tongue ? 'прикреплено' : 'загружу утром')]);
   if (isInd()) sec('Опросник', [r('Файл', QD.form ? QD.form.name : 'прикреплю позже')]);
@@ -5992,7 +6048,7 @@ const Adm = (() => {
         <dt>Доступ</dt><dd>${accessTxt(c)}</dd>
         <dt>Данные</dt><dd>${[p.age && p.age + ' лет', p.height && p.weight && p.height + ' см / ' + p.weight + ' кг', p.bmi && 'ИМТ ' + p.bmi].filter(Boolean).join(' · ') || '—'}</dd>
         <dt>Цели</dt><dd>${esc(a.goals || '—')}</dd>
-        <dt>Убрать из меню</dt><dd>${esc([].concat(a.excluded || [], a.productsOther ? [a.productsOther] : []).join(', ') || 'ничего')}</dd>
+        <dt>Не переносит</dt><dd>${esc([].concat(a.excluded || [], a.productsOther ? [a.productsOther] : []).join(', ') || 'ничего')}</dd>
         <dt>Особенности</dt><dd>${(a.flags || []).map(f => FLAGNAME[f] || f).join(', ') || 'нет'}</dd></dl></div>
       <div class="panel"><h2><span>Жалобы</span></h2>
         <div class="legend"><span>анкета</span>${last ? `<span class="b">замер ${fmt(last.at, {day:'numeric', month:'short'})}</span>` : ''}</div>
@@ -6171,7 +6227,7 @@ const Adm = (() => {
       const rr = it.map(i => r(i.t, lab(i.id))); if (bl.n === 7 && a.products) rr.push(r('Продукты-триггеры', a.products));
       rows.push(`<div class="as"><div class="ah">${STEP_NAMES[bl.n-1]}</div>${rr.join('')}</div>`); });
     rows.push(`<div class="as"><div class="ah">Лекарства и цели</div>${r('Лекарства', a.meds || 'нет')}${r('Цели', a.goals || '—')}</div>`);
-    rows.push(`<div class="as"><div class="ah">Убрать из меню</div>${r('Продукты', (a.excluded || []).join(', ') || '—')}${a.productsOther ? r('Другое', a.productsOther) : ''}</div>`);
+    rows.push(`<div class="as"><div class="ah">Не переносит</div>${r('Продукты', (a.excluded || []).join(', ') || '—')}${a.productsOther ? r('Другое', a.productsOther) : ''}</div>`);
     rows.push(`<div class="as"><div class="ah">Что ещё важно знать</div>${r('Свободное поле', a.free || '—')}${r('Фото языка', a.photo ? 'загружено' : 'нет')}${a.consent ? r('Согласие на обработку данных', 'дано ' + fmt(a.consent.at)) : ''}</div>`);
     return fold('ans', 'Ответы анкеты', c.filledAt ? 'заполнена ' + fmt(c.filledAt) : '', `<div class="ans">${rows.join('')}</div>`);
   }
