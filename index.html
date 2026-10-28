@@ -472,7 +472,7 @@ body.mdl-on{overflow:hidden}
   .hero{grid-template-columns:1fr;padding:20px 18px 18px}
   .hero .hr-a{padding-bottom:0}
   .hero h1{font-size:23px;max-width:62%}.hero .hr-s{max-width:60%;font-size:14px}
-  .hr-ph{position:absolute;right:-10px;top:8px;width:44%;max-width:190px;z-index:0}
+  .hr-ph{position:absolute;right:-6px;top:58px;width:42%;max-width:180px;z-index:0}
   .hr-ph img{-webkit-mask-image:linear-gradient(#000 62%,transparent 92%);mask-image:linear-gradient(#000 62%,transparent 92%)}
   .hero .hr-s{max-width:56%}
   .hr-p{position:relative;z-index:1}
@@ -4639,7 +4639,6 @@ function result(){
   ${S.user.recs ? `<div class="recs"><small>Рекомендации куратора</small><p style="margin:0">${esc(S.user.recs)}</p></div>` : ''}
   <h2><span>Ваша программа</span></h2>
   <div class="list">${CATS.map(c => `<div class="li" style="cursor:default"><span style="color:var(--e)">${I[c.ic].replace('<svg','<svg width="22" height="22"')}</span><div class="tx"><b>${c.t}</b></div><span class="chip">${c.k === 'menu' ? 'конструктор' : cnt(c.k) + ' ' + plural(cnt(c.k), c.one)}</span></div>`).join('')}</div>
-  <div class="out">Всё остальное из программы у вас скрыто — чтобы не отвлекало.</div>
   <button class="btn full" data-a="toDash">Открыть мою программу</button>`;
 }
 
