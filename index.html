@@ -359,6 +359,7 @@ body.mdl-on{overflow:hidden}
 @keyframes mdlf{from{opacity:0}}@keyframes mdlu{from{opacity:0;transform:translate(-50%,-46%)}}
 @media (max-width:520px){.tabs[role=tablist]{display:grid;grid-template-columns:1fr 1fr;gap:8px;overflow:visible}.tabs[role=tablist] button{width:100%;justify-content:center;text-align:center;white-space:nowrap;padding-left:8px;padding-right:8px}}
 .exg{font-size:15px;margin:18px 0 8px;color:var(--grey);font-weight:700}
+.tile.lock{opacity:.6;cursor:default}.tile.lock .cnt{color:var(--grey)}
 
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
@@ -4218,6 +4219,11 @@ function SCHED(set){ const d = CFG.SCHEDULE, s = ((set !== undefined ? set : S.s
   const pick = (a, b) => { const o = Object.assign({}, a); for (const k in (b || {})) if (b[k]) o[k] = b[k]; return o; };
   return { weeks: pick(d.weeks, s.weeks), menu: pick(d.menu, s.menu), final: s.final || d.final, finalUrl: s.finalUrl || d.finalUrl, raffle: pick(d.raffle, s.raffle) }; }
 const openAt = (w, set) => new Date(SCHED(set).weeks[w]).getTime() || 0;
+// Разделы «Специи» и «Фитосоставы» открываются вместе с неделей 1 — после вводного эфира
+const SP_KEYS = ['spices', 'phyto'];
+const catOpenAt = () => openAt(1);
+const catOpen = k => !SP_KEYS.includes(k) || U.preview || CFG.OPEN_ALL_WEEKS || isStaff(S.user) || !catOpenAt() || Date.now() >= catOpenAt();
+const catLockHtml = c => `<h1 style="margin-top:22px">${c.t}</h1><div class="card"><p style="margin:0">Раздел откроется ${whenTxt(catOpenAt())} по Москве — после вводного эфира. Здесь будут ${c.k === 'spices' ? 'специи' : 'фитосоставы'} вашего протокола.</p></div>`;
 const menuWeekOf = l => { const m = /меню и сборник рецептов на (\d)/i.exec(l.t); return m ? +m[1] : 0; };
 const lessonOpenAt = (l, set) => { const mw = menuWeekOf(l), m = mw && SCHED(set).menu[mw]; return m ? new Date(m).getTime() : openAt(l.w, set); };
 const whenTxt = ms => { const d = new Date(ms), m = new Date(ms + 3 * 36e5); const hm = String(m.getUTCHours()).padStart(2, '0') + ':' + String(m.getUTCMinutes()).padStart(2, '0');
@@ -4651,6 +4657,7 @@ function dash(){
   const tiles = CATS.map(c => {
     if (c.k === 'menu') return `<button class="tile" data-a="menu"><span class="ic">${I.plate}</span><b>${c.t}</b><span class="cnt">конструктор под ваш протокол</span></button>`;
     const n = r[c.k].length, p = progress(c.k);
+    if (!catOpen(c.k)) return `<div class="tile lock" aria-disabled="true"><span class="ic">${I[c.ic]}</span><b>${c.t}</b><span class="cnt">${I.lock.replace('<svg','<svg width="13" height="13" style="vertical-align:-2px"')} откроется ${whenTxt(catOpenAt())}</span></div>`;
     return `<button class="tile" data-a="cat" data-k="${c.k}"><span class="ic">${I[c.ic]}</span><b>${c.t}</b>
       <span class="cnt">${n} ${plural(n, c.one)}${p.d ? ` · готово ${p.d}` : ''}</span>
       <span class="pb"><i style="width:${p.p}%"></i></span></button>`;
@@ -4676,7 +4683,9 @@ function dash(){
   <div class="duo">${preStart() ? '' : !ts.n ? `<button class="today" data-a="tracker"><span class="h"><span><small>Трекер</small><br><b>${dn < trkSpan(2).a ? 'Трекер начнётся ' + fmt(dateOf(trkSpan(2).a), {day:'numeric', month:'long'}) : 'Трекер программы'}</b></span></span></button>` : `<button class="today" data-a="tracker"><span class="h"><span><small>Трекер на сегодня · ${fmt(dateOf(dn), {day:'numeric', month:'long', weekday:'short'})}</small><br><b>${ts.d === ts.n ? 'Все действия выполнены' : 'Отметьте, что уже сделали'}</b></span><span class="n">${ts.d}/${ts.n}</span></span><span class="pb"><i style="width:${ts.p}%"></i></span></button>`}
   ${newReplies().map(m => `<button class="next" data-a="open" data-id="${m.lessonId}"><span class="ic">${I.chat}</span><span><small>Куратор ответил на ваш вопрос</small><b>${esc(byId(m.lessonId) ? byId(m.lessonId).t : m.lesson)}</b></span></button>`).join('')}
   ${nextL ? `<button class="next" data-a="open" data-id="${nextL.id}"><span class="ic">${I.play}</span><span><small>Следующий урок</small><b>${esc(nextL.t)}</b></span></button>`
-         : cont ? '' : `<div class="out">Все открытые уроки пройдены. Сделайте замер самочувствия в разделе «Прогресс».</div>`}</div>
+         : cont ? '' : (() => { const up = r.lessons.map(byId).filter(l => l && !U.st.done[l.id] && !lessonOpen(l)).sort((a, b) => lessonOpenAt(a) - lessonOpenAt(b))[0];
+             if (up) return `<div class="next" style="cursor:default"><span class="ic">${I.lock}</span><span><small>${r.lessons.some(id => byId(id) && lessonOpen(byId(id))) ? 'Следующий урок откроется' : 'Первые уроки откроются'} ${whenTxt(lessonOpenAt(up))}</small><b>${esc(up.t)}</b></span></div>`;
+             return r.lessons.some(id => !U.st.done[id]) ? '' : `<div class="out">Все уроки программы пройдены. Сделайте замер самочувствия в разделе «Прогресс».</div>`; })()}</div>
   ${(() => { const u = S.set && S.set.chats && S.set.chats[TYPE()]; return u ? `<a class="next" href="${esc(u)}" target="_blank" rel="noopener" data-a="groupChat" style="text-decoration:none;color:inherit;border-color:var(--e)"><span class="ic" style="background:var(--e)">${I.chs}</span><span><small style="color:var(--e)">Общий чат программы</small><b>Чат протокола «${esc(PNAME[TYPE()])}»</b></span><span class="ch" style="margin-left:auto;color:var(--grey)">${I.chev}</span></a>` : ''; })()}
   <div class="c2-mob">${calWeek()}</div>
   <div class="tiles">${tiles}
@@ -4714,6 +4723,7 @@ function li(x){
 function liLock(x){ return `<div class="li lock" aria-disabled="true"><span class="st">${I.lock}</span><span class="tx"><b>${esc(x.t)}</b><span>${esc(kindOf(x))}</span></span></div>`; }
 function catList(){
   const k = V.k, c = CATS.find(x => x.k === k), r = RES();
+  if (!catOpen(k)) return catLockHtml(c);
   const items = r[k].map(byId);
   let html;
   if (k === 'lessons') {
@@ -4762,6 +4772,7 @@ function lessonNav(x){
 const vpTxt = id => { const v = (U.st.vp || {})[id]; return v && !v[3] && v[0] > 15 ? 'Продолжить с ' + mmss(v[0]) : 'Смотреть урок'; };
 function item(){
   const x = byId(V.id), k = catOf(x.id), d = U.st.done[x.id];
+  if (!catOpen(k)) return catLockHtml(CATS.find(c => c.k === k));
   const doneLbl = { lessons:['Отметить как просмотренный','Урок просмотрен'], practices:['Делаю эту практику','Практика в работе'],
     spices:['Добавил(а) в рацион','В рационе'], phyto:['Обсудил(а) с врачом, принимаю','Принимаю'] }[k];
   const btn = `<button class="btn full ${d ? 'ghost' : ''}" data-a="toggle" data-id="${x.id}">${d ? I.check.replace('<svg','<svg width="18" height="18"') + ' ' + doneLbl[1] : doneLbl[0]}</button>`;
@@ -5210,8 +5221,8 @@ function navHtml(){
       ${navSec('lessons', 'play', 'Уроки', wk, { cnt: progress('lessons').d + '/' + r.lessons.length })}
       ${navSec('practices', 'leaf', 'Практики', r.practices.map(byId).map(x => navItem(x, 'practices')).join(''), { cnt: r.practices.length })}
       ${navLink('menu', 'plate', 'Меню и рецепты', { cur: V.s === 'menu', lock: menuLock })}
-      ${navSec('spices', 'spice', 'Специи', r.spices.map(byId).map(x => navItem(x, 'spices')).join(''), { cnt: r.spices.length })}
-      ${navSec('phyto', 'herb', 'Фитосоставы', r.phyto.map(byId).map(x => navItem(x, 'phyto')).join(''), { cnt: r.phyto.length })}
+      ${navSec('spices', 'spice', 'Специи', catOpen('spices') ? r.spices.map(byId).map(x => navItem(x, 'spices')).join('') : `<div class="sn-note">Откроется ${whenTxt(catOpenAt())}</div>`, { cnt: catOpen('spices') ? r.spices.length : null })}
+      ${navSec('phyto', 'herb', 'Фитосоставы', catOpen('phyto') ? r.phyto.map(byId).map(x => navItem(x, 'phyto')).join('') : `<div class="sn-note">Откроется ${whenTxt(catOpenAt())}</div>`, { cnt: catOpen('phyto') ? r.phyto.length : null })}
       ${navLink('tracker', 'cl', 'Трекер', { cur: V.s === 'tracker' })}
       ${navLink('progress', 'chart', 'Прогресс', { cur: V.s === 'progress' })}
       ${chatVisible() || gchat ? `<div class="sn-gl">Чаты</div>` : ''}
@@ -5507,7 +5518,7 @@ const normQ = t => String(t || '').toLowerCase().replace(/ё/g, 'е');
 function searchRes(){
   const q = normQ(POP.q).trim(); if (q.length < 2) return '<p class="muted small" style="margin:10px 4px">Введите хотя бы две буквы названия.</p>';
   const r = RES(), words = q.split(/\s+/), hit = x => words.every(w => normQ(x.t).includes(w));
-  const groups = [['lessons', 'Уроки'], ['practices', 'Практики'], ['spices', 'Специи'], ['phyto', 'Фитосоставы']].map(([k, t]) => [t, r[k].map(byId).filter(hit), k]).filter(g => g[1].length);
+  const groups = [['lessons', 'Уроки'], ['practices', 'Практики'], ['spices', 'Специи'], ['phyto', 'Фитосоставы']].filter(g => catOpen(g[0])).map(([k, t]) => [t, r[k].map(byId).filter(hit), k]).filter(g => g[1].length);
   if (!groups.length) return `<p class="muted small" style="margin:10px 4px">Ничего не нашлось по запросу «${esc(POP.q)}».</p>`;
   const mark = t => { let h = esc(t); words.forEach(w => { const i = normQ(h).indexOf(w); if (i > -1) h = h.slice(0, i) + '<mark>' + h.slice(i, i + w.length) + '</mark>' + h.slice(i + w.length); }); return h; };
   return groups.map(([t, list, k]) => `<div class="sr-g">${t} · ${list.length}</div>` + list.slice(0, 30).map(x => {
