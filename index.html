@@ -999,6 +999,80 @@ details.indc>:last-child{margin-bottom:18px}
   .ltext .lt-grid{max-width:none;grid-template-columns:repeat(auto-fill,minmax(120px,150px))}
   .ltext h3,.ltext .lt-tbl,.ltext .lt-vs,.ltext .lt-grid,.ltext .lt-note,.ltext .lt-ins,.ltext .lt-warn{clear:both}
 }
+
+/* ══ Мягкий стиль 2026 для всех экранов ученицы ══ */
+:root{--soft-g:#F3F8F5;--soft-bd:#DDE9E1;--ok:#5E9B58;--sh-s:0 2px 10px rgba(23,63,53,.045)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--card-bd:#2A4B3F;--pink-bd:#5A3550;--pink-bg:#2E1F2A;--soft-g:#1B3A30;--soft-bd:#2F5446}}
+:root[data-theme="dark"]{--card-bd:#2A4B3F;--pink-bd:#5A3550;--pink-bg:#2E1F2A;--soft-g:#1B3A30;--soft-bd:#2F5446}
+#U h1{letter-spacing:-.01em}
+/* заголовки разделов — без «маркера» */
+#U h2 span{background:none;padding:0;border-radius:0;color:var(--e)}
+#U h2{font-size:19px;margin-top:26px}
+/* списки уроков, практик, специй */
+#U .li{border:1px solid var(--card-bd);border-radius:18px;box-shadow:var(--sh-s);padding:14px 16px;background:var(--surface);transition:box-shadow .15s,border-color .15s}
+#U .li:hover{border-color:var(--soft-bd);box-shadow:var(--card-sh)}
+#U .li .st{border:1.5px solid #A9D19A;width:26px;height:26px}
+#U .li.done .st{background:var(--ok);border-color:var(--ok)}
+#U .li.lock .st{border-color:#C9D6CF}
+#U .li .ch{color:#9DB3A8}
+/* «Зачем», важное, противопоказания */
+#U .why{background:var(--pink-bg);border:1px solid var(--pink-bd);border-radius:18px;padding:14px 18px;font-size:14.5px;line-height:1.55}
+#U .why b{color:var(--mag)}
+#U .card.alt{background:var(--pink-bg);border:1px solid var(--pink-bd);box-shadow:none}
+#U .mark{background:none;color:var(--mag);padding:0;border-radius:0}
+#U ol.stp li:before{background:var(--soft-g);color:var(--e);border:none}
+/* кнопки */
+#U .btn.ghost{background:var(--surface);border:1px solid var(--card-bd);box-shadow:var(--sh-s);color:var(--e)}
+#U .btn.ghost:hover{background:var(--soft-g);border-color:var(--soft-bd)}
+#U .bmbtn{border:1px solid var(--card-bd);box-shadow:var(--sh-s);padding:6px 14px}
+#U .bmbtn.on{border-color:var(--pink-bd);background:var(--pink-bg)}
+#U .chip{border:1px solid var(--soft-bd);background:var(--soft-g);color:var(--e);font-weight:600}
+/* поля ввода */
+#U .inp{border:1px solid var(--soft-bd);border-radius:14px;background:var(--surface);padding:13px 16px}
+#U .inp:focus{border-color:#A9D19A;box-shadow:0 0 0 4px rgba(94,155,88,.12)}
+/* варианты ответа, трекер */
+#U .opt{border:1px solid var(--card-bd);border-radius:16px;background:var(--surface);box-shadow:var(--sh-s)}
+#U .opt:hover{border-color:var(--soft-bd)}
+#U .opt.on{border-color:#CFE5D6;background:var(--soft-g)}
+#U .opt .box{border:1.5px solid #A9D19A;border-radius:7px}
+#U .opt.on .box{background:var(--ok);border-color:var(--ok)}
+#U .tabs button{border:1px solid var(--card-bd);background:var(--surface);box-shadow:var(--sh-s);font-weight:600;color:var(--e)}
+#U .tabs button.on{background:#173F35;border-color:#173F35;color:#fff}
+#U .days button{border:1px solid var(--card-bd);background:var(--surface);border-radius:16px;box-shadow:var(--sh-s)}
+#U .days button.on{background:#173F35;border-color:#173F35}
+#U .days button.td:not(.on){border-color:var(--pink-bd);background:var(--pink-bg)}
+#U .days button i em{background:var(--ok)}
+#U .gridwrap{border:1px solid var(--card-bd);border-radius:18px;box-shadow:var(--sh-s)}
+#U .gridwrap th{background:var(--soft-g);color:var(--e)}
+/* прогресс */
+#U .stat>div{border:1px solid var(--card-bd);border-radius:20px;box-shadow:var(--card-sh);padding:16px 18px}
+#U .stat b{color:#173F35}
+/* навигация между уроками */
+#U .lnav-b{border:1px solid var(--card-bd);border-radius:18px;box-shadow:var(--sh-s)}
+#U .lnav-b:hover{border-color:var(--soft-bd);background:var(--soft-g)}
+#U .lnav-b.next{background:var(--surface);border-color:var(--card-bd);color:var(--ink)}
+#U .lnav-b.next:hover{background:var(--soft-g)}
+#U .lnav-b.next small{color:var(--mag)}
+#U .lnav-b.next .ln-ar{background:#173F35;color:#fff}
+/* чат */
+#U .bub{border-radius:18px}
+#U .bub.me{background:#E6F2EA;color:var(--ink)}
+#U .bub:not(.me){background:var(--surface);border:1px solid var(--card-bd);box-shadow:var(--sh-s)}
+/* вход: светлая шапка */
+#U .top{background:linear-gradient(90deg,rgba(250,252,251,.97) 0%,rgba(250,252,251,.88) 55%,rgba(250,252,251,.55) 100%),url(materials/ui/hero_bg.webp) right center/cover no-repeat,#F4F8F5;color:#173F35;border-radius:24px;box-shadow:0 10px 30px rgba(23,63,53,.06)}
+#U .top .sub{color:var(--mag)}
+#U .top h1{color:#173F35}
+#U .top p{color:#35574B}
+#U .top .pb{background:#E4EEE8}#U .top .pb i{background:linear-gradient(90deg,#4E8E6A,#86C29C)}
+#U .testnote{border:1px dashed var(--pink-bd);background:var(--pink-bg);border-radius:16px}
+#U .errbox{border-radius:16px}
+#U .pb{background:#E4EEE8;border-radius:999px}#U .pb i{background:linear-gradient(90deg,#4E8E6A,#86C29C);border-radius:999px}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) #U .top{background-image:linear-gradient(rgba(14,33,27,.82),rgba(14,33,27,.82)),url(materials/ui/hero_bg.webp);color:#fff}
+  :root:not([data-theme="light"]) #U .top h1,:root:not([data-theme="light"]) #U .top p{color:#fff}
+  :root:not([data-theme="light"]) #U .bub.me{background:#24493C;color:#fff}
+  :root:not([data-theme="light"]) #U .stat b{color:var(--ink)}
+}
 </style>
 <style id="css-a">
 :root{
@@ -5008,7 +5082,7 @@ function item(){
       : textLesson ? '' : `<div class="video"><span class="pl"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 4.5l13 7.5-13 7.5z"/></svg></span><small>${x.d === 'Вебинар' ? 'Запись эфира появится здесь после трансляции' : 'Видео урока появится здесь, когда его добавят на платформу'}</small></div>`;
     const bm = U.st.saved && U.st.saved[x.id];
     return `<div class="meta" style="margin-top:22px"><span class="chip">${WEEKSHORT[x.w]}</span><span class="chip">${esc(kindOf(x))}</span>
-      ${U.preview ? '' : `<button class="bmbtn${bm ? ' on' : ''}" data-a="bm" data-id="${x.id}" aria-pressed="${!!bm}">${bm ? I.bmkf : I.bmk}${bm ? 'Сохранён' : 'Сохранить урок'}</button>`}</div>
+      <button class="bmbtn${bm ? ' on' : ''}" data-a="bm" data-id="${x.id}" aria-pressed="${!!bm}">${bm ? I.bmkf : I.bmk}${bm ? 'Сохранён' : 'Сохранить урок'}</button></div>
     <h1>${esc(x.t)}</h1>${player}
     ${aboutHtml(ab)}
     ${LTEXT[x.id] ? `<div class="ltext">${typeof LTEXT[x.id] === 'function' ? LTEXT[x.id]() : LTEXT[x.id]}</div>` : ''}
