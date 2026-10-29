@@ -969,7 +969,23 @@ details.indc>:last-child{margin-bottom:18px}
 
 /* ── выравнивание и компактные картинки в уроках ── */
 @media (min-width:1100px){
-  body.wide.navpin.calrail .bar .in{padding-left:calc(312px + max(0px,(min(100% - 280px,1760px) - 1104px)/2));padding-right:calc(32px + max(0px,(min(100% - 280px,1760px) - 1104px)/2))}
+  /* контент строго по центру между левой панелью и правой лентой календаря */
+  body.wide.navpin.calrail .wrap,body.wide.navrail.calrail .wrap{margin-right:64px;max-width:none}
+  body.wide.navpin.calrail .bar .in{max-width:none;padding-left:calc(312px + max(0px,(100% - 1448px)/2));padding-right:calc(96px + max(0px,(100% - 1448px)/2))}
+  body.wide.navrail.calrail .bar .in{max-width:none;padding-left:32px;padding-right:calc(96px + max(0px,(100% - 1232px)/2))}
+}
+@media (min-width:1100px){
+  /* широкие экраны без ленты календаря (меню): центрируем в свободной области */
+  body.wide.navpin:not(.calrail) .wrap{margin-left:calc(280px + max(0px,(100% - 2040px)/2));margin-right:0}
+  body.wide.navrail:not(.calrail) .wrap{margin-left:calc(64px + max(0px,(100% - 1824px)/2));margin-right:0}
+  body.wide.navpin:not(.calrail) .bar .in{max-width:none;padding-left:calc(312px + max(0px,(100% - 2040px)/2));padding-right:calc(32px + max(0px,(100% - 2040px)/2))}
+  body.wide.navrail:not(.calrail) .bar .in{max-width:none;padding-left:32px;padding-right:calc(32px + max(0px,(100% - 1824px)/2))}
+}
+@media (min-width:1400px){
+  body.wide.navrail .bar .in{position:relative}
+  body.wide.navrail.calrail .bar .in{padding-left:calc(96px + max(0px,(100% - 1232px)/2))}
+  body.wide.navrail:not(.calrail) .bar .in{padding-left:calc(96px + max(0px,(100% - 1824px)/2))}
+  body.wide.navrail .bar .brand{position:absolute;left:28px;top:50%;transform:translateY(-50%)}
 }
 .ltext{max-width:none}
 .ltext img{max-width:min(100%,520px)}
