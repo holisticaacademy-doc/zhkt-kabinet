@@ -1384,6 +1384,8 @@ button.fchip:hover{border-color:var(--mint-bd)}
 .cattach{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:8px}
 .cattach label.btn{cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;padding:0;margin:-1px}
+.fr{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-bottom:1px solid var(--line)}
+.fr:last-of-type{border-bottom:0}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -6298,7 +6300,7 @@ function saveDraftSoon(){ clearTimeout(draftT); draftT = setTimeout(saveDraft, 4
 
 // ═══ АДМИНКА ════════════════════════════════════════════════════
 const EVN = { login:'Вход в кабинет', password_set:'Задан пароль', password_reset:'Сброшен пароль', added_from_getcourse:'Карточка создана из выгрузки GetCourse',
-  quiz_submit:'Анкета отправлена', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён', extra_protocol:'Доп. протоколы', protocol_switch:'Переключила протокол',
+  quiz_submit:'Анкета отправлена', form:'Прикреплён опросник', support:'Открыла техподдержку', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён', extra_protocol:'Доп. протоколы', protocol_switch:'Переключила протокол',
   quiz_reset:'Анкета открыта заново', progress_reset:'Прогресс сброшен', open:'Открыт урок', done:'Отмечено выполненным',
   video:'Открыто видео урока', download:'Открыт конспект', menu:'Открыт конструктор меню', webinar:'Перешла на вводный вебинар', feedback:'Заполнена оценка обучения', menu_day:'Сохранён день в конструкторе меню', menu_day_del:'Удалён день из конструктора меню', check:'Замер самочувствия',
   recs:'Обновлены рекомендации', note:'Обновлена заметка куратора', chat:'Сообщение в чат', reply_chat:'Ответ куратора в чате',
@@ -6579,6 +6581,7 @@ const Adm = (() => {
     return head + `
     ${checkPanel(c)}
     ${extraPanel(c)}
+    ${filesPanel(c)}
     ${c.red.length ? `<div class="alert"><div><b>Красный флаг:</b> ${esc(c.red.join(', '))}.${a.redAck ? ' Ученица отметила, что обследована и врач не против программы.' : ''} Рекомендуется связаться с ученицей до старта.</div></div>` : ''}
     <div class="grid g3">
       <div class="panel"><h2><span>Профиль</span></h2><dl class="kv">
@@ -6729,6 +6732,25 @@ const Adm = (() => {
     if (ai.at) h += `<p class="small muted" style="margin:8px 0 0">Проверено ${fmtDT(ai.at)} · <button class="btn lnk" data-a="aiRun" style="padding:0">перепроверить</button></p>`;
     return h;
   }
+  // Файлы клиентки в одном месте: опросник, фото языка и всё, что прислали в чат
+  function filesPanel(c){
+    if (!c.assigned) return '';
+    const f = c.quiz && c.quiz.form, ind = c.tariff === TARIFF_IND;
+    const cf = chatOf(c).filter(m => (m.files || []).length).slice().reverse();
+    const rows = cf.map(m => `<div class="fr"><span class="small muted">${fmtDT(m.at)} · ${m.from === 'cu' ? esc(m.who || 'куратор') : 'ученица'}</span>${fileChips(m.files, c.email)}</div>`).join('');
+    return `<div class="panel" style="margin-bottom:16px"><h2><span>Файлы клиентки</span></h2>
+      <div class="grid g2"><div>
+        <p class="small muted" style="margin:0 0 6px">Фото языка</p>
+        ${c.photo ? `<div id="photo-box"><div class="photo-ph"><span>Загружаем фото…</span></div></div>` : `<p class="small" style="margin:0">Фото не загружено.</p>`}
+      </div><div>
+        <p class="small muted" style="margin:0 0 6px">Опросник индивидуального тарифа</p>
+        ${f ? `<div class="formok">${I.check}<span><b>${esc(f.name || 'файл')}</b><small>Google Диск → «ЖКТ — опросники (Индивидуальный)»</small></span><button class="btn sm ghost" data-a="admForm" style="margin-left:auto">Скачать</button></div>`
+          : `<p class="small" style="margin:0">${ind ? 'Опросник ещё не прикреплён.' : 'Не нужен: тариф «Общий».'}</p>`}
+        <p class="small muted" style="margin:16px 0 6px">Файлы из чата</p>
+        ${rows || `<p class="small" style="margin:0">${ind ? 'В чате пока нет файлов.' : 'Файлы в чате — только на индивидуальном тарифе.'}</p>`}
+        ${rows ? '<p class="small muted" style="margin:6px 0 0">Google Диск → «ЖКТ — файлы чата (Индивидуальный)» → папка с почтой клиентки</p>' : ''}
+      </div></div></div>`;
+  }
   // Дополнительные протоколы: куратор открывает ученице материалы ещё одного протокола целиком
   function extraPanel(c){
     if (!c.assigned) return '';
@@ -6742,7 +6764,7 @@ const Adm = (() => {
       <div><label class="small muted" for="x-t">Протокол</label><select id="x-t" class="sel">${free.map(k => `<option value="${k}">${PNAME[k]}</option>`).join('')}</select></div>
       <div><label class="small muted" for="x-u">Открыт до (необязательно)</label><input id="x-u" class="inp" type="date" min="${tomorrow}"></div>
       <div class="xf-n"><label class="small muted" for="x-n">Комментарий для ученицы (необязательно)</label><input id="x-n" class="inp" maxlength="300" placeholder="Например: добавляем противовоспалительные меры на 2 недели"></div>
-      <div class="xf-b"><button class="btn sm" data-a="xAdd">Открыть протокол</button></div></div>` : '';
+      <div class="xf-b"><button class="btn sm" data-a="xAdd">Открыть дополнительный протокол</button></div></div>` : '';
     return `<div class="panel" style="margin-bottom:16px"><h2><span>Дополнительные протоколы</span></h2>
       <p class="small muted" style="margin:0 0 10px">Основной протокол — ${esc(PNAME[c.type])}. Дополнительный открывает ученице весь протокол: уроки, практики, специи, фитосоставы, меню и трекер. В кабинете она переключается между протоколами, отметки и трекер у каждого свои.</p>
       ${rows || '<p class="small" style="margin:0 0 10px">Дополнительных протоколов нет.</p>'}${form}</div>`;
