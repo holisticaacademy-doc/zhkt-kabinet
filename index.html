@@ -1552,6 +1552,14 @@ body.fv-on{overflow:hidden}
 .frow-t small{color:var(--grey);font-size:12px}
 .frow-b{display:flex;gap:6px;flex-wrap:wrap}
 .formok svg{width:22px;height:22px;flex:none}
+/* время ответа */
+.rt-ks{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:0 0 16px}
+.rt-k{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.rt-k b{font-size:24px;line-height:1.15;color:var(--e)}
+.rt-k span{font-size:12.5px;color:var(--grey)}
+.rt-k.warn{border-color:var(--mag);background:var(--lav)}
+.rt-k.warn b{color:var(--mag)}
+.nav .n.warn{background:var(--mag);color:#fff}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -4422,7 +4430,7 @@ const Demo = (() => {
   const PHOTO = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360"><rect width="480" height="360" fill="#EAF5EE"/><ellipse cx="240" cy="200" rx="120" ry="130" fill="#E8A0A8"/><path d="M240 90v200" stroke="#C97C86" stroke-width="5"/><text x="240" y="40" font-family="Montserrat,Arial" font-size="20" font-weight="700" fill="#1E4D3E" text-anchor="middle">Фото языка · демо</text></svg>');
   function seed() {
     const db = { students: [], quizzes: {}, photos: {}, events: [], sessions: {}, paid: [], lessons: {}, messages: [], ai: {}, ext: {},
-      settings: { start: CFG.START_DATE || '', programDays: 49, accessDays: 90, accessEnd: '2027-03-21T00:00:00+03:00', extDays: 60, extendUrl: 'https://kurs.holistica.academy/',
+      settings: { start: CFG.START_DATE || '', programDays: 49, accessDays: 90, accessEnd: '2027-03-21T00:00:00+03:00', extDays: 60, extendUrl: 'https://kurs.holistica.academy/', workHours:'09:00-21:00', slaH:2,
         chats: { slow:'https://t.me/', infl:'https://t.me/', sens:'https://t.me/', mix:'https://t.me/' } } };
     const msg = (email, lessonId, from, text, at) => db.messages.push({ at, email, lessonId:lessonId || '', lesson: lessonId ? byId(lessonId).t : '', from, who: from === 'cu' ? 'Куратор (демо)' : '', text });
     const add = (email, name, role='ученик') => { const s={'Email':email,'Имя':name,'Роль':role,'Статус':STS.none}; db.students.push(s); return s; };
@@ -4441,7 +4449,7 @@ const Demo = (() => {
     const CUR = { natalia:'admin@holistica.test', vera:'admin@holistica.test', svetlana:'admin@holistica.test', daria:'curator@holistica.test', polina:'curator@holistica.test' };
     F.forEach(([id,name,stage,type,photo,dIn,lastAgo],i)=>{
       const email=id+'@holistica.test';
-      db.paid.push({email,name});
+      db.paid.push({email,name,tariff: id==='olga' ? TARIFF_IND : 'Общий'});
       if(stage==='paid') return;
       const st=add(email,name); st._pw='seeded'; st['Тариф'] = (id==='vera'||id==='irina') ? TARIFF_IND : 'Общий'; st['Закреплён за'] = CUR[id] || '';
       const first=ago((dIn||2)+3, 9); Object.assign(st,{'Первый вход':first,'Последний вход':ago(lastAgo!=null?lastAgo:0, 19)});
@@ -4517,6 +4525,11 @@ const Demo = (() => {
     if (r.from && Date.now() < Date.parse(r.from)) throw new Error('Приём работ ещё не начался'); const ex = (load().raffle||{})[st['Email']];
     if (r.to && Date.now() > Date.parse(r.to) + 60000 && !(ex && ex.status === RZ_ST.fix && (!r.at || Date.now() < Date.parse(r.at)))) throw new Error('Приём работ завершён'); };
   // чаты протоколов: кто куда допущен, как подписаны участницы
+  // индивидуальный тариф → самый свободный куратор
+  function demoAutoCur(st){ if(st['Тариф']!==TARIFF_IND || isStaff({role:st['Роль']}) || st['Закреплён за']) return '';
+    const sts=load().students, staff=sts.filter(s=>isStaff({role:s['Роль']})); let curs=staff.filter(s=>/куратор/.test(s['Роль'])).map(s=>s['Email']); if(!curs.length) curs=staff.map(s=>s['Email']); if(!curs.length) return '';
+    const n=e=>sts.filter(s=>s['Тариф']===TARIFF_IND && !isStaff({role:s['Роль']}) && s['Закреплён за']===e).length; const cur=curs.sort((a,b)=>n(a)-n(b))[0];
+    st['Закреплён за']=cur; log(st['Email'],'curator','авто: индивидуальный тариф → '+cur); save(); return cur; }
   function gcDb(){ const db=load(); if(!db.gchat){ db.gchat={ver:{},pin:{},photos:{},list:{}}; gcSeed(db.gchat); } return db.gchat; }
   const gcList = t => { const g=gcDb(); return g.list[t]=g.list[t]||[]; };
   const gcBump = t => { const g=gcDb(); g.ver[t]=(g.ver[t]||0)+1; save(); };
@@ -4617,7 +4630,13 @@ const Demo = (() => {
       if(status==='fix'&&!cm) throw new Error('Напишите, что нужно доработать — ученица увидит комментарий'); Object.assign(r,{status:status==='ok'?RZ_ST.ok:status==='fix'?RZ_ST.fix:RZ_ST.wait,comment:cm,by:a['Имя']||a['Email'],rat:now()}); log(email,'raffle_review',r.status); return {}; },
     reviewAccept({token,email,ok}){ const a=adminAuth(token), f=(load().feedback||[]).find(x=>x.email===String(email).toLowerCase()&&x.key==='final'); if(!f) throw new Error('Итоговая анкета не найдена');
       Object.assign(f,{rv:ok?RV_OK:'',rvBy:ok?(a['Имя']||a['Email']):'',rvAt:ok?now():''}); log(email,'review_accept',ok?RV_OK:'сброшено'); return {}; },
-    setTariff({token,email,tariff}){ adminAuth(token); const st=find(email); st['Тариф']=tariff===TARIFF_IND?TARIFF_IND:'Общий'; log(email,'tariff',st['Тариф']); return {}; },
+    setTariff({token,email,tariff}){ adminAuth(token); const st=find(email); st['Тариф']=tariff===TARIFF_IND?TARIFF_IND:'Общий'; log(email,'tariff',st['Тариф']); return {cur: st['Тариф']===TARIFF_IND ? demoAutoCur(st) : ''}; },
+    syncPaid({token}){ adminAuth(token); const db=load(), res={added:0,upgraded:0,assigned:[]};
+      db.paid.forEach(p=>{ const st=find(p.email); if(!st){ db.students.push({'Email':p.email,'Имя':p.name,'Роль':'ученик','Статус':STS.none,'Тариф':p.tariff===TARIFF_IND?TARIFF_IND:'Общий'}); log(p.email,'added_from_getcourse',p.tariff||''); res.added++; }
+        else if(p.tariff===TARIFF_IND && st['Тариф']!==TARIFF_IND){ st['Тариф']=TARIFF_IND; log(p.email,'tariff',TARIFF_IND+' (из «Оплатили»)'); res.upgraded++; } });
+      db.students.forEach(st=>{ const c=demoAutoCur(st); if(c) res.assigned.push({email:st['Email'],cur:c}); }); return res; },
+    gchatStats({token}){ adminAuth(token); const g=gcDb(), out=[]; Object.keys(g.list).forEach(t=>{ const cu={}; g.list[t].forEach(m=>{ if(m.cu) cu[m.id]=1; });
+      g.list[t].forEach(m=>out.push({t,at:m.at,email:m.email,name:m.name,cu:!!m.cu,del:!!m.del,q:!m.cu&&(/\?/.test(m.text||'')||!!cu[m.re])})); }); return {list:out}; },
     setOverrides({token,email,ov,log:l}){ adminAuth(token); const st=find(email); st['Правки материалов']=JSON.stringify({add:ov.add||[],rm:ov.rm||[]}); if(l) log(email,'materials',l); return {}; },
     aiResolve({token,email,res}){ adminAuth(token); const st=find(email); st['Решение по ИИ']=res==='switch'?'сменить на ИИ':'оставить анкету'; log(email,'ai_resolved',st['Решение по ИИ']); return {}; },
     aiRun({token,email}){ adminAuth(token); const q=load().quizzes[email]; if(!q) throw new Error('Анкеты нет');
@@ -6738,7 +6757,7 @@ const Adm = (() => {
   function build(d){
     const map = {}, evs = {};
     (d.students || []).forEach(s => { map[String(s['Email']).trim().toLowerCase()] = { row:s }; });
-    (d.paid || []).forEach(p => { const e = String(p.email || '').trim().toLowerCase(); if (e && !map[e]) map[e] = { paidOnly:true, name:p.name }; });
+    (d.paid || []).forEach(p => { const e = String(p.email || '').trim().toLowerCase(); if (e && !map[e]) map[e] = { paidOnly:true, name:p.name, tariff:p.tariff }; });
     (d.events || []).forEach(x => { const e = String(x['Email']).toLowerCase(); (evs[e] = evs[e] || []).push(x); });
     const msgs = {}; (d.messages || []).forEach(m => { (msgs[m.email] = msgs[m.email] || []).push(m); });
     const fbs = {}; (d.feedback || []).forEach(f => { const e = String(f.email || '').toLowerCase(); (fbs[e] = fbs[e] || []).push(f); });
@@ -6755,7 +6774,7 @@ const Adm = (() => {
         confirmedAt:s['Дата подтверждения'] || '', filledAt:s['Дата анкеты'] || '', protoName:s['Протокол итог'] || '',
         red:filled ? (q.redFlags || []) : [], photo:!!(filled && q.photo), state:normState(s.state), start,
         day:assigned && start ? dayNum(new Date(start).getTime()) : 0, events:evs[e] || [], paidOnly:!!x.paidOnly,
-        tariff:s['Тариф'] || 'Общий', ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
+        tariff:s['Тариф'] || x.tariff || 'Общий', ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
         msgs:(msgs[e] || []).slice().sort((a, b) => tsOf(a) - tsOf(b)), fb:(fbs[e] || []).slice().sort((a, b) => FB_KEYS.indexOf(a.key) - FB_KEYS.indexOf(b.key)),
         cur:String(s['Закреплён за'] || '').trim().toLowerCase(), access:s.access || null, extra:assigned ? extraList(s['Доп. протоколы'], type) : [] };
     }).sort((a, b) => (b.lastAt || '').localeCompare(a.lastAt || ''));
@@ -6827,6 +6846,7 @@ const Adm = (() => {
     <button class="nav ${AV.s === 'comments' ? 'on' : ''}" data-a="nav" data-s="comments">${I.cm}Комментарии<span class="n">${openThreads().length}</span></button>
     <button class="nav ${AV.s === 'chats' ? 'on' : ''}" data-a="nav" data-s="chats">${I.chs}Чаты<span class="n">${chatClients().filter(unreadOf).length}</span></button>
     <button class="nav ${AV.s === 'gchats' ? 'on' : ''}" data-a="nav" data-s="gchats">${I.chs}Чаты протоколов</button>
+    <button class="nav ${AV.s === 'rtime' ? 'on' : ''}" data-a="nav" data-s="rtime">${I.over}Время ответа${(() => { rtLoad(); const n = rtOpenLate(); return n ? `<span class="n warn">${n}</span>` : ''; })()}</button>
     <button class="nav ${AV.s === 'raffle' ? 'on' : ''}" data-a="nav" data-s="raffle">${I.ck}Розыгрыш<span class="n">${rzList().filter(r => r.status === RZ_ST.wait).length}</span></button>
     <button class="nav ${AV.s === 'reviews' ? 'on' : ''}" data-a="nav" data-s="reviews">${I.star}Итоговые отзывы<span class="n">${rvList().filter(f => f.rv !== RV_OK).length}</span></button>
     <button class="nav ${AV.s === 'ratings' ? 'on' : ''}" data-a="nav" data-s="ratings">${I.star}Оценки<span class="n">${fbFlagged().length}</span></button>
@@ -6840,7 +6860,7 @@ const Adm = (() => {
   function render(keep){
     const y = window.scrollY;
     side();
-    $('#adm').innerHTML = ({ over, clients, client, catalog, comments, chats, gchats, ratings, raffle, reviews })[AV.s]();
+    $('#adm').innerHTML = ({ over, clients, client, catalog, comments, chats, gchats, rtime, ratings, raffle, reviews })[AV.s]();
     if (AV.s === 'gchats') { if (!gcPollT) gcPoll(true, () => AV.t || 'slow', () => render(true)); } else if (gcPollT) gcPoll(false);
     if (AV.s === 'client') { loadPhoto(); loadMenuDays(); }
     if (keep) window.scrollTo(0, y);
@@ -6848,7 +6868,7 @@ const Adm = (() => {
   }
   // Раздел админки запоминается в адресе (#a=clients, #a=client&c=почта) и в вкладке браузера:
   // после обновления страницы куратор остаётся там же, где был, — с тем же прокрутом.
-  const VIEWS = ['over','clients','client','catalog','comments','chats','gchats','ratings','raffle','reviews'];
+  const VIEWS = ['over','clients','client','catalog','comments','chats','gchats','rtime','ratings','raffle','reviews'];
   let viewDone = false;
   function saveView(){
     const v = { a: AV.s }; if (AV.s === 'client' && AV.id) { v.c = AV.id; if (AV.tab && AV.tab !== 'lessons') v.t = AV.tab; } if (AV.s === 'clients' && CF.st !== 'all') v.f = CF.st; if (AV.s === 'gchats' && AV.t) v.t = AV.t;
@@ -6953,7 +6973,7 @@ const Adm = (() => {
     list = curFilter(list);
     if (CF.type !== 'all') list = list.filter(c => c.filled && c.type === CF.type);
     const seg = (k, v, t) => `<button class="${CF[k] === v ? 'on' : ''}" data-a="cf" data-k="${k}" data-v="${v}">${t}</button>`;
-    return `<div class="head"><div><h1>${CF.st === 'review' ? 'Проверка назначений' : 'Клиенты'}</h1><p class="muted" style="margin:0">Нажмите на строку, чтобы открыть карточку</p></div><button class="btn ghost" data-a="addOpen">+ Добавить учениц</button></div>
+    return `<div class="head"><div><h1>${CF.st === 'review' ? 'Проверка назначений' : 'Клиенты'}</h1><p class="muted" style="margin:0">Нажмите на строку, чтобы открыть карточку</p></div><span class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" data-a="syncPaid" title="Новые оплаты из листа «Оплатили (GetCourse)», тарифы и распределение индивидуального тарифа по кураторам">Подтянуть оплаты</button><button class="btn ghost" data-a="addOpen">+ Добавить учениц</button></span></div>
     <div class="tools"><input class="inp" id="cq" placeholder="Имя или email" value="${esc(CF.q)}" style="flex:1 1 220px">
       <span class="seg">${seg('st','all','Все')}${seg('st','review','Ждут проверки')}${seg('st','photo','Нет фото языка')}${seg('st','ai','Расхождение с ИИ')}${seg('st','ind','Индивидуальный')}${seg('st','edited','С правками')}${seg('st','closed','Доступ закрыт')}${seg('st','ext','Продлили')}${seg('st','red','Красный флаг')}${seg('st','idle','Давно не заходят')}${seg('st','noform','Без анкеты')}</span>
       <span class="seg">${seg('type','all','Все типы')}${Object.keys(TYPES).map(k => seg('type', k, TYPES[k].short)).join('')}</span>
@@ -7034,6 +7054,77 @@ const Adm = (() => {
 `)}
     ${c.assigned ? lessonActivity(c) : ''}
     <div style="margin-top:16px">${histBlock(c)}</div>`;
+  }
+  // ── Время ответа кураторов: личные чаты, вопросы под уроками, чаты протоколов ──
+  // Ожидание начинается с первого сообщения клиентки после последнего ответа куратора и заканчивается следующим сообщением куратора.
+  // В чатах протоколов вопросом считается сообщение со знаком «?» или ответ на сообщение куратора.
+  let RTG = null, rtBusy = false;
+  const RT_CH = { chat:'Чат с куратором', lesson:'Под уроками', proto:'Чаты протоколов' };
+  const rtSet = () => { const st = (D && D.settings) || {}, m = String(st.workHours || '09:00-21:00').match(/(\d{1,2})[:.](\d{2})\D+(\d{1,2})[:.](\d{2})/);
+    return { a: m ? +m[1] * 60 + +m[2] : 540, b: m ? +m[3] * 60 + +m[4] : 1260, sla: (+st.slaH || 2) * 36e5 }; };
+  // длительность: круглосуточно или только рабочие часы по Москве (UTC+3)
+  function rtDur(s, e, work){
+    if (!work) return Math.max(0, e - s);
+    const { a, b } = rtSet(), MSK = 3 * 36e5, D0 = 864e5; let sum = 0;
+    for (let d = Math.floor((s + MSK) / D0) * D0 - MSK; d < e; d += D0) {
+      const lo = Math.max(s, d + a * 6e4), hi = Math.min(e, d + b * 6e4); if (hi > lo) sum += hi - lo; }
+    return sum;
+  }
+  function rtWaits(){
+    const out = [];
+    C.filter(c => !c.paidOnly).forEach(c => {
+      const g = {}; c.msgs.forEach(m => { (g[m.lessonId || ''] = g[m.lessonId || ''] || []).push(m); });
+      Object.keys(g).forEach(k => { let open = 0;
+        g[k].forEach(m => { const t = tsOf(m); if (m.from !== 'cu') { if (!open) open = t; }
+          else if (open) { out.push({ ch: k ? 'lesson' : 'chat', email:c.email, name:c.name, cur:c.cur, where: k ? 'Урок «' + ((byId(k) || {}).t || m.lesson || k) + '»' : RT_CH.chat, lid:k, s:open, e:t, by:m.who || 'Куратор' }); open = 0; } });
+        if (open) out.push({ ch: k ? 'lesson' : 'chat', email:c.email, name:c.name, cur:c.cur, where: k ? 'Урок «' + ((byId(k) || {}).t || k) + '»' : RT_CH.chat, lid:k, s:open, e:0 }); });
+    });
+    const gt = {}; (RTG || []).filter(m => !m.del).forEach(m => { (gt[m.t] = gt[m.t] || []).push(m); });
+    Object.keys(gt).forEach(t => { let open = null;
+      gt[t].sort((x, y) => Date.parse(x.at) - Date.parse(y.at)).forEach(m => { const at = Date.parse(m.at);
+        if (!m.cu) { if (!open && m.q) open = { s:at, email:m.email, name:m.name }; }
+        else if (open) { out.push({ ch:'proto', email:open.email, name:open.name, where:'Чат протокола «' + PNAME[t] + '»', t, s:open.s, e:at, by:m.name }); open = null; } });
+      if (open) out.push({ ch:'proto', email:open.email, name:open.name, where:'Чат протокола «' + PNAME[t] + '»', t, s:open.s, e:0 }); });
+    return out;
+  }
+  function rtLoad(){ if (RTG || rtBusy || !S.token) return; rtBusy = true;
+    api('gchatStats', { token:S.token }).then(r => { RTG = r.list || []; }).catch(e => { RTG = []; if (AV.s === 'rtime') toast(e.message); }).then(() => { rtBusy = false; if ($('#A') && !$('#A').hidden) render(true); }); }
+  const rtOpenLate = () => { try { const sla = rtSet().sla; return rtWaits().filter(w => !w.e && Date.now() - w.s > sla).length; } catch (e) { return 0; } };
+  const rtFmt = ms => { const m = Math.round(ms / 6e4); if (m < 60) return m + ' мин'; const h = Math.floor(m / 60), mm = m % 60;
+    if (h < 24) return h + ' ч' + (mm ? ' ' + mm + ' мин' : ''); const d = Math.floor(h / 24), hh = h % 24; return d + ' дн' + (hh ? ' ' + hh + ' ч' : ''); };
+  const rtMed = a => { if (!a.length) return 0; const x = a.slice().sort((p, q) => p - q), k = Math.floor(x.length / 2); return x.length % 2 ? x[k] : (x[k - 1] + x[k]) / 2; };
+  function rtStats(list, work){ const d = list.map(w => rtDur(w.s, w.e, work)), sla = rtSet().sla;
+    return { n:d.length, med:rtMed(d), avg:d.length ? d.reduce((p, q) => p + q, 0) / d.length : 0, ok:d.length ? Math.round(100 * d.filter(x => x <= sla).length / d.length) : 0, max:d.length ? Math.max(...d) : 0 }; }
+  function rtime(){
+    rtLoad(); if (AV.rw == null) AV.rw = LS.get('hz_rtw', '0');
+    const per = AV.rp || '30', chf = AV.rc || 'all', work = AV.rw === '1', st = rtSet(), sla = st.sla, slaTxt = rtFmt(sla);
+    const from = per === 'all' ? 0 : Date.now() - (+per) * 864e5;
+    const all = rtWaits().filter(w => chf === 'all' || w.ch === chf);
+    const done = all.filter(w => w.e && w.s >= from), wait = all.filter(w => !w.e).sort((x, y) => x.s - y.s);
+    const tot = rtStats(done, work), seg = (k, v, t) => `<button class="${(AV[k] || (k === 'rp' ? '30' : k === 'rc' ? 'all' : '0')) === v ? 'on' : ''}" data-a="rtf" data-k="${k}" data-v="${v}">${t}</button>`;
+    const by = {}; done.forEach(w => { (by[w.by] = by[w.by] || []).push(w); });
+    const row = (name, l) => { const x = rtStats(l, work); return `<tr><td><b>${esc(name)}</b></td><td>${x.n}</td><td>${rtFmt(x.med)}</td><td>${rtFmt(x.avg)}</td><td><span class="chip ${x.ok >= 80 ? 'g' : x.ok >= 50 ? '' : 'r'}">${x.ok}%</span></td><td>${rtFmt(x.max)}</td></tr>`; };
+    const kpi = (v, t, warn) => `<div class="rt-k${warn ? ' warn' : ''}"><b>${v}</b><span>${t}</span></div>`;
+    const late = wait.filter(w => Date.now() - w.s > sla).length;
+    const go = w => w.ch === 'proto' ? `<button class="btn sm ghost" data-a="rtGo" data-t="${w.t}">Открыть чат</button>` : w.ch === 'chat' ? `<button class="btn sm ghost" data-a="openChat" data-id="${esc(w.email)}">Открыть чат</button>` : `<button class="btn sm ghost" data-a="nav" data-s="comments">К комментариям</button>`;
+    const slow = done.map(w => Object.assign({ d: rtDur(w.s, w.e, work) }, w)).sort((x, y) => y.d - x.d).slice(0, 10);
+    return `<div class="head"><div><h1>Время ответа</h1><p class="muted" style="margin:0">Сколько клиентки ждут ответа куратора: в личном чате, под уроками и в чатах протоколов. Норма — ${slaTxt} (меняется в «Настройках»).</p></div><button class="btn ghost" data-a="rtReload">Обновить</button></div>
+    <div class="tools"><span class="seg">${seg('rp','7','7 дней')}${seg('rp','30','30 дней')}${seg('rp','all','Весь поток')}</span>
+      <span class="seg">${seg('rc','all','Все чаты')}${seg('rc','chat',RT_CH.chat)}${seg('rc','lesson',RT_CH.lesson)}${seg('rc','proto',RT_CH.proto)}</span>
+      <span class="seg">${seg('rw','0','Круглосуточно')}${seg('rw','1','Рабочее время ' + (D && D.settings && D.settings.workHours || '09:00-21:00'))}</span></div>
+    ${!RTG ? '<p class="small muted">Загружаем чаты протоколов…</p>' : ''}
+    <div class="rt-ks">${kpi(tot.n, 'ответов за период')}${kpi(tot.n ? rtFmt(tot.med) : '—', 'медиана')}${kpi(tot.n ? rtFmt(tot.avg) : '—', 'среднее')}${kpi(tot.n ? tot.ok + '%' : '—', 'ответов в пределах ' + slaTxt, tot.n && tot.ok < 80)}${kpi(wait.length, 'ждут ответа сейчас' + (late ? ` · ${late} дольше ${slaTxt}` : ''), late)}</div>
+    <div class="panel" style="margin-bottom:16px"><h2><span>Ждут ответа сейчас</span></h2>
+      ${wait.length ? `<div class="tw"><table class="t"><thead><tr><th>Клиентка</th><th>Где</th><th>Закреплена за</th><th>Ждёт</th><th></th></tr></thead><tbody>${wait.map(w => { const dd = Date.now() - w.s, wd = rtDur(w.s, Date.now(), work);
+        return `<tr><td><b>${esc(w.name)}</b><span class="sub">${esc(w.email)}</span></td><td>${esc(w.where)}</td><td>${w.cur ? esc(curName(w.cur)) : '<span class="muted">—</span>'}</td><td><span class="chip ${dd > sla ? 'r' : ''}">${rtFmt(wd)}</span><span class="sub" style="display:block">с ${fmtDT(new Date(w.s).toISOString())}</span></td><td>${go(w)}</td></tr>`; }).join('')}</tbody></table></div>` : '<p style="margin:0">Все вопросы отвечены.</p>'}</div>
+    <div class="panel" style="margin-bottom:16px"><h2><span>По кураторам</span></h2>
+      ${done.length ? `<div class="tw"><table class="t"><thead><tr><th>Куратор</th><th>Ответов</th><th>Медиана</th><th>Среднее</th><th>В пределах ${slaTxt}</th><th>Самое долгое</th></tr></thead><tbody>
+      ${Object.keys(by).sort((x, y) => by[y].length - by[x].length).map(k => row(k, by[k])).join('')}${Object.keys(by).length > 1 ? row('Все кураторы', done) : ''}</tbody></table></div>` : '<p style="margin:0">За этот период ответов нет.</p>'}</div>
+    ${chf === 'all' && done.length ? `<div class="panel" style="margin-bottom:16px"><h2><span>По каналам</span></h2><div class="tw"><table class="t"><thead><tr><th>Где</th><th>Ответов</th><th>Медиана</th><th>Среднее</th><th>В пределах ${slaTxt}</th><th>Самое долгое</th></tr></thead><tbody>
+      ${Object.keys(RT_CH).map(k => { const l = done.filter(w => w.ch === k); return l.length ? row(RT_CH[k], l) : ''; }).join('')}</tbody></table></div></div>` : ''}
+    ${slow.length ? `<div class="panel" style="margin-bottom:16px"><h2><span>Самые долгие ответы за период</span></h2><div class="tw"><table class="t"><thead><tr><th>Клиентка</th><th>Где</th><th>Ответил(а)</th><th>Ждала</th></tr></thead><tbody>
+      ${slow.map(w => `<tr><td><b>${esc(w.name)}</b></td><td>${esc(w.where)}</td><td>${esc(w.by)}</td><td><span class="chip ${w.d > sla ? 'r' : ''}">${rtFmt(w.d)}</span><span class="sub" style="display:block">${fmtDT(new Date(w.s).toISOString())}</span></td></tr>`).join('')}</tbody></table></div></div>` : ''}
+    <p class="small muted">Как считаем: ожидание начинается с первого сообщения клиентки после последнего ответа куратора и заканчивается следующим сообщением куратора в этом же чате. В чатах протоколов вопросом считается сообщение со знаком «?» или ответ на сообщение куратора. «Рабочее время» — считаются только часы ${esc(D && D.settings && D.settings.workHours || '09:00-21:00')} по Москве.</p>`;
   }
   function gchats(){
     const t = AV.t || 'slow'; AV.t = t;
@@ -7407,9 +7498,12 @@ const Adm = (() => {
       api('formFile', { token:S.token, email:c.email }).then(r => { b.disabled = false; b.textContent = t0; if (r.data) FV_CACHE['form:' + c.email] = r; done(r); })
         .catch(err => { b.disabled = false; b.textContent = t0; toast(err.message); }); return; }
     if (a === 'photoView' && c) { const d = photos[c.email]; if (d) fvOpen(d, 'Фото языка - ' + (c.name || c.email) + '.' + ((d.match(/^data:image\/(\w+)/) || [])[1] || 'jpg').replace('jpeg', 'jpg'), b); return; }
+    if (a === 'rtf') { AV[b.dataset.k] = b.dataset.v; if (b.dataset.k === 'rw') LS.set('hz_rtw', b.dataset.v); return render(true); }
+    if (a === 'rtReload') { RTG = null; return open(); }
+    if (a === 'rtGo') { closeDr(); GC.stick = true; AV = { s:'gchats', t:b.dataset.t }; render(); return window.scrollTo(0,0); }
     if (a === 'gctab') { gcKeep(); GC.reply = null; GC.photo = null; GC.stick = true; AV.t = b.dataset.t; return render(true); }
     if (/^gc[A-Z]/.test(a)) return gcClick(a, b, AV.t || 'slow', true, () => render(true));
-    if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
+    if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'rtime') AV.rw = LS.get('hz_rtw', '0'); if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
     if (a === 'curf') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); return render(true); }
     if (a === 'navcur') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); CF.st = 'all'; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
     if (a === 'rzf') { AV.rf = b.dataset.v; return render(); }
@@ -7439,6 +7533,9 @@ const Adm = (() => {
     if (a === 'trk') { AV.tw = 2; return openDr(trackerView(b.dataset.t)); }
     if (a === 'trkw') { AV.tw = +b.dataset.w; return openDr(trackerView(b.dataset.t)); }
     if (a === 'close') return closeDr();
+    if (a === 'syncPaid') { b.disabled = true; b.textContent = 'Подтягиваем…'; let r = {};
+      return act(async () => { r = await api('syncPaid', { token:S.token }); }).then(() => { const n = (r.assigned || []).length;
+        toast(r.added || r.upgraded || n ? `Новых: ${r.added || 0} · стали индивидуальными: ${r.upgraded || 0} · распределено по кураторам: ${n}` : 'Всё уже актуально: новых оплат нет'); }); }
     if (a === 'addOpen') return openDr(addForm());
     if (a === 'addSave') {
       const rows = ($('#addRows').value || '').split('\n').map(l => l.split(/[;,\t]/).map(x => x.trim())).filter(x => x[0] && x[0].includes('@'))
@@ -7497,7 +7594,7 @@ const Adm = (() => {
     if (e.target.id === 'curF') { CF.cur = e.target.value || 'all'; LS.set('hz_curf', CF.cur); return render(true); }
     if (e.target.id === 'curSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); const v = e.target.value;
       return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : 'Ученица откреплена'); }
-    if (e.target.id === 'tariff' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); return act(() => api('setTariff', { token:S.token, email:c.email, tariff:e.target.value }), 'Тариф сохранён'); }
+    if (e.target.id === 'tariff' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); let r = {}; return act(async () => { r = await api('setTariff', { token:S.token, email:c.email, tariff:e.target.value }); }).then(() => toast(r && r.cur ? 'Тариф сохранён · закреплена за ' + curName(r.cur) : 'Тариф сохранён')); }
     if (e.target.id !== 'proto' || AV.s !== 'client') return;
     const c = C.find(x => x.email === AV.id); if (!c || !c.assigned) return;
     const k = e.target.value;
