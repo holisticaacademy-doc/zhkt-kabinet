@@ -376,6 +376,19 @@ body.mdl-on{overflow:hidden}
 .xnew .xnote{color:#6B5A3C}
 .xnew .xbtns{display:flex;gap:8px;flex-wrap:wrap}
 
+/* файлы в чате, техподдержка */
+.fchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.fchip{display:inline-flex;align-items:center;gap:6px;max-width:100%;font:inherit;font-size:13px;font-weight:600;color:var(--e);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:6px 10px;cursor:pointer;text-align:left}
+.fchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+.fchip small{font-weight:500;color:var(--grey);font-size:11.5px}
+button.fchip:hover{border-color:var(--mint-bd)}
+.fchip[disabled]{opacity:.6;cursor:progress}
+.fchips.pend .fchip{cursor:default}
+.fchip .fx{border:0;background:none;color:var(--grey);font:inherit;cursor:pointer;padding:0 2px}
+.cattach{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px}
+.cattach label.btn{cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.sn-ext{margin-left:auto;color:var(--grey);font-size:12px}
+
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
 .dtop .dt-b .cal{margin-top:16px}
@@ -1359,6 +1372,18 @@ table.tk tr.a td{font-weight:700;background:var(--soft)}
 .xf .inp,.xf .sel{width:100%}
 .xf-n{grid-column:1/-1}.xf-b{grid-column:1/-1}
 @media (max-width:640px){.xf{grid-template-columns:1fr}.xr{flex-direction:column;align-items:flex-start}}
+
+/* файлы в чате */
+.fchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.fchip{display:inline-flex;align-items:center;gap:6px;max-width:100%;font:inherit;font-size:12.5px;font-weight:600;color:var(--e);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:5px 9px;cursor:pointer;text-align:left}
+.fchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+.fchip small{font-weight:500;color:var(--grey);font-size:11px}
+button.fchip:hover{border-color:var(--mint-bd)}
+.fchips.pend .fchip{cursor:default}
+.fchip .fx{border:0;background:none;color:var(--grey);font:inherit;cursor:pointer;padding:0 2px}
+.cattach{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:8px}
+.cattach label.btn{cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;padding:0;margin:-1px}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -4067,8 +4092,10 @@ function fmtDT(d){ if(!d) return '—'; const x=new Date(d); return isNaN(x)?Str
 function daysAgo(d){ if(!d) return null; return Math.max(0, Math.floor((dayStart(Date.now())-dayStart(d))/DAY)); }
 function keepY(fn){ const y=window.scrollY; fn(); window.scrollTo(0,y); }
 const supportLink = (cls='btn ghost full') => `<a class="${cls}" href="${esc(CFG.SUPPORT_URL)}" target="_blank" rel="noopener">Написать в службу заботы</a>`;
+const supportBtn = (cls='btn ghost full') => `<a class="${cls}" href="${esc(CFG.SUPPORT_URL)}" target="_blank" rel="noopener" data-a="support">${I.sup.replace('<svg','<svg width="18" height="18" style="vertical-align:-4px;margin-right:6px"')}Техподдержка</a>`;
 
 const I = {
+  sup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/><path d="M6 6l3.5 3.5M14.5 14.5 18 18M18 6l-3.5 3.5M9.5 14.5 6 18"/></svg>',
   share:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',
  target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
  clip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.5 12 20a5 5 0 0 1-7-7l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7L9.7 17.7a1.7 1.7 0 0 1-2.4-2.4L15 7.6"/></svg>',
@@ -4316,7 +4343,7 @@ const Demo = (() => {
     recs:d['Комментарий куратора']||'', confirmedAt:d['Дата подтверждения']||'', filledAt:d['Дата анкеты']||'', hasPhoto:!!(load().quizzes[d['Email']]||{}).photo, hasForm:!!(load().quizzes[d['Email']]||{}).form, raffle:(load().raffle||{})[d['Email']]||null,
     tariff:d['Тариф']||'Общий', ov:parse(d['Правки материалов']), profile:parse(d['Профиль'])||{}, extra:parse(d['Доп. протоколы'])||[] });
   const msgsOf = e => load().messages.filter(m => m.email === e);
-  const addMsg = (email, lessonId, from, who, text) => { load().messages.push({ at:now(), email, lessonId:lessonId||'', lesson: lessonId ? (byId(lessonId)||{t:''}).t : '', from, who, text }); log(email, from === 'cu' ? (lessonId ? 'reply_comment' : 'reply_chat') : (lessonId ? 'comment' : 'chat'), lessonId ? (byId(lessonId)||{t:''}).t : ''); };
+  const addMsg = (email, lessonId, from, who, text, files) => { load().messages.push({ at:now(), email, lessonId:lessonId||'', lesson: lessonId ? (byId(lessonId)||{t:''}).t : '', from, who, text, files: files && files.length ? files : undefined }); log(email, from === 'cu' ? (lessonId ? 'reply_comment' : 'reply_chat') : (lessonId ? 'comment' : 'chat'), lessonId ? (byId(lessonId)||{t:''}).t : ''); };
   const parse = s => { try { return s ? JSON.parse(s) : null } catch(e){ return null } };
   const demoRaffleOpen = st => { if (st['Статус'] !== STS.ok) throw new Error('Розыгрыш — для участниц программы'); const r = SCHED({ schedule: (load().settings||{}).schedule }).raffle || {};
     if (r.from && Date.now() < Date.parse(r.from)) throw new Error('Приём работ ещё не начался'); const ex = (load().raffle||{})[st['Email']];
@@ -4349,10 +4376,22 @@ const Demo = (() => {
       st['Закреплён за']=curator||''; log(email,'curator',curator?(curator===a['Email']?'закреплена за ':'назначен куратор ')+curator:'откреплена'); return {}; },
     demoExtend({token,email}){ adminAuth(token); (load().ext[email]=load().ext[email]||[]).push(now()); log(email,'extended','демо: оплачено продление'); return {}; },
     messages({token}){ const st=auth(token); return {messages:msgsOf(st['Email'])}; },
-    sendMessage({token,text,lessonId}){ const st=auth(token); openOnly(st); text=String(text||'').trim(); if(!text) throw new Error('Напишите сообщение');
+    chatUpload({token,email,name,data}){ const me=auth(token), staff=isStaff({role:me['Роль']}), st=staff&&email?find(email):me; if(!st) throw new Error('Ученица не найдена');
+      if(st['Тариф']!==TARIFF_IND) throw new Error('Файлы в чате — на индивидуальном тарифе'); if(!staff) openOnly(st);
+      const m=String(data||'').match(/^data:([^;]*);base64,(.*)$/); if(!m) throw new Error('Не получилось прочитать файл');
+      const size=Math.round(m[2].length*0.75); if(size>3e6) throw new Error('В демо-режиме — файлы до 3 МБ');
+      const id='f'+Math.random().toString(36).slice(2); load().cfiles=load().cfiles||{}; load().cfiles[id]={email:st['Email'],name:String(name||'файл').slice(0,120),type:m[1],size,data};
+      return {id,name:String(name||'файл').slice(0,120),type:m[1],size}; },
+    chatFile({token,id,email}){ const me=auth(token), f=(load().cfiles||{})[id]; if(!f) throw new Error('Файл не найден');
+      if(!isStaff({role:me['Роль']})&&f.email!==me['Email']) throw new Error('Нет доступа'); return {data:f.data,name:f.name}; },
+    sendMessage({token,text,lessonId,files}){ const st=auth(token); openOnly(st); text=String(text||'').trim();
+      const fs=lessonId?[]:(files||[]).filter(f=>f&&(load().cfiles||{})[f.id]&&load().cfiles[f.id].email===st['Email']).slice(0,5);
+      if(!text&&!fs.length) throw new Error('Напишите сообщение');
       if(!lessonId && st['Тариф']!==TARIFF_IND && !msgsOf(st['Email']).some(m=>!m.lessonId)) throw new Error('Чат с куратором доступен на индивидуальном тарифе');
-      addMsg(st['Email'],lessonId,'cl','',text); return {messages:msgsOf(st['Email'])}; },
-    reply({token,email,lessonId,text}){ const a=adminAuth(token); text=String(text||'').trim(); if(!text) throw new Error('Напишите сообщение'); addMsg(email,lessonId,'cu',a['Имя']||a['Email'],text); return {}; },
+      addMsg(st['Email'],lessonId,'cl','',text,fs); return {messages:msgsOf(st['Email'])}; },
+    reply({token,email,lessonId,text,files}){ const a=adminAuth(token); text=String(text||'').trim();
+      const fs=lessonId?[]:(files||[]).filter(f=>f&&(load().cfiles||{})[f.id]&&load().cfiles[f.id].email===email).slice(0,5);
+      if(!text&&!fs.length) throw new Error('Напишите сообщение'); addMsg(email,lessonId,'cu',a['Имя']||a['Email'],text,fs); return {}; },
     raffleReview({token,email,status,comment}){ const a=adminAuth(token), r=(load().raffle||{})[email]; if(!r) throw new Error('Работа не найдена'); const cm=String(comment||'').trim();
       if(status==='fix'&&!cm) throw new Error('Напишите, что нужно доработать — ученица увидит комментарий'); Object.assign(r,{status:status==='ok'?RZ_ST.ok:status==='fix'?RZ_ST.fix:RZ_ST.wait,comment:cm,by:a['Имя']||a['Email'],rat:now()}); log(email,'raffle_review',r.status); return {}; },
     reviewAccept({token,email,ok}){ const a=adminAuth(token), f=(load().feedback||[]).find(x=>x.email===String(email).toLowerCase()&&x.key==='final'); if(!f) throw new Error('Итоговая анкета не найдена');
@@ -4457,7 +4496,7 @@ function route(){
   useUI('u');
   if (U.preview) V = { s:'dash' };
   else if (accessClosed()) V = { s:'closed' };
-  else if (S.user.status === STS.ok) V = { s: U.st.seen ? 'dash' : 'result' };
+  else if (S.user.status === STS.ok) { V = { s: U.st.seen ? 'dash' : 'result' }; if (U.st.seen) { const r = uRestore(); if (r) { V = r.v; hist = [{ s:'dash' }]; render(); return window.scrollTo(0, r.y); } } }
   else if (S.user.status === STS.wait) V = { s:'wait' };
   else V = { s:'welcome' };
   render(); window.scrollTo(0,0);
@@ -4504,6 +4543,7 @@ async function fbSend(){
   catch (e) { V.busy = false; render(); toast(e.message); }
 }
 function logout(){
+  try { sessionStorage.removeItem('hz_adm_view'); sessionStorage.removeItem('hz_adm_y'); sessionStorage.removeItem('hz_u_view'); uDone = false; if (/^#[av]=/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   flushSave(); $('#toast').classList.remove('on'); LS.del(TOKEN_KEY);
   Object.assign(S, { token:null, user:null }); Object.assign(U, { quiz:null, st:null, preview:false }); QD = null;
   Adm.data = null; useUI('u'); hist = []; V = { s:'login', step:'email' }; render();
@@ -4553,8 +4593,36 @@ const tsOf = m => new Date(m.at).getTime() || 0;
 const chatUnread = () => chatMsgsU().filter(m => m.from === 'cu' && tsOf(m) > (U.st.seenChat || 0)).length;
 const lessonMsgs = id => U.msgs.filter(m => m.lessonId === id);
 function newReplies(){ const seen = U.st.seenL || {}, out = {}; U.msgs.forEach(m => { if (m.lessonId && m.from === 'cu' && tsOf(m) > (seen[m.lessonId] || 0)) out[m.lessonId] = m; }); return Object.values(out); }
+const CF_MAX = 5, CF_MB = 10;
+const fsize = n => n > 1048576 ? (n / 1048576).toFixed(1).replace('.', ',') + ' МБ' : Math.max(1, Math.round(n / 1024)) + ' КБ';
+const fileChips = (fs, email) => (fs || []).length ? `<span class="fchips">${fs.map(f => `<button type="button" class="fchip" data-a="cfOpen" data-id="${esc(f.id)}" data-name="${esc(f.name)}"${email ? ` data-email="${esc(email)}"` : ''}>${I.clip.replace('<svg', '<svg width="15" height="15"')}<span>${esc(f.name)}</span>${f.size ? `<small>${fsize(f.size)}</small>` : ''}</button>`).join('')}</span>` : '';
+function cfPending(list, del){
+  return list.length ? `<div class="fchips pend">${list.map((f, i) => `<span class="fchip"><span>${esc(f.name)}</span><small>${fsize(f.size)}</small><button type="button" class="fx" data-a="${del}" data-i="${i}" aria-label="Убрать файл">✕</button></span>`).join('')}</div>` : '';
+}
+function readChatFiles(input, list){ return Promise.all([...input.files].map(f => new Promise(res => {
+  if (list.length >= CF_MAX) return res(toast('Можно прикрепить до ' + CF_MAX + ' файлов к одному сообщению'));
+  if (f.size > CF_MB * 1048576) return res(toast('«' + f.name + '» больше ' + CF_MB + ' МБ'));
+  const r = new FileReader(); r.onload = () => { if (list.length < CF_MAX) list.push({ name: f.name, size: f.size, type: f.type || '', data: r.result }); res(); }; r.onerror = () => res(toast('Не получилось прочитать «' + f.name + '»')); r.readAsDataURL(f);
+}))).then(() => { input.value = ''; }); }
+async function uploadChatFiles(list, email, onStep){
+  const out = [];
+  for (let i = 0; i < list.length; i++) { if (onStep) onStep(i + 1, list.length);
+    out.push(await api('chatUpload', { token:S.token, email: email || '', name:list[i].name, data:list[i].data })); }
+  return out;
+}
+async function openChatFile(b){
+  const t = b.innerHTML; b.disabled = true;
+  try { const r = await api('chatFile', { token:S.token, id:b.dataset.id, email:b.dataset.email || '' });
+    const m = String(r.data || '').match(/^data:([^;]*);base64,(.*)$/); if (!m) throw new Error('Файл не найден');
+    const bin = atob(m[2]), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([u], { type: m[1] || 'application/octet-stream' })), a = document.createElement('a');
+    a.href = url; a.download = r.name || b.dataset.name || 'файл'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) { toast(e.message || 'Не получилось открыть файл'); }
+  b.disabled = false; b.innerHTML = t;
+}
+const chatFilesOn = () => !!S.user && S.user.tariff === TARIFF_IND;
 function bubbles(list, mine){
-  return list.map(m => `<div class="bub ${m.from === mine ? 'me' : 'them'}">${esc(m.text)}<small>${m.from === 'cu' ? esc(m.who || 'Куратор') : 'Вы'} · ${fmtDT(m.at)}</small></div>`).join('');
+  return list.map(m => `<div class="bub ${m.from === mine ? 'me' : 'them'}">${m.text ? esc(m.text) : ''}${fileChips(m.files)}<small>${m.from === 'cu' ? esc(m.who || 'Куратор') : 'Вы'} · ${fmtDT(m.at)}</small></div>`).join('');
 }
 let pollT = null;
 function startPoll(){ stopPoll(); if (U.preview || MODE === 'demo') return; pollT = setInterval(async () => {
@@ -4563,13 +4631,15 @@ function startPoll(){ stopPoll(); if (U.preview || MODE === 'demo') return; poll
 }, 20000); }
 function stopPoll(){ if (pollT) { clearInterval(pollT); pollT = null; } }
 async function sendMsg(lessonId){
-  const ta = $('#msgIn'), text = (ta.value || '').trim();
-  if (!text) return toast('Напишите сообщение');
+  const ta = $('#msgIn'), text = (ta.value || '').trim(), pend = lessonId ? [] : (U.cf || []);
+  if (!text && !pend.length) return toast('Напишите сообщение');
   if (U.preview) return toast('В режиме просмотра отправка недоступна');
   const btn = $('[data-a=send]'); btn.disabled = true;
-  try { const r = await api('sendMessage', { token:S.token, text, lessonId: lessonId || '', lessonTitle: lessonId ? byId(lessonId).t : '' });
-    U.msgs = r.messages; ta.value = ''; keepY(render); toast('Отправлено'); }
-  catch (e) { btn.disabled = false; toast(e.message); }
+  try {
+    const files = pend.length ? await uploadChatFiles(pend, '', (i, n) => { btn.textContent = 'Загружаем файл ' + i + ' из ' + n + '…'; }) : [];
+    const r = await api('sendMessage', { token:S.token, text, files, lessonId: lessonId || '', lessonTitle: lessonId ? byId(lessonId).t : '' });
+    U.msgs = r.messages; U.cf = []; U.cdraft = ''; ta.value = ''; keepY(render); toast('Отправлено'); }
+  catch (e) { btn.disabled = false; btn.textContent = 'Отправить'; toast(e.message); }
 }
 function chatView(){
   const list = chatMsgsU();
@@ -4577,7 +4647,9 @@ function chatView(){
   return `<h1 style="margin-top:22px">Чат с куратором</h1>
   <p class="muted">${S.user.tariff === TARIFF_IND ? 'Пишите куратору в любое время: он ответит здесь же, обычно в течение дня.' : 'Куратор написал вам — ответьте здесь.'}</p>
   <div class="chat">${bubbles(list, 'cl') || '<p class="muted small">Сообщений пока нет. Напишите первой.</p>'}</div>
-  <textarea class="inp" id="msgIn" maxlength="3000" placeholder="Ваше сообщение" style="margin-top:12px;min-height:90px"></textarea>
+  <textarea class="inp" id="msgIn" maxlength="3000" placeholder="Ваше сообщение" style="margin-top:12px;min-height:90px">${esc(U.cdraft || '')}</textarea>
+  ${chatFilesOn() && !U.preview ? `<div class="cattach"><input type="file" multiple id="chat-file" class="vh" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf,.odt,.heic"><label for="chat-file" class="btn ghost sm">${I.clip.replace('<svg', '<svg width="16" height="16"')} Прикрепить файл</label>
+    <span class="small muted">Анализы, фото, документы — до ${CF_MAX} файлов, до ${CF_MB} МБ каждый</span></div>${cfPending(U.cf || [], 'cfDel')}` : ''}
   <button class="btn full" data-a="send" style="margin-top:10px">Отправить</button>`;
 }
 const startT = () => START() ? new Date(START()).getTime() : U.preview ? (U.pstart ? new Date(U.pstart).getTime() : Date.now()) : (S.user.confirmedAt ? new Date(S.user.confirmedAt).getTime() : Date.now());
@@ -4797,6 +4869,32 @@ function embedUrl(u){
 }
 
 // ── навигация ──
+// Кабинет ученицы: раздел запоминается в адресе (#v=item&id=…) и во вкладке — после обновления страницы она остаётся там же
+const U_VIEWS = ['item','cat','menu','tracker','progress','chat','profile'];
+let uDone = false;
+function uSave(){
+  if (CFG.PRESENT || U.preview || !S.user || isStaff(S.user) || S.user.status !== STS.ok) return;
+  const v = { v: V.s };
+  if (V.s === 'item' && V.id) v.id = V.id; else if (V.s === 'cat' && V.k) v.k = V.k; else if (V.s === 'tracker') { if (V.w) v.w = V.w; if (V.day) v.d = V.day; }
+  const h = U_VIEWS.includes(V.s) ? '#' + new URLSearchParams(v).toString() : '';
+  try { if (location.hash !== h && (h || /^#v=/.test(location.hash))) history.replaceState(null, '', location.pathname + location.search + h); } catch (e) {}
+  try { if (h) sessionStorage.setItem('hz_u_view', JSON.stringify(v)); else sessionStorage.removeItem('hz_u_view'); } catch (e) {}
+}
+function uRestore(){
+  if (uDone || CFG.PRESENT) return null; uDone = true;
+  let v = null;
+  try { const q = new URLSearchParams(location.hash.slice(1)); if (q.get('v')) v = Object.fromEntries(q.entries()); } catch (e) {}
+  if (!v) { try { v = JSON.parse(sessionStorage.getItem('hz_u_view') || 'null'); } catch (e) {} }
+  if (!v || !U_VIEWS.includes(v.v)) return null;
+  const out = { s: v.v };
+  if (v.v === 'item') { if (!v.id || !byId(v.id)) return null; out.id = v.id; }
+  if (v.v === 'cat') { if (!CATS.some(c => c.k === v.k)) return null; out.k = v.k; }
+  if (v.v === 'tracker') { if (+v.w) out.w = +v.w; if (+v.d) out.day = +v.d; }
+  if (v.v === 'chat' && !chatVisible()) return null;
+  let y = 0; try { const sc = JSON.parse(sessionStorage.getItem('hz_u_y') || 'null'); if (sc && sc.h === location.hash) y = sc.y || 0; } catch (e) {}
+  return { v: out, y };
+}
+window.addEventListener('pagehide', () => { if (!$('#U') || $('#U').hidden) return; try { sessionStorage.setItem('hz_u_y', JSON.stringify({ h: location.hash, y: window.scrollY })); } catch (e) {} });
 function go(s, extra){ hist.push(V); V = Object.assign({ s }, extra || {}); render(); window.scrollTo(0,0); }
 function back(){ V = hist.pop() || { s:'dash' }; render(); window.scrollTo(0,0); }
 function home(){ hist = []; V = { s:'dash' }; render(); window.scrollTo(0,0); }
@@ -5538,6 +5636,7 @@ function compressImage(file){ return new Promise((res, rej) => {
 document.addEventListener('change', async e => {
   const t = e.target;
   if (t.id === 'pvType') { U.ptype = t.value; _RK = ''; return keepY(render); }
+  if (t.id === 'chat-file') { const ta = $('#msgIn'); U.cdraft = ta ? ta.value : ''; U.cf = U.cf || []; await readChatFiles(t, U.cf); return keepY(render); }
   if (t.id === 'rz-before' || t.id === 'rz-after') return rzAdd(t, t.id === 'rz-after' ? 'после' : 'до');
   if (t.id === 'rzConsent') { RZ().consent = t.checked; return; }
   if (t.id === 'form-file') {
@@ -5620,12 +5719,14 @@ function navHtml(){
       ${chatVisible() || gchat ? `<div class="sn-gl">Чаты</div>` : ''}
       ${chatVisible() ? navLink('chat', 'chat', 'Чат с куратором', { cur: V.s === 'chat', badge: chatUnread() || '' }) : ''}
       ${gchat ? `<a class="sn-l" href="${esc(gchat)}" target="_blank" rel="noopener" data-a="groupChat"><span class="sn-ic">${NIC('chs')}</span><span class="sn-t">Общий чат протокола</span></a>` : ''}
+      <div class="sn-gl">Помощь</div>
+      <a class="sn-l" href="${esc(CFG.SUPPORT_URL)}" target="_blank" rel="noopener" data-a="support"><span class="sn-ic">${I.sup}</span><span class="sn-t">Техподдержка</span><span class="sn-ext" aria-hidden="true">↗</span></a>
     </div>`;
 }
 function railHtml(){
   const b = (k, ic, t, a) => `<button class="sr-b${a ? '' : ''}" data-a="${a || 'navPeek'}" data-k="${k}" title="${t}" aria-label="${t}">${NIC(ic)}</button>`;
   return `<button class="sr-b" data-a="navPin" title="Закрепить панель" aria-label="Закрепить панель">${I.side}</button><span class="sr-sp"></span>
-    ${b('', 'home', 'Главная', 'home')}${b('saved', 'bmk', 'Сохранённые')}${b('lessons', 'play', 'Уроки')}${b('practices', 'leaf', 'Практики')}${b('', 'plate', 'Меню и рецепты', 'menu')}${b('spices', 'spice', 'Специи')}${b('phyto', 'herb', 'Фитосоставы')}${chatVisible() ? b('', 'chat', 'Чат с куратором', 'chat') : ''}`;
+    ${b('', 'home', 'Главная', 'home')}${b('saved', 'bmk', 'Сохранённые')}${b('lessons', 'play', 'Уроки')}${b('practices', 'leaf', 'Практики')}${b('', 'plate', 'Меню и рецепты', 'menu')}${b('spices', 'spice', 'Специи')}${b('phyto', 'herb', 'Фитосоставы')}${chatVisible() ? b('', 'chat', 'Чат с куратором', 'chat') : ''}<a class="sr-b" href="${esc(CFG.SUPPORT_URL)}" target="_blank" rel="noopener" data-a="support" title="Техподдержка" aria-label="Техподдержка">${I.sup}</a>`;
 }
 function renderNav(wide){
   const el = $('#snav'); if (!el) return;
@@ -5892,7 +5993,7 @@ const POP = { k: '', q: '' };
 function notifList(){
   const out = [];
   const cm = chatMsgsU().filter(m => m.from === 'cu' && tsOf(m) > (U.st.seenChat || 0));
-  if (cm.length) { const m = cm[cm.length - 1]; out.push({ at: tsOf(m), a: 'chat', t: 'Куратор ответил в чате', x: m.text, n: cm.length }); }
+  if (cm.length) { const m = cm[cm.length - 1]; out.push({ at: tsOf(m), a: 'chat', t: 'Куратор ответил в чате', x: m.text || '📎 ' + ((m.files || [])[0] || {}).name, n: cm.length }); }
   newReplies().forEach(m => out.push({ at: tsOf(m), a: 'open', id: m.lessonId, t: 'Ответ под уроком «' + ((byId(m.lessonId) || {}).t || m.lesson || 'урок') + '»', x: m.text }));
   return out.sort((a, b) => b.at - a.at);
 }
@@ -5949,6 +6050,7 @@ function profView(){
   ${U.preview ? '<p class="muted small">В режиме просмотра куратора профиль не сохраняется.</p>' : `<button class="btn full" data-a="pfSave" ${V.busy ? 'disabled' : ''} style="margin-top:14px">${V.busy ? 'Сохраняем…' : 'Сохранить'}</button>`}
   <div class="pf-more">
     <button class="btn ghost full" data-a="tourStart">Как пользоваться платформой</button>
+    ${supportBtn('btn ghost full')}
     ${isStandalone() ? '' : `<button class="btn ghost full" data-a="a2hs" style="margin-bottom:10px">Значок программы на экран телефона</button>`}
     ${U.preview ? '' : `<button class="btn ghost full" data-a="logout">Выйти из кабинета</button>`}
   </div>${foot()}`;
@@ -6072,6 +6174,7 @@ function render(){
   renderNav(wide);
   if (POP.k && (!wide || render.lastV !== V)) POP.k = '';
   render.lastV = V;
+  uSave();
   renderPop();
   const html = map[V.s]();
   document.body.classList.toggle('calrail', side && !CALP.pin);
@@ -6178,6 +6281,9 @@ function studentClick(e, b, a){
   if (a === 'td') { V.day = +b.dataset.d; return render(); }
   if (a === 'chat') return go('chat');
   if (a === 'send') return sendMsg(b.dataset.id);
+  if (a === 'cfOpen') return openChatFile(b);
+  if (a === 'cfDel') { const ta = $('#msgIn'); U.cdraft = ta ? ta.value : ''; (U.cf || []).splice(+b.dataset.i, 1); return keepY(render); }
+  if (a === 'support') { track('support', ''); return; }
   if (a === 'tick') { const k = b.dataset.d + ':' + b.dataset.i, TR = TRK(); if (TR[k]) delete TR[k]; else TR[k] = 1; save(); return keepY(render); }
 }
 document.addEventListener('submit', e => { if (e.target.id === 'lf') { e.preventDefault(); doLogin(); } });
@@ -6207,7 +6313,7 @@ const Adm = (() => {
   async function open(){
     useUI('a'); window.scrollTo(0,0);
     if (!D) { $('#side').innerHTML = `<div class="brand">HOLISTICA<i>DOC</i></div>`; $('#adm').innerHTML = `<p class="muted">Загружаем данные…</p>`; }
-    try { await load(); render(); }
+    try { await load(); const sy = restoreView(); render(); if (sy) setTimeout(() => window.scrollTo(0, sy), 0); }
     catch (e) { if (e.message === 'AUTH') return logout(); $('#adm').innerHTML = `<div class="panel"><h2 class="neg"><span>Не получилось загрузить данные</span></h2><p>${esc(e.message)}</p><button class="btn" data-a="refresh">Попробовать ещё раз</button> <button class="btn ghost" data-a="logout">Выйти</button></div>`; }
   }
   async function load(){ D = await api('adminData', { token:S.token }); C = build(D); }
@@ -6320,7 +6426,30 @@ const Adm = (() => {
     $('#adm').innerHTML = ({ over, clients, client, catalog, comments, chats, ratings, raffle, reviews })[AV.s]();
     if (AV.s === 'client') { loadPhoto(); loadMenuDays(); }
     if (keep) window.scrollTo(0, y);
+    saveView();
   }
+  // Раздел админки запоминается в адресе (#a=clients, #a=client&c=почта) и в вкладке браузера:
+  // после обновления страницы куратор остаётся там же, где был, — с тем же прокрутом.
+  const VIEWS = ['over','clients','client','catalog','comments','chats','ratings','raffle','reviews'];
+  let viewDone = false;
+  function saveView(){
+    const v = { a: AV.s }; if (AV.s === 'client' && AV.id) { v.c = AV.id; if (AV.tab && AV.tab !== 'lessons') v.t = AV.tab; } if (AV.s === 'clients' && CF.st !== 'all') v.f = CF.st;
+    const h = '#' + new URLSearchParams(v).toString();
+    try { if (location.hash !== h) history.replaceState(null, '', location.pathname + location.search + h); } catch (e) {}
+    try { sessionStorage.setItem('hz_adm_view', JSON.stringify(v)); } catch (e) {}
+  }
+  function restoreView(){
+    if (viewDone) return 0; viewDone = true;
+    let v = null;
+    try { const q = new URLSearchParams(location.hash.slice(1)); if (q.get('a')) v = Object.fromEntries(q.entries()); } catch (e) {}
+    if (!v) { try { v = JSON.parse(sessionStorage.getItem('hz_adm_view') || 'null'); } catch (e) {} }
+    if (!v || !VIEWS.includes(v.a)) return 0;
+    if (v.a === 'client' && !C.find(x => x.email === v.c)) return 0;
+    AV = { s: v.a }; if (v.a === 'client') { AV.id = v.c; AV.tab = v.t || 'lessons'; } if (v.a === 'clients' && v.f) CF.st = v.f;
+    let y = 0; try { const sc = JSON.parse(sessionStorage.getItem('hz_adm_y') || 'null'); if (sc && sc.h === location.hash) y = sc.y || 0; } catch (e) {}
+    return y;
+  }
+  window.addEventListener('pagehide', () => { if (!$('#A') || $('#A').hidden) return; try { sessionStorage.setItem('hz_adm_y', JSON.stringify({ h: location.hash, y: window.scrollY })); } catch (e) {} });
 
   // ── обзор ──
   function over(){
@@ -6664,9 +6793,10 @@ const Adm = (() => {
   function chatPanel(c){
     const m = chatOf(c), ind = c.tariff === TARIFF_IND;
     return `<div class="panel" id="chat" style="margin-top:16px"><h2><span>Чат с ученицей</span> <span class="chip ${ind ? 'm' : 'g'}" style="vertical-align:middle">${ind ? 'индивидуальный тариф' : 'общий тариф'}</span></h2>
-    ${m.length ? `<div class="chat">${m.map(x => `<div class="bub ${x.from}">${esc(x.text)}<small>${x.from === 'cu' ? esc(x.who || 'Куратор') : esc(c.name.split(' ')[0])} · ${fmtDT(x.at)}</small></div>`).join('')}</div>`
+    ${m.length ? `<div class="chat">${m.map(x => `<div class="bub ${x.from}">${x.text ? esc(x.text) : ''}${fileChips(x.files, c.email)}<small>${x.from === 'cu' ? esc(x.who || 'Куратор') : esc(c.name.split(' ')[0])} · ${fmtDT(x.at)}</small></div>`).join('')}</div>`
       : `<p class="small muted">${ind ? 'Сообщений пока нет.' : 'На общем тарифе чат появится у ученицы, когда вы напишете первой.'}</p>`}
-    <textarea id="chatIn" placeholder="Сообщение ученице" style="margin-top:10px;min-height:70px"></textarea>
+    <textarea id="chatIn" placeholder="Сообщение ученице" style="margin-top:10px;min-height:70px">${esc(AV.cdraft || '')}</textarea>
+    ${ind ? `<div class="cattach"><input type="file" multiple id="adm-chat-file" class="vh" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf,.odt,.heic"><label for="adm-chat-file" class="btn sm ghost">${I.clip.replace('<svg', '<svg width="15" height="15"')} Прикрепить файл</label><span class="small muted">до ${CF_MAX} файлов, до ${CF_MB} МБ каждый</span></div>${cfPending(AV.cf || [], 'acfDel')}` : ''}
     <div style="margin-top:8px"><button class="btn sm" data-a="chatSend">Отправить</button> <span class="small muted">Ученица увидит сообщение в кабинете, в разделе «Чат с куратором».</span></div></div>`;
   }
   function commentItem(t, showClient){
@@ -6723,7 +6853,7 @@ const Adm = (() => {
     return `<div class="head"><div><h1>Чаты</h1><p class="muted" style="margin:0">Индивидуальный тариф — всегда; общий — если куратор написал первым. Сначала — чаты с новыми сообщениями.</p></div></div>
     <div class="tools">${curSeg()}</div>
     <div class="cat">${list.map(c => { const m = chatOf(c), l = m[m.length-1], u = unreadOf(c);
-      return `<button class="ci" data-a="openChat" data-id="${esc(c.email)}"><span><b>${esc(c.name)}</b> ${c.tariff === TARIFF_IND ? '<span class="chip m">инд.</span>' : ''} ${curChip(c)}<span class="tg"><span class="small muted">${l ? (l.from === 'cu' ? 'Вы: ' : '') + esc(l.text.slice(0, 90)) + (l.text.length > 90 ? '…' : '') : 'Сообщений пока нет'}</span></span></span><span class="cnt">${u ? `<span class="chip r">${u} нов.</span>` : ''}${l ? `<br>${fmtDT(l.at)}` : ''}</span></button>`; }).join('') || '<p class="muted">Чатов пока нет. Индивидуальный тариф отмечается в карточке ученицы.</p>'}</div>`;
+      return `<button class="ci" data-a="openChat" data-id="${esc(c.email)}"><span><b>${esc(c.name)}</b> ${c.tariff === TARIFF_IND ? '<span class="chip m">инд.</span>' : ''} ${curChip(c)}<span class="tg"><span class="small muted">${l ? (l.from === 'cu' ? 'Вы: ' : '') + esc((l.text || ((l.files || []).length ? '📎 ' + l.files.map(f => f.name).join(', ') : '')).slice(0, 90)) + ((l.text || '').length > 90 ? '…' : '') : 'Сообщений пока нет'}</span></span></span><span class="cnt">${u ? `<span class="chip r">${u} нов.</span>` : ''}${l ? `<br>${fmtDT(l.at)}` : ''}</span></button>`; }).join('') || '<p class="muted">Чатов пока нет. Индивидуальный тариф отмечается в карточке ученицы.</p>'}</div>`;
   }
   function picker(){
     const c = C.find(x => x.email === AV.id), k = AV.pk || AV.tab || 'lessons', q = (AV.pq || '').toLowerCase();
@@ -6867,8 +6997,13 @@ const Adm = (() => {
     if (!c) return;
     if (a === 'assignMe') return act(() => api('assignCurator', { token:S.token, email:c.email, curator:meEmail() }), 'Ученица закреплена за вами');
     if (a === 'demoExtend') return act(() => api('demoExtend', { token:S.token, email:c.email }), 'Продление добавлено (демо)');
-    if (a === 'chatSend') { const text = ($('#chatIn').value || '').trim(); if (!text) return toast('Напишите сообщение');
-      return act(() => api('reply', { token:S.token, email:c.email, lessonId:'', text }), 'Сообщение отправлено'); }
+    if (a === 'chatSend') { const text = ($('#chatIn').value || '').trim(), pend = c.tariff === TARIFF_IND ? (AV.cf || []) : [];
+      if (!text && !pend.length) return toast('Напишите сообщение');
+      b.disabled = true;
+      return act(async () => { const files = pend.length ? await uploadChatFiles(pend, c.email, (i, n) => { b.textContent = 'Загружаем ' + i + ' из ' + n + '…'; }) : [];
+        await api('reply', { token:S.token, email:c.email, lessonId:'', text, files }); AV.cf = []; AV.cdraft = ''; }, 'Сообщение отправлено').then(() => { b.disabled = false; }); }
+    if (a === 'acfDel') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; (AV.cf || []).splice(+b.dataset.i, 1); return render(true); }
+    if (a === 'cfOpen') return openChatFile(b);
     if (a === 'addMat') { AV.pk = AV.tab || 'lessons'; AV.pq = ''; return openDr(picker()); }
     if (a === 'add') { const id = b.dataset.id, ov = { add:(c.ov.add || []).slice(), rm:(c.ov.rm || []).filter(x => x !== id) };
       if (!autoL(c, catOf(id)).includes(id) && !ov.add.includes(id)) ov.add.push(id);
@@ -6900,6 +7035,7 @@ const Adm = (() => {
       return act(() => api('resetPassword', { token:S.token, email:c.email }), 'Пароль сброшен'); }
   }
   function change(e){
+    if (e.target.id === 'adm-chat-file') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; AV.cf = AV.cf || []; return readChatFiles(e.target, AV.cf).then(() => render(true)); }
     if (e.target.id === 'curF') { CF.cur = e.target.value || 'all'; LS.set('hz_curf', CF.cur); return render(true); }
     if (e.target.id === 'curSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); const v = e.target.value;
       return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : 'Ученица откреплена'); }
