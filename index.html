@@ -1560,6 +1560,24 @@ body.fv-on{overflow:hidden}
 .rt-k.warn{border-color:var(--mag);background:var(--lav)}
 .rt-k.warn b{color:var(--mag)}
 .nav .n.warn{background:var(--mag);color:#fff}
+/* отложенные сообщения */
+.sch-f{display:grid;gap:12px;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.sch-f textarea{width:100%;resize:vertical}
+.sch-row{display:grid;grid-template-columns:240px 1fr;gap:16px;align-items:start}
+.sch-row label{display:grid;gap:4px}
+.sch-t{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:6px}
+.sch-t label{display:inline-flex;gap:6px;align-items:center;font-size:14px;font-weight:600;cursor:pointer}
+.sch-row2{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between}
+.sch-row2 label.small{display:inline-flex;gap:8px;align-items:center;cursor:pointer}
+.sch-pp{max-height:120px;max-width:220px;border-radius:10px;border:1px solid var(--line)}
+.sch-l{font-size:15px;margin:6px 0 8px;color:var(--e)}
+.sch-i{border:1px solid var(--line);border-left:3px solid var(--mag);border-radius:12px;padding:10px 14px;margin-bottom:8px;background:var(--surface)}
+.sch-i.done{border-left-color:var(--line);opacity:.8}
+.sch-h{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.sch-h .small{margin-left:auto}
+.sch-x{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;margin-top:6px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+@media (max-width:640px){.sch-row{grid-template-columns:1fr}}
+.sch-f textarea{border-radius:14px;min-height:96px}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -4530,6 +4548,11 @@ const Demo = (() => {
     const sts=load().students, staff=sts.filter(s=>isStaff({role:s['Роль']})); let curs=staff.filter(s=>/куратор/.test(s['Роль'])).map(s=>s['Email']); if(!curs.length) curs=staff.map(s=>s['Email']); if(!curs.length) return '';
     const n=e=>sts.filter(s=>s['Тариф']===TARIFF_IND && !isStaff({role:s['Роль']}) && s['Закреплён за']===e).length; const cur=curs.sort((a,b)=>n(a)-n(b))[0];
     st['Закреплён за']=cur; log(st['Email'],'curator','авто: индивидуальный тариф → '+cur); save(); return cur; }
+  function gcSchOut(){ const wk=Date.now()-7*DAY; return (gcDb().sch||[]).filter(x=>x.status==='ждёт'||Date.parse(x.sent||x.at)>wk).map(x=>({id:x.id,at:x.at,by:x.by,types:x.types,text:x.text,photo:!!x.photo,pin:x.pin,status:x.status,sent:x.sent})).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)); }
+  function gcDue(){ const g=gcDb(); (g.sch||[]).forEach(x=>{ if(x.status!=='ждёт'||Date.parse(x.at)>Date.now()) return;
+      x.types.forEach(t=>{ const id='g'+Math.random().toString(36).slice(2); if(x.photo) g.photos[x.photo].type=t;
+        gcList(t).push({id,at:now(),email:x.email,name:x.by,cu:true,text:x.text,re:'',photo:x.photo,rx:{}}); if(x.pin) g.pin[t]=id; gcBump(t); });
+      x.status='отправлено'; x.sent=now(); }); save(); }
   function gcDb(){ const db=load(); if(!db.gchat){ db.gchat={ver:{},pin:{},photos:{},list:{}}; gcSeed(db.gchat); } return db.gchat; }
   const gcList = t => { const g=gcDb(); return g.list[t]=g.list[t]||[]; };
   const gcBump = t => { const g=gcDb(); g.ver[t]=(g.ver[t]||0)+1; save(); };
@@ -4589,7 +4612,7 @@ const Demo = (() => {
     demoExtend({token,email}){ adminAuth(token); (load().ext[email]=load().ext[email]||[]).push(now()); log(email,'extended','демо: оплачено продление'); return {}; },
     messages({token}){ const st=auth(token); return {messages:msgsOf(st['Email'])}; },
     // ── чаты протоколов (демо) ──
-    gchatGet({token,type,v}){ const me=auth(token), x=gcCtx(me,type), list=gcList(type);
+    gchatGet({token,type,v}){ gcDue(); const me=auth(token), x=gcCtx(me,type), list=gcList(type);
       const ver=String(gcDb().ver[type]||0)+(x.staff?'s':'')+(x.banned?'b':''); if(v&&v===ver) return {same:true};
       return gcOut(me,type,ver,x); },
     gchatSend({token,type,text,photo,replyTo}){ const me=auth(token), x=gcCtx(me,type); if(x.banned) throw new Error('Куратор ограничил отправку сообщений в чат');
@@ -4635,6 +4658,13 @@ const Demo = (() => {
       db.paid.forEach(p=>{ const st=find(p.email); if(!st){ db.students.push({'Email':p.email,'Имя':p.name,'Роль':'ученик','Статус':STS.none,'Тариф':p.tariff===TARIFF_IND?TARIFF_IND:'Общий'}); log(p.email,'added_from_getcourse',p.tariff||''); res.added++; }
         else if(p.tariff===TARIFF_IND && st['Тариф']!==TARIFF_IND){ st['Тариф']=TARIFF_IND; log(p.email,'tariff',TARIFF_IND+' (из «Оплатили»)'); res.upgraded++; } });
       db.students.forEach(st=>{ const c=demoAutoCur(st); if(c) res.assigned.push({email:st['Email'],cur:c}); }); return res; },
+    gchatSchedule({token,types,text,at,pin,photo}){ const me=adminAuth(token); types=(types||[]).filter(t=>PNAME[t]); if(!types.length) throw new Error('Выберите хотя бы один чат');
+      text=String(text||'').trim().slice(0,2000); if(!text&&!photo) throw new Error('Напишите сообщение'); const t=Date.parse(at); if(!t) throw new Error('Укажите дату и время отправки'); if(t<Date.now()-60000) throw new Error('Это время уже прошло');
+      const g=gcDb(); g.sch=g.sch||[]; let ph=''; if(photo){ ph='p'+Math.random().toString(36).slice(2); g.photos[ph]={type:types[0],data:photo}; }
+      g.sch.push({id:'s'+Math.random().toString(36).slice(2),at:new Date(t).toISOString(),email:me['Email'],by:me['Имя']||'Куратор',types,text,photo:ph,pin:!!pin,status:'ждёт',sent:''}); save(); return {list:gcSchOut()}; },
+    gchatScheduled({token}){ adminAuth(token); gcDue(); return {list:gcSchOut()}; },
+    gchatScheduleAct({token,id,act}){ const me=adminAuth(token), x=(gcDb().sch||[]).find(s=>s.id===id); if(!x||x.status!=='ждёт') throw new Error('Сообщение уже отправлено или отменено');
+      if(act==='cancel') x.status='отменено · '+(me['Имя']||''); else { x.at=now(); gcDue(); } save(); return {list:gcSchOut()}; },
     gchatStats({token}){ adminAuth(token); const g=gcDb(), out=[]; Object.keys(g.list).forEach(t=>{ const cu={}; g.list[t].forEach(m=>{ if(m.cu) cu[m.id]=1; });
       g.list[t].forEach(m=>out.push({t,at:m.at,email:m.email,name:m.name,cu:!!m.cu,del:!!m.del,q:!m.cu&&(/\?/.test(m.text||'')||!!cu[m.re])})); }); return {list:out}; },
     setOverrides({token,email,ov,log:l}){ adminAuth(token); const st=find(email); st['Правки материалов']=JSON.stringify({add:ov.add||[],rm:ov.rm||[]}); if(l) log(email,'materials',l); return {}; },
@@ -6861,7 +6891,7 @@ const Adm = (() => {
     const y = window.scrollY;
     side();
     $('#adm').innerHTML = ({ over, clients, client, catalog, comments, chats, gchats, rtime, ratings, raffle, reviews })[AV.s]();
-    if (AV.s === 'gchats') { if (!gcPollT) gcPoll(true, () => AV.t || 'slow', () => render(true)); } else if (gcPollT) gcPoll(false);
+    if (AV.s === 'gchats') { if (!gcPollT) gcPoll(true, () => AV.t || 'slow', () => { schKeep(); render(true); }); } else if (gcPollT) gcPoll(false);
     if (AV.s === 'client') { loadPhoto(); loadMenuDays(); }
     if (keep) window.scrollTo(0, y);
     saveView();
@@ -7126,6 +7156,38 @@ const Adm = (() => {
       ${slow.map(w => `<tr><td><b>${esc(w.name)}</b></td><td>${esc(w.where)}</td><td>${esc(w.by)}</td><td><span class="chip ${w.d > sla ? 'r' : ''}">${rtFmt(w.d)}</span><span class="sub" style="display:block">${fmtDT(new Date(w.s).toISOString())}</span></td></tr>`).join('')}</tbody></table></div></div>` : ''}
     <p class="small muted">Как считаем: ожидание начинается с первого сообщения клиентки после последнего ответа куратора и заканчивается следующим сообщением куратора в этом же чате. В чатах протоколов вопросом считается сообщение со знаком «?» или ответ на сообщение куратора. «Рабочее время» — считаются только часы ${esc(D && D.settings && D.settings.workHours || '09:00-21:00')} по Москве.</p>`;
   }
+  // ── Отложенные сообщения в чаты протоколов (время — московское) ──
+  let SCH = null, schBusy = false;
+  const SD = { text:'', at:'', types:null, pin:false, photo:null, open:false };
+  const mskInput = ms => new Date(ms + 3 * 36e5).toISOString().slice(0, 16);
+  const mskTxt = iso => new Date(iso).toLocaleString('ru-RU', { day:'numeric', month:'long', hour:'2-digit', minute:'2-digit', timeZone:'Europe/Moscow' });
+  function schLoad(force){ if ((SCH && !force) || schBusy) return; schBusy = true;
+    api('gchatScheduled', { token:S.token }).then(r => { SCH = r.list || []; }).catch(e => { SCH = SCH || []; toast(e.message); }).then(() => { schBusy = false; if (AV.s === 'gchats') { gcKeep(); schKeep(); render(true); } }); }
+  function schKeep(){ const ta = $('#schText'), dt = $('#schAt'), pn = $('#schPin'); if (ta) SD.text = ta.value; if (dt) SD.at = dt.value; if (pn) SD.pin = pn.checked;
+    const bx = document.querySelectorAll('.sch-t input'); if (bx.length) SD.types = [...bx].filter(x => x.checked).map(x => x.value); }
+  function schPanel(t){
+    schLoad();
+    if (!SD.at) { const d = new Date(Date.now() + 3 * 36e5); d.setUTCDate(d.getUTCDate() + 1); d.setUTCHours(9, 0, 0, 0); SD.at = d.toISOString().slice(0, 16); }
+    if (!SD.types) SD.types = [t];
+    const wait = (SCH || []).filter(x => x.status === 'ждёт'), done = (SCH || []).filter(x => x.status !== 'ждёт').reverse().slice(0, 8);
+    const chips = l => l.map(x => `<span class="chip">${esc(TYPES[x] ? TYPES[x].short : x)}</span>`).join(' ');
+    const item = (x, act) => `<div class="sch-i${act ? '' : ' done'}"><div class="sch-h"><b>${mskTxt(x.at)}</b> ${chips(x.types)}${x.pin ? ' <span class="chip m">📌 закрепить</span>' : ''}${x.photo ? ' <span class="chip">фото</span>' : ''}<span class="small muted">${esc(x.by || '')}${act ? '' : ' · ' + esc(x.status)}</span></div>
+      <div class="sch-x">${esc(x.text) || '<span class="muted">Только фото</span>'}</div>
+      ${act ? `<div class="row" style="gap:8px;margin-top:8px"><button class="btn sm ghost" data-a="schNow" data-id="${esc(x.id)}">Отправить сейчас</button><button class="btn sm ghost" data-a="schDel" data-id="${esc(x.id)}">Отменить</button></div>` : ''}</div>`;
+    return `<div class="panel sch" style="margin-top:16px"><div class="head" style="margin-bottom:8px"><h2 style="margin:0"><span>Отложенные сообщения</span></h2>
+      <button class="btn sm ${SD.open ? 'ghost' : ''}" data-a="schOpen">${SD.open ? 'Скрыть форму' : '+ Запланировать сообщение'}</button></div>
+      <p class="small muted" style="margin:0 0 12px">Как в Telegram: напишите заранее — платформа сама отправит сообщение в выбранные чаты в нужное время. Время московское.</p>
+      ${SD.open ? `<div class="sch-f">
+        <textarea class="inp" id="schText" maxlength="2000" rows="4" placeholder="Текст сообщения">${esc(SD.text)}</textarea>
+        <div class="sch-row"><label class="small muted">Когда отправить (МСК)<input class="inp" type="datetime-local" id="schAt" value="${esc(SD.at)}" min="${mskInput(Date.now())}"></label>
+          <div><span class="small muted">В какие чаты</span><div class="sch-t">${Object.keys(PNAME).map(k => `<label><input type="checkbox" value="${k}" ${SD.types.includes(k) ? 'checked' : ''}> ${esc(TYPES[k].short)}</label>`).join('')}<button type="button" class="btn lnk" data-a="schAll">все четыре</button></div></div></div>
+        <div class="sch-row2"><label class="small"><input type="checkbox" id="schPin" ${SD.pin ? 'checked' : ''}> Закрепить при отправке (заменит текущий закреп)</label>
+          <span><input type="file" accept="image/*" id="sch-photo" class="vh"><label for="sch-photo" class="btn ghost sm">${SD.photo ? 'Заменить фото' : 'Прикрепить фото'}</label>${SD.photo ? ` <button type="button" class="btn lnk" data-a="schPhotoX">убрать фото</button>` : ''}</span></div>
+        ${SD.photo ? `<img class="sch-pp" src="${SD.photo}" alt="">` : ''}
+        <div><button class="btn mag" data-a="schSave">Запланировать</button></div></div>` : ''}
+      ${!SCH ? '<p class="small muted">Загружаем…</p>' : wait.length ? `<h3 class="sch-l">Ждут отправки · ${wait.length}</h3>${wait.map(x => item(x, true)).join('')}` : '<p class="small" style="margin:0">Запланированных сообщений нет.</p>'}
+      ${done.length ? `<details style="margin-top:12px"><summary class="small" style="font-weight:700;cursor:pointer">Отправленные и отменённые за неделю</summary>${done.map(x => item(x, false)).join('')}</details>` : ''}</div>`;
+  }
   function gchats(){
     const t = AV.t || 'slow'; AV.t = t;
     if (!GC.data[t] && !GC.loading) { GC.loading = 1; gcLoad(t, true).then(() => { GC.loading = 0; if (AV.s === 'gchats') { gcKeep(); render(true); } }); }
@@ -7134,7 +7196,7 @@ const Adm = (() => {
       <div class="xr-l">${d.bans.map(x => `<div class="xr"><span><b>${esc(x.name || x.email)}</b> <span class="small muted">${esc(x.email)}</span></span><button class="btn sm ghost" data-a="gcBan" data-email="${esc(x.email)}" data-on="0">Снять запрет</button></div>`).join('')}</div></details>` : '';
     return `<div class="head"><div><h1>Чаты протоколов</h1><p class="muted" style="margin:0">Общий чат участниц каждого протокола внутри платформы. В чате видны только имя и первая буква фамилии — почту видят лишь сотрудники. Сообщения куратора отмечены значком.</p></div></div>
     <div class="tools"><div class="seg">${Object.keys(PNAME).map(x => `<button class="${x === t ? 'on' : ''}" data-a="gctab" data-t="${x}">${esc(PNAME[x])}</button>`).join('')}</div></div>
-    <div class="card gc-card">${gcBody(t, true)}</div>${bans}
+    <div class="card gc-card">${gcBody(t, true)}</div>${schPanel(t)}${bans}
     <p class="small muted" style="margin-top:12px">Модерация: «Удалить» убирает сообщение у всех, «Закрепить» поднимает его наверх чата (одно на протокол), «Запретить писать» оставляет участнице только чтение во всех чатах протоколов.</p>`;
   }
   function accessTxt(c){ const a = c.access; if (!a || !a.end) return 'срок ещё не начался';
@@ -7498,10 +7560,24 @@ const Adm = (() => {
       api('formFile', { token:S.token, email:c.email }).then(r => { b.disabled = false; b.textContent = t0; if (r.data) FV_CACHE['form:' + c.email] = r; done(r); })
         .catch(err => { b.disabled = false; b.textContent = t0; toast(err.message); }); return; }
     if (a === 'photoView' && c) { const d = photos[c.email]; if (d) fvOpen(d, 'Фото языка - ' + (c.name || c.email) + '.' + ((d.match(/^data:image\/(\w+)/) || [])[1] || 'jpg').replace('jpeg', 'jpg'), b); return; }
+    if (a === 'schOpen') { schKeep(); SD.open = !SD.open; return render(true); }
+    if (a === 'schAll') { schKeep(); SD.types = Object.keys(PNAME); return render(true); }
+    if (a === 'schPhotoX') { schKeep(); SD.photo = null; return render(true); }
+    if (a === 'schSave') { schKeep(); const at = Date.parse(SD.at + ':00+03:00');
+      if (!SD.text.trim() && !SD.photo) return toast('Напишите сообщение'); if (!at) return toast('Укажите дату и время'); if (at < Date.now() - 60000) return toast('Это время уже прошло');
+      if (!SD.types.length) return toast('Выберите хотя бы один чат');
+      b.disabled = true; b.textContent = 'Сохраняем…';
+      return api('gchatSchedule', { token:S.token, types:SD.types, text:SD.text, at:new Date(at).toISOString(), pin:SD.pin, photo:SD.photo || '' })
+        .then(r => { SCH = r.list; Object.assign(SD, { text:'', pin:false, photo:null, open:false }); gcKeep(); render(true); toast('Запланировано на ' + mskTxt(new Date(at).toISOString()) + ' по Москве'); })
+        .catch(e => { b.disabled = false; b.textContent = 'Запланировать'; toast(e.message); }); }
+    if (a === 'schDel' || a === 'schNow') { if (!confirm(a === 'schDel' ? 'Отменить это сообщение?' : 'Отправить это сообщение прямо сейчас?')) return; schKeep(); b.disabled = true;
+      return api('gchatScheduleAct', { token:S.token, id:b.dataset.id, act: a === 'schDel' ? 'cancel' : 'now' })
+        .then(async r => { SCH = r.list; if (a === 'schNow') { Object.keys(PNAME).forEach(k => { GC.v[k] = ''; }); await gcLoad(AV.t || 'slow', true); } gcKeep(); render(true); toast(a === 'schDel' ? 'Сообщение отменено' : 'Сообщение отправлено'); })
+        .catch(e => { b.disabled = false; toast(e.message); }); }
     if (a === 'rtf') { AV[b.dataset.k] = b.dataset.v; if (b.dataset.k === 'rw') LS.set('hz_rtw', b.dataset.v); return render(true); }
     if (a === 'rtReload') { RTG = null; return open(); }
     if (a === 'rtGo') { closeDr(); GC.stick = true; AV = { s:'gchats', t:b.dataset.t }; render(); return window.scrollTo(0,0); }
-    if (a === 'gctab') { gcKeep(); GC.reply = null; GC.photo = null; GC.stick = true; AV.t = b.dataset.t; return render(true); }
+    if (a === 'gctab') { schKeep(); gcKeep(); GC.reply = null; GC.photo = null; GC.stick = true; AV.t = b.dataset.t; return render(true); }
     if (/^gc[A-Z]/.test(a)) return gcClick(a, b, AV.t || 'slow', true, () => render(true));
     if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'rtime') AV.rw = LS.get('hz_rtw', '0'); if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
     if (a === 'curf') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); return render(true); }
@@ -7589,6 +7665,7 @@ const Adm = (() => {
       return act(() => api('resetPassword', { token:S.token, email:c.email }), 'Пароль сброшен'); }
   }
   function change(e){
+    if (e.target.id === 'sch-photo') { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; schKeep(); return gcShrink(f).then(d => { SD.photo = d; render(true); }).catch(err => toast(err)); }
     if (e.target.id === 'gc-photo') return gcPhotoPick(e.target, AV.t || 'slow', () => render(true));
     if (e.target.id === 'adm-chat-file') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; AV.cf = AV.cf || []; return readChatFiles(e.target, AV.cf).then(() => render(true)); }
     if (e.target.id === 'curF') { CF.cur = e.target.value || 'all'; LS.set('hz_curf', CF.cur); return render(true); }
