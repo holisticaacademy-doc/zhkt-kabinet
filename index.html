@@ -7611,7 +7611,7 @@ const Adm = (() => {
     if (a === 'close') return closeDr();
     if (a === 'syncPaid') { b.disabled = true; b.textContent = 'Подтягиваем…'; let r = {};
       return act(async () => { r = await api('syncPaid', { token:S.token }); }).then(() => { const n = (r.assigned || []).length;
-        toast(r.added || r.upgraded || n ? `Новых: ${r.added || 0} · стали индивидуальными: ${r.upgraded || 0} · распределено по кураторам: ${n}` : 'Всё уже актуально: новых оплат нет'); }); }
+        toast((r.miss && r.miss.length ? `Не нашла в листе «Ученики»: ${r.miss.join(', ')}. ` : '') + (r.added || r.upgraded || n ? `Новых: ${r.added || 0} · стали индивидуальными: ${r.upgraded || 0} · закреплено за кураторами: ${n}` : 'Всё уже актуально')); }); }
     if (a === 'addOpen') return openDr(addForm());
     if (a === 'addSave') {
       const rows = ($('#addRows').value || '').split('\n').map(l => l.split(/[;,\t]/).map(x => x.trim())).filter(x => x[0] && x[0].includes('@'))
