@@ -469,6 +469,20 @@ body.fv-on{overflow:hidden}
 .sr-b .gc-n{position:absolute;top:0;right:-2px;min-width:18px;height:18px;font-size:10.5px;padding:0 4px;margin:0;box-shadow:0 0 0 2px var(--bg)}
 .burger{position:relative}
 .burger.dot::after{content:"";position:absolute;top:5px;right:5px;width:9px;height:9px;border-radius:50%;background:var(--mag);box-shadow:0 0 0 2px var(--bg)}
+/* файлы тарифа «Индивидуальный» и карточка куратора */
+.indg{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;margin:10px 0}
+.indg-h{display:flex;align-items:baseline;gap:8px}
+.indg-h b{color:var(--e)}
+.indf{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.indf span{flex:1;min-width:0;overflow-wrap:anywhere}
+.indf svg{flex:none;color:var(--e)}
+.indf .btn.lnk{flex:none;width:auto;padding:4px 6px;font-size:13px;color:var(--mag);background:none;border:0}
+.indg label.btn{display:inline-flex;width:auto;margin-top:8px;flex:none}
+.cucard{display:flex;gap:14px;align-items:flex-start;border-left:4px solid var(--mag)}
+.cucard .ic{flex:none;width:42px;height:42px;border-radius:12px;background:var(--lav);color:var(--mag);display:grid;place-items:center}
+.cucard .ic svg{width:22px;height:22px}
+.cucard .btn{width:auto;flex:none}
+.indg .btn.sm{padding:8px 16px;min-height:38px;font-size:14px}
 
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
@@ -4591,7 +4605,8 @@ const Demo = (() => {
       st._pw=hash(st['Email']+password); log(st['Email'],'password_set'); return {token:session(st)}; },
     login({email,password}){ const st=studentOrPaid(email); if(!st) throw new Error(NOT_PAID); if(!st._pw) throw new Error('Пароль ещё не задан');
       if(st._pw!==hash(st['Email']+password)) throw new Error('Неверный пароль'); return {token:session(st)}; },
-    me({token}){ const st=auth(token); const q=load().quizzes[st['Email']]||null, u=pub(st), closed=u.access.closed&&!isStaff({role:st['Роль']});
+    me({token}){ const st=auth(token); const q=load().quizzes[st['Email']]||null, u=pub(st), cu=find(st['Закреплён за']); if(cu) u.curName=cu['Имя']||''; if(q) u.hasForm=indFiles(q).some(f=>f.kind==='form');
+      const closed=u.access.closed&&!isStaff({role:st['Роль']});
       const lk=closed?{}:Object.assign({},load().lessons); if(!isStaff({role:st['Роль']})&&!(u.raffle&&u.raffle.status===RZ_ST.ok)) delete lk[RZ_GIFT];
       const fr=(load().feedback||[]).find(f=>f.email===st['Email'].toLowerCase()&&f.key==='final'); u.reviewOk=!!(fr&&fr.rv===RV_OK); if(!isStaff({role:st['Роль']})&&!u.reviewOk) delete lk[RV_GIFT];
       return {user:u, quiz:q, state:parse(st['Прогресс']), lessons:lk, messages:msgsOf(st['Email']), settings:load().settings, feedback:Object.fromEntries((load().feedback||[]).filter(f=>f.email===st['Email'].toLowerCase()).map(f=>[f.key,f.date]))}; },
@@ -4689,8 +4704,14 @@ const Demo = (() => {
     raffleSend({token,kind,review,video}){ const st=auth(token); demoRaffleOpen(st); const had=(load().raffle||{})[st['Email']];
       const n=((load().rfiles||{})[st['Email']]||[]).length; if(!n) throw new Error('Прикрепите фото или анализы'); if(!had&&!String(video||'').trim()) throw new Error('Добавьте ссылку на видеоотзыв');
       const db=load(); db.raffle=db.raffle||{}; db.raffle[st['Email']]=Object.assign(had||{}, {at:now(),files:n,kind:kind==='tests'?'Анализы до/после':'Фото до/после',review:review||(had||{}).review||'',video:video||(had||{}).video||'', status: had&&had.status===RZ_ST.ok?RZ_ST.ok:RZ_ST.wait, name:st['Имя'], protocol:st['Протокол итог']||''}); log(st['Email'],'raffle'); return {at:new Date().toISOString(),files:n}; },
-    uploadForm({token,file}){ const st=auth(token), q=load().quizzes[st['Email']]; if(!q) throw new Error('Сначала отправьте анкету'); q.form={name:file.name}; load().forms=load().forms||{}; load().forms[st['Email']]=file; log(st['Email'],'form'); return {}; },
-    formFile({token,email}){ adminAuth(token); const f=(load().forms||{})[email]; return f?{data:f.data,name:f.name}:{data:''}; },
+    uploadForm({token,file,kind}){ const st=auth(token), q=load().quizzes[st['Email']]; if(!q) throw new Error('Сначала отправьте анкету'); kind=kind==='tests'?'tests':'form';
+      const fs=q.files||indFiles(q); if(fs.filter(f=>f.kind===kind).length>=IND_MAX) throw new Error('Можно прикрепить до '+IND_MAX+' файлов');
+      if(String(file.data||'').length>4e6) throw new Error('В демо-режиме — файлы до 3 МБ');
+      const id='if'+Math.random().toString(36).slice(2); load().forms=load().forms||{}; load().forms[id]={data:file.data,name:file.name};
+      fs.push({id,name:file.name,kind,at:now()}); q.files=fs; const fm=fs.filter(f=>f.kind==='form'); q.form=fm.length?{id:fm[0].id,name:fm[0].name}:null; log(st['Email'],kind==='tests'?'tests':'form',file.name); save(); return {files:fs}; },
+    formDel({token,id}){ const st=auth(token), q=load().quizzes[st['Email']]; if(!q) throw new Error('Файл не найден'); const fs=(q.files||indFiles(q)).filter(f=>f.id!==id); q.files=fs;
+      const fm=fs.filter(f=>f.kind==='form'); q.form=fm.length?{id:fm[0].id,name:fm[0].name}:null; log(st['Email'],'form_del',''); save(); return {files:fs}; },
+    formFile({token,email,id}){ adminAuth(token); const F=load().forms||{}; const f=id?F[id]:F[email]; return f?{data:f.data,name:f.name}:{data:''}; },
     menuDaysOf({token,email}){ adminAuth(token); const st=find(email); if(!st) return {days:[]};
       // демо: несколько сохранённых дней за последние 2 недели
       let h=0; for(const ch of email) h=(h*31+ch.charCodeAt(0))%9973; const r=()=>{ h=(h*9301+49297)%233280; return h/233280; };
@@ -4945,7 +4966,7 @@ async function sendMsg(lessonId){
 function chatView(){
   const list = chatMsgsU();
   if (!U.preview) { U.st.seenChat = Date.now(); save(); }
-  return `<h1 style="margin-top:22px">Чат с куратором</h1>
+  return `<h1 style="margin-top:22px">Чат с куратором</h1>${S.user.curName ? `<p style="margin:-4px 0 8px"><b>Ваш куратор — ${esc(S.user.curName)}</b></p>` : ''}
   <p class="muted">${S.user.tariff === TARIFF_IND ? 'Пишите куратору в любое время: он ответит здесь же, обычно в течение дня.' : 'Куратор написал вам — ответьте здесь.'}</p>
   <div class="chat">${bubbles(list, 'cl') || '<p class="muted small">Сообщений пока нет. Напишите первой.</p>'}</div>
   <textarea class="inp" id="msgIn" maxlength="3000" placeholder="Ваше сообщение" style="margin-top:12px;min-height:90px">${esc(U.cdraft || '')}</textarea>
@@ -5564,8 +5585,8 @@ function wait(){
   : `<div class="upcard"><h3 style="margin-top:0;color:var(--mag)">Загрузите фото языка</h3>
     <p>Сфотографируйте язык утром, натощак, до чистки зубов. При дневном свете, без вспышки и фильтров — так, чтобы язык был виден целиком.</p>
     ${tongueBlock(null,'wait')}</div>`}
-  ${isInd() ? (S.user.hasForm ? `<div class="card"><p><b>Опросник получен.</b> Если что-то дополнили — загрузите новый файл.</p>${formBlock('wait')}</div>`
-    : `<div class="upcard"><h3 style="margin-top:0;color:var(--mag)">Прикрепите опросник</h3><p>Для тарифа «Индивидуальный» куратору нужен заполненный опросник. Скачайте бланк, заполните и прикрепите файл.</p>${indDownloads()}${formBlock('wait')}</div>`) : ''}
+  ${curCard()}
+  ${isInd() ? `<div class="${S.user.hasForm ? 'card' : 'upcard'}"><h3 style="margin-top:0;color:${S.user.hasForm ? 'var(--e)' : 'var(--mag)'}">${S.user.hasForm ? 'Файлы для куратора' : 'Прикрепите опросник'}</h3><p>${S.user.hasForm ? 'Опросник получен. Можно дополнить его или прикрепить анализы.' : 'Для тарифа «Индивидуальный» куратору нужен заполненный опросник. Скачайте бланк, заполните и прикрепите — можно фото каждой страницы.'}</p>${S.user.hasForm ? '' : indDownloads()}${indBlock('wait')}</div>` : ''}
   ${webinarCard()}
   <div class="card"><p>Спасибо, что ответили открыто и внимательно — именно это помогает подобрать программу точно под вас.</p></div>
   <button class="btn ghost full" data-a="reload">Проверить, назначен ли протокол</button>
@@ -5620,7 +5641,7 @@ function dash(){
       ${goL ? `<button class="btn" data-a="open" data-id="${goL.id}">${cont ? 'Продолжить обучение' : 'Начать урок'} <span aria-hidden="true">→</span></button>` : `<button class="btn" data-a="cat" data-k="lessons">К урокам <span aria-hidden="true">→</span></button>`}</div>
   </div><div class="hr-ph"><img src="${esc(IRINA())}" alt="Ирина Шиманская" onerror="this.parentNode.remove()"></div></div>
   ${!U.preview && S.user.access && S.user.access.left != null && S.user.access.left <= 7 ? `<div class="upcard"><b style="color:var(--mag)">Доступ открыт до ${fmtM(S.user.access.last)}.</b> ${S.set.extendUrl ? `Чтобы продолжить, продлите доступ на ${extTxt()} — все отметки сохранятся.<div style="margin-top:10px"><a class="btn mag" href="${esc(S.set.extendUrl)}" target="_blank" rel="noopener">Продлить доступ</a></div>` : 'Продлить доступ можно через службу заботы.'}</div>` : ''}
-  ${isInd() && !S.user.hasForm && !U.preview ? `<details class="upcard indc"${V.ferr || V.fbusy ? ' open' : ''}><summary><span class="ic">${I.fdoc}</span><span><small>Задание для тарифа «Индивидуальный»</small><b>Прикрепите опросник для куратора</b></span><span class="chv">${I.chev}</span></summary><p>Заполненный опросник поможет куратору точнее подобрать ваш индивидуальный протокол. Скачайте бланк, заполните и прикрепите файл.</p>${indDownloads()}${formBlock('wait')}</details>` : ''}
+  ${isInd() && !S.user.hasForm && !U.preview ? `<details class="upcard indc"${V.ferr || V.fbusy ? ' open' : ''}><summary><span class="ic">${I.fdoc}</span><span><small>Задание для тарифа «Индивидуальный»</small><b>Прикрепите опросник для куратора</b></span><span class="chv">${I.chev}</span></summary><p>Заполненный опросник поможет куратору точнее подобрать ваш индивидуальный протокол. Скачайте бланк, заполните и прикрепите — можно фото каждой страницы. Анализы тоже можно прикрепить здесь.</p>${indDownloads()}${indBlock('wait')}</details>` : ''}
   ${webinarCard()}
   ${fbCard()}
   ${S.user.recs && !U.preview ? `<div class="recs"><small>Рекомендации куратора</small><p style="margin:0">${esc(S.user.recs)}</p></div>` : ''}
@@ -5848,7 +5869,7 @@ const QSTEP_COUNT = QSTEPS;
 const draftKey = () => 'hz_draft_' + MODE + '_' + ((S.user && S.user.email) || '');
 function newQ(){ return { fio:(S.user && S.user.name) || '', pol:'', age:'', height:'', weight:'', waist:'', tongue:null, tongueLater:false,
   gates:{}, diag:[], chol:'', ans:{}, b7prod:'', meds:'', goals:'', excluded:[], productsOther:'', free:'', consent:false, step:1 }; }
-function saveDraft(){ if (!QD) return; const c = Object.assign({}, QD, { tongue:null, form:null, step:V.step }); LS.set(draftKey(), c); }
+function saveDraft(){ if (!QD) return; const c = Object.assign({}, QD, { tongue:null, form:null, files:null, step:V.step }); LS.set(draftKey(), c); }
 function fld(label, f, opts){ opts = opts || {};
   const bad = V.err && V.err[f];
   const err = bad ? `<div class="errt">${V.err[f]}</div>` : '';
@@ -5918,9 +5939,9 @@ function quizStep(){
     ${!QD.tongue ? `<div class="opts" style="margin-top:12px">${opt('Загружу утром', QD.tongueLater, 'tLater', '1', true)}</div>` : ''}
     ${isInd() ? `<h2><span>Опросник — тариф «Индивидуальный»</span></h2>
     <p>Скачайте опросник, заполните его и прикрепите сюда — вместе с фото языка он поможет куратору составить ваш индивидуальный протокол. Фото кожи или фото в полный рост, если нужно, можно отправить куратору в чат.</p>
-    ${indDownloads()}${formBlock('quiz')}
-    ${!QD.form ? `<div class="opts" style="margin-top:12px">${opt('Прикреплю позже, в личном кабинете', QD.formLater, 'fLater', '1', true)}</div>` : ''}` : ''}`;
-    ok = (!!QD.tongue || QD.tongueLater) && (!isInd() || !!QD.form || QD.formLater);
+    ${indDownloads()}${indBlock('quiz')}
+    ${!(QD.files && QD.files.form.length) ? `<div class="opts" style="margin-top:12px">${opt('Прикреплю позже, в личном кабинете', QD.formLater, 'fLater', '1', true)}</div>` : ''}` : ''}`;
+    ok = (!!QD.tongue || QD.tongueLater) && (!isInd() || !!(QD.files && QD.files.form.length) || QD.formLater);
   } else if (n === 16) {
     body = `<h2><span>Проверьте ваши ответы</span></h2><p class="muted">После отправки изменить ответы будет нельзя.</p>${summaryHtml()}
     <div class="q"><div class="opts">${opt('Я даю согласие на обработку моих персональных данных, включая сведения о состоянии здоровья, для подбора программы и рекомендаций в соответствии с Политикой обработки персональных данных', QD.consent, 'consent', '1')}</div><p class="small" style="margin-top:8px"><a href="${esc(CFG.POLICY_URL)}" target="_blank" rel="noopener" class="lnk">Политика обработки персональных данных</a></p></div>
@@ -5948,7 +5969,7 @@ function summaryHtml(){
   sec('Не переношу', [QD.excluded.length && r('Продукты', QD.excluded.map(c => (EXCLUDABLE.find(p => p.code === c) || { name:c }).name).join(', ')), QD.productsOther && r('Другое', QD.productsOther)].filter(Boolean));
   sec('Что ещё важно знать', [QD.free && r('Ваш комментарий', QD.free)].filter(Boolean));
   sec('Фото языка', [r('Фото', QD.tongue ? 'прикреплено' : 'загружу утром')]);
-  if (isInd()) sec('Опросник', [r('Файл', QD.form ? QD.form.name : 'прикреплю позже')]);
+  if (isInd()) { const F = QD.files || { form:[], tests:[] }; sec('Файлы для куратора', [r('Опросник', F.form.length ? F.form.map(f => f.name).join(', ') : 'прикреплю позже'), r('Анализы', F.tests.length ? F.tests.map(f => f.name).join(', ') : 'нет')]); }
   return rows.join('');
 }
 function validateStep1(){
@@ -5975,8 +5996,12 @@ async function finishQuiz(){
   const payload = quizPayload(QD);
   hist = []; V = { s:'calc', msg:'Отправляем ответы…' }; render();
   try {
-    await api('submitQuiz', { token:S.token, quiz:payload, photo:QD.tongue || '', form:QD.form || null });
+    await api('submitQuiz', { token:S.token, quiz:payload, photo:QD.tongue || '', form:null });
+    const up = isInd() && QD.files ? [].concat(QD.files.form.map(f => ['form', f]), QD.files.tests.map(f => ['tests', f])) : [], bad = [];
+    for (let i = 0; i < up.length; i++) { V.msg = `Загружаем файлы для куратора: ${i + 1} из ${up.length}…`; render();
+      try { await api('uploadForm', { token:S.token, kind:up[i][0], file:up[i][1] }); } catch (e) { bad.push(up[i][1].name); } }
     LS.del(draftKey()); QD = null;
+    if (bad.length) setTimeout(() => toast('Не загрузились: ' + bad.join(', ') + '. Прикрепите их ещё раз на этой странице.'), 600);
     await loadMe(); route();
     if (a2hsShow() && LS.get('hz_a2q', '') !== 'done') { MDL.k = 'a2q'; renderMdl(); }
   } catch (e) {
@@ -5992,6 +6017,52 @@ function indDownloads(){
     <a class="file" href="${IND_FILES.doc}" download="Опросник ЖКТ — тариф Индивидуальный.docx"><span class="ext w">DOC</span><span class="tx"><b>Опросник — бланк для заполнения</b><span>Word, можно заполнить на компьютере или телефоне</span></span><span class="ch">${I.dl}</span></a>
     <a class="file" href="${IND_FILES.pdf}" download="Опросник ЖКТ — тариф Индивидуальный.pdf"><span class="ext p">PDF</span><span class="tx"><b>Опросник — для печати</b><span>можно распечатать, заполнить от руки и сфотографировать</span></span><span class="ch">${I.dl}</span></a>
     <a class="file" href="${IND_FILES.tests}" download="ЖКТ — рекомендованные анализы.pdf"><span class="ext p">PDF</span><span class="tx"><b>Рекомендованные анализы</b><span>сдаются по желанию</span></span><span class="ch">${I.dl}</span></a></div>`;
+}
+// ── Файлы тарифа «Индивидуальный»: опросник (до 5 файлов — фото или сканы листов) и анализы (до 5 файлов) ──
+const IND_MAX = 5, IND_KINDS = { form:'Опросник', tests:'Анализы' };
+const indFiles = q => !q ? [] : q.files ? q.files : q.form && q.form.id ? [{ id:q.form.id, name:q.form.name || 'опросник', kind:'form' }] : [];
+function indBlock(ctx){
+  const quiz = ctx === 'quiz';
+  if (quiz) QD.files = QD.files || { form:[], tests:[] };
+  const list = k => quiz ? QD.files[k].map((f, i) => ({ name:f.name, i })) : indFiles(U.quiz).filter(f => f.kind === k);
+  const group = k => { const l = list(k), busy = V.fbusy && V.fbusy.k === k;
+    return `<div class="indg"><div class="indg-h"><b>${IND_KINDS[k]}</b>${k === 'tests' ? '<span class="small muted">по желанию</span>' : ''}<span class="small muted" style="margin-left:auto">${l.length} из ${IND_MAX}</span></div>
+      <p class="small muted" style="margin:2px 0 8px">${k === 'form' ? 'Распечатали и заполнили от руки? Сфотографируйте каждую страницу и прикрепите все фото. Подойдут и PDF или Word.' : 'Результаты анализов, если сдавали: PDF, фото или скан.'} До ${IND_MAX} файлов, до 10 МБ каждый.</p>
+      ${l.map(f => `<div class="indf">${I.clip.replace('<svg', '<svg width="16" height="16"')}<span>${esc(f.name)}</span><button type="button" class="btn lnk" data-a="ifDel" data-k="${k}" ${quiz ? `data-i="${f.i}"` : `data-id="${esc(f.id)}"`}>Удалить</button></div>`).join('')}
+      ${l.length < IND_MAX ? `<input type="file" multiple accept=".doc,.docx,.pdf,.odt,.rtf,.txt,image/*" id="ind-${k}" data-k="${k}" data-ctx="${ctx}" class="vh ind-in"><label for="ind-${k}" class="btn ${k === 'form' && !l.length ? '' : 'ghost'} sm">${busy ? esc(V.fbusy.t) : l.length ? '+ Добавить файлы' : k === 'form' ? 'Прикрепить опросник' : 'Прикрепить анализы'}</label>` : ''}</div>`; };
+  return `${group('form')}${group('tests')}${V.ferr ? `<div class="errt" role="alert">${esc(V.ferr)}</div>` : ''}`;
+}
+async function indAdd(input){
+  const k = input.dataset.k, ctx = input.dataset.ctx, fs = [...(input.files || [])]; input.value = ''; if (!fs.length) return;
+  V.ferr = '';
+  const have = ctx === 'quiz' ? QD.files[k].length : indFiles(U.quiz).filter(f => f.kind === k).length;
+  if (have + fs.length > IND_MAX) { V.ferr = `Можно прикрепить до ${IND_MAX} файлов — выберите не больше ${IND_MAX - have}.`; return keepY(render); }
+  for (let i = 0; i < fs.length; i++) {
+    V.fbusy = { k, t: fs.length > 1 ? `Загружаем ${i + 1} из ${fs.length}…` : 'Загружаем…' }; keepY(render);
+    try { const f = await readFileData(fs[i]);
+      if (ctx === 'quiz') { QD.files[k].push(f); if (k === 'form') QD.formLater = false; }
+      else { const r = await api('uploadForm', { token:S.token, file:f, kind:k }); U.quiz = Object.assign(U.quiz || {}, { files:r.files }); if (k === 'form') S.user.hasForm = true; } }
+    catch (err) { if (err === 'none') continue; if (err && err.message === 'AUTH') return logout(); V.ferr = (fs[i].name ? fs[i].name + ': ' : '') + (err.message || err); }
+  }
+  V.fbusy = null; if (ctx !== 'quiz' && !V.ferr) toast(k === 'form' ? 'Опросник получен — куратор его увидит' : 'Анализы получены — куратор их увидит');
+  keepY(render);
+}
+async function indDel(b){
+  const k = b.dataset.k;
+  if (b.dataset.i != null) { QD.files[k].splice(+b.dataset.i, 1); return keepY(render); }
+  if (!confirm('Удалить этот файл? Куратор перестанет его видеть.')) return;
+  b.disabled = true;
+  try { const r = await api('formDel', { token:S.token, id:b.dataset.id }); U.quiz = Object.assign(U.quiz || {}, { files:r.files }); S.user.hasForm = r.files.some(f => f.kind === 'form'); toast('Файл удалён'); }
+  catch (e) { toast(e.message); }
+  keepY(render);
+}
+// чат с куратором до назначения протокола (тариф «Индивидуальный»)
+function curCard(){
+  if (!isInd() || U.preview) return '';
+  const n = chatUnread();
+  return `<div class="card cucard"><span class="ic">${I.chat}</span><div><b>${S.user.curName ? 'Ваш куратор — ' + esc(S.user.curName) : 'Чат с куратором'}</b>
+    <p class="small" style="margin:2px 0 10px">Можно написать уже сейчас, не дожидаясь протокола: задать вопрос, прислать фото или анализы.</p>
+    <button class="btn mag" data-a="chat">Открыть чат${n ? ' · ' + n + ' нов.' : ''}</button></div></div>`;
 }
 function formBlock(ctx){
   const err = V.ferr ? `<div class="errt" role="alert">${esc(V.ferr)}</div>` : '';
@@ -6100,6 +6171,7 @@ document.addEventListener('change', async e => {
   if (t.id === 'chat-file') { const ta = $('#msgIn'); U.cdraft = ta ? ta.value : ''; U.cf = U.cf || []; await readChatFiles(t, U.cf); return keepY(render); }
   if (t.id === 'rz-before' || t.id === 'rz-after') return rzAdd(t, t.id === 'rz-after' ? 'после' : 'до');
   if (t.id === 'rzConsent') { RZ().consent = t.checked; return; }
+  if (t.classList && t.classList.contains('ind-in')) return indAdd(t);
   if (t.id === 'form-file') {
     const ctx = t.dataset.ctx; V.ferr = ''; V.fbusy = true; keepY(render);
     try { const f = await readFileData(t.files[0]);
@@ -6494,6 +6566,7 @@ function profView(){
   const hist = (p.hist || []).slice(-6).reverse();
   return `<h1 style="margin-top:22px">Мой профиль</h1>
   <p class="muted">Данные из входной анкеты. Имя, вес и обхват талии можно обновлять — так вы и куратор увидите динамику.</p>
+  ${isInd() && !U.preview && U.quiz ? `<div class="pf-card"><h2 class="pf-h">Файлы для куратора</h2>${indBlock('wait')}</div>` : ''}
   <div class="pf-card"><h2 class="pf-h">Обо мне</h2>
     ${inp('name', 'Имя', u.name || q.fio, { extra: 'maxlength="80" autocomplete="name"' })}
     ${ro('Почта', u.email)}
@@ -6686,6 +6759,7 @@ function studentClick(e, b, a){
   }
   if (a === 'tDel') { QD.tongue = null; return keepY(render); }
   if (a === 'fDel') { QD.form = null; return keepY(render); }
+  if (a === 'ifDel') return indDel(b);
   if (a === 'opt') {
     const k = b.dataset.k, v = b.dataset.v;
     const tog = (arr, x) => { const i = arr.indexOf(x); i < 0 ? arr.push(x) : arr.splice(i, 1); };
@@ -6763,7 +6837,7 @@ function saveDraftSoon(){ clearTimeout(draftT); draftT = setTimeout(saveDraft, 4
 
 // ═══ АДМИНКА ════════════════════════════════════════════════════
 const EVN = { login:'Вход в кабинет', password_set:'Задан пароль', password_reset:'Сброшен пароль', added_from_getcourse:'Карточка создана из выгрузки GetCourse',
-  quiz_submit:'Анкета отправлена', form:'Прикреплён опросник', support:'Открыла техподдержку', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён', extra_protocol:'Доп. протоколы', protocol_switch:'Переключила протокол',
+  quiz_submit:'Анкета отправлена', form:'Прикреплён опросник', tests:'Прикреплены анализы', form_del:'Удалён файл опросника или анализов', support:'Открыла техподдержку', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён', extra_protocol:'Доп. протоколы', protocol_switch:'Переключила протокол',
   quiz_reset:'Анкета открыта заново', progress_reset:'Прогресс сброшен', open:'Открыт урок', done:'Отмечено выполненным',
   video:'Открыто видео урока', download:'Открыт конспект', menu:'Открыт конструктор меню', webinar:'Перешла на вводный вебинар', feedback:'Заполнена оценка обучения', menu_day:'Сохранён день в конструкторе меню', menu_day_del:'Удалён день из конструктора меню', check:'Замер самочувствия',
   recs:'Обновлены рекомендации', note:'Обновлена заметка куратора', chat:'Сообщение в чат', reply_chat:'Ответ куратора в чате',
@@ -6782,7 +6856,21 @@ const Adm = (() => {
     catch (e) { if (e.message === 'AUTH') return logout(); $('#adm').innerHTML = `<div class="panel"><h2 class="neg"><span>Не получилось загрузить данные</span></h2><p>${esc(e.message)}</p><button class="btn" data-a="refresh">Попробовать ещё раз</button> <button class="btn ghost" data-a="logout">Выйти</button></div>`; }
   }
   async function load(){ D = await api('adminData', { token:S.token }); C = build(D); }
-  async function act(fn, msg){ try { await fn(); await load(); render(true); if (msg) toast(msg); } catch (e) { if (e.message === 'AUTH') return logout(); toast(e.message); } }
+  // Действия куратора. С patch — изменение сразу видно на экране, а сохранение в таблицу идёт в фоне.
+  // Без patch — ждём ответа сервера. В обоих случаях свежие данные подтягиваются тихо, без ожидания.
+  let actGen = 0, actPend = 0, bgT = null;
+  const rowOf = email => ((D && D.students) || []).find(s => String(s['Email']).trim().toLowerCase() === email);
+  const typing = () => { const el = document.activeElement; return (el && el.closest && el.closest('#adm') && /^(TEXTAREA|INPUT|SELECT)$/.test(el.tagName) && (el.value || '').trim()) || $('#dr').classList.contains('on'); };
+  function bgLoad(){ clearTimeout(bgT); bgT = setTimeout(async () => { if (actPend) return; const g = actGen;
+    try { const d = await api('adminData', { token:S.token }); if (g !== actGen || actPend) return; D = d; C = build(D); if (!typing()) render(true); } catch (e) {} }, 400); }
+  async function act(fn, msg, patch){
+    actGen++; actPend++;
+    if (patch) { try { patch(); C = build(D); render(true); } catch (e) {} if (msg) toast(msg); }
+    try { await fn(); actPend--; if (!patch) { if (msg) toast(msg); } bgLoad(); }
+    catch (e) { actPend--; if (e.message === 'AUTH') return logout(); toast(e.message); try { await load(); render(true); } catch (x) {} }
+  }
+  const nowISO = () => new Date().toISOString();
+  const addMsg = (email, lessonId, text, files) => { D.messages = D.messages || []; D.messages.push({ at:nowISO(), email, lessonId:lessonId || '', lesson: lessonId ? (byId(lessonId) || { t:'' }).t : '', from:'cu', who:S.user.name || S.user.email, text, files:files || [] }); };
 
   function build(d){
     const map = {}, evs = {};
@@ -6823,7 +6911,7 @@ const Adm = (() => {
   const curSeg = () => { const b = (v, t) => `<button class="${CF.cur === v ? 'on' : ''}" data-a="curf" data-v="${esc(v)}">${t}</button>`;
     const others = curators().filter(x => x.email !== meEmail());
     return `<span class="seg">${b('all','Все')}${b('me','Мои · ' + C.filter(c => c.cur === meEmail()).length)}${b('free','Свободные · ' + C.filter(c => !c.cur && !c.paidOnly).length)}</span>
-      ${others.length ? `<select class="inp" id="curF" style="min-height:38px"><option value="">Куратор…</option>${others.map(x => `<option value="${esc(x.email)}" ${CF.cur === x.email ? 'selected' : ''}>${esc(x.name)} · ${C.filter(c => c.cur === x.email).length}</option>`).join('')}</select>` : ''}`; };
+      ${others.length ? `<select class="inp" id="curF" style="min-height:38px"><option value="">Куратор…</option>${others.map(x => `<option value="${esc(x.email)}" ${CF.cur === x.email ? 'selected' : ''}>${esc(x.name)} · ${C.filter(c => c.cur === x.email).length}${(n => n ? ' (инд. ' + n + ')' : '')(C.filter(c => c.cur === x.email && c.tariff === TARIFF_IND).length)}</option>`).join('')}</select>` : ''}`; };
   const closedC = c => !!(c.access && c.access.closed);
   const extC = c => !!(c.access && c.access.ext);
   // ИИ
@@ -7201,11 +7289,16 @@ const Adm = (() => {
   }
   function accessTxt(c){ const a = c.access; if (!a || !a.end) return 'срок ещё не начался';
     return `${a.closed ? 'закрыт с ' + fmtM(a.end) : 'до ' + fmtM(a.last) + ' · осталось ' + a.left + ' ' + plural(a.left, ['день','дня','дней'])}${a.ext ? ` · продлений: ${a.ext}` : ''}${MODE === 'demo' ? ` <button class="btn lnk" data-a="demoExtend" style="padding:0">+ продление (демо)</button>` : ''}`; }
+  // файлы тарифа «Индивидуальный» в карточке: опросник и анализы, каждый — «Открыть» и «Скачать»
+  function indRows(c){
+    const fs = indFiles(c.quiz);
+    const g = k => { const l = fs.filter(f => f.kind === k); return l.length ? `<p class="small muted" style="margin:10px 0 6px">${IND_KINDS[k]} · ${l.length}</p>` + l.map(f => `<div class="frow" style="margin-bottom:6px"><span class="frow-i">${I.clip}</span><span class="frow-t"><b>${esc(f.name || 'файл')}</b>${f.at ? `<small>${fmtDT(f.at)}</small>` : ''}</span><span class="frow-b"><button class="btn sm" data-a="admForm" data-id="${esc(f.id)}" data-n="${esc(f.name)}" data-v="1">Открыть</button><button class="btn sm ghost" data-a="admForm" data-id="${esc(f.id)}" data-n="${esc(f.name)}">Скачать</button></span></div>`).join('') : ''; };
+    return { form: g('form'), tests: g('tests'), any: fs.length };
+  }
   function formBox(c){
     if (c.tariff !== TARIFF_IND || !c.filled) return '';
-    const f = c.quiz && c.quiz.form;
-    return f ? `<div class="frow" style="margin-top:10px"><span class="frow-i">${I.clip}</span><span class="frow-t"><b>Опросник: ${esc(f.name || 'файл')}</b><small>тариф «Индивидуальный»</small></span><span class="frow-b"><button class="btn sm" data-a="admForm" data-v="1">Открыть</button><button class="btn sm ghost" data-a="admForm">Скачать</button></span></div>`
-      : `<div class="photo-ph miss" style="margin-top:10px;min-height:0;padding:12px"><span><b>Опросник ещё не прикреплён</b><br><small>Тариф «Индивидуальный»: ученица видит напоминание в кабинете</small></span></div>`;
+    const r = indRows(c);
+    return r.form ? r.form + r.tests : `<div class="photo-ph miss" style="margin-top:10px;min-height:0;padding:12px"><span><b>Опросник ещё не прикреплён</b><br><small>Тариф «Индивидуальный»: ученица видит напоминание в кабинете</small></span></div>${r.tests}`;
   }
   function photoBox(c){
     return formBox(c) + (c.photo ? `<div id="photo-box"><div class="photo-ph"><span>Загружаем фото…</span></div></div>`
@@ -7323,9 +7416,8 @@ const Adm = (() => {
         <p class="small muted" style="margin:0 0 6px">Фото языка</p>
         ${c.photo ? `<div id="photo-box"><div class="photo-ph"><span>Загружаем фото…</span></div></div>` : `<p class="small" style="margin:0">Фото не загружено.</p>`}
       </div><div>
-        <p class="small muted" style="margin:0 0 6px">Опросник индивидуального тарифа</p>
-        ${f ? `<div class="frow"><span class="frow-i">${I.clip}</span><span class="frow-t"><b>${esc(f.name || 'файл')}</b><small>Google Диск → «ЖКТ — опросники (Индивидуальный)»</small></span><span class="frow-b"><button class="btn sm" data-a="admForm" data-v="1">Открыть</button><button class="btn sm ghost" data-a="admForm">Скачать</button></span></div>`
-          : `<p class="small" style="margin:0">${ind ? 'Опросник ещё не прикреплён.' : 'Не нужен: тариф «Общий».'}</p>`}
+        ${(r => r.any ? (r.form || '<p class="small muted" style="margin:0 0 6px">Опросник</p><p class="small" style="margin:0">Опросник ещё не прикреплён.</p>') + r.tests + '<p class="small muted" style="margin:6px 0 0">Google Диск → «ЖКТ — опросники (Индивидуальный)»</p>'
+          : `<p class="small muted" style="margin:0 0 6px">Опросник и анализы</p><p class="small" style="margin:0">${ind ? 'Опросник ещё не прикреплён.' : 'Не нужен: тариф «Общий».'}</p>`)(indRows(c))}
         <p class="small muted" style="margin:16px 0 6px">Файлы из чата</p>
         ${rows || `<p class="small" style="margin:0">${ind ? 'В чате пока нет файлов.' : 'Файлы в чате — только на индивидуальном тарифе.'}</p>`}
         ${rows ? '<p class="small muted" style="margin:6px 0 0">Google Диск → «ЖКТ — файлы чата (Индивидуальный)» → папка с почтой клиентки</p>' : ''}
@@ -7475,7 +7567,7 @@ const Adm = (() => {
       return `<div class="mi"><span class="tx"><b>${esc(c.name)}</b><span>${c.type ? TYPES[c.type].short : '—'} · ${esc(c.email)}</span></span>${has ? `<span class="chip g">уже есть</span>` : `<button class="btn sm" data-a="assign" data-cid="${esc(c.email)}" data-id="${id}">Назначить</button>`}</div>`;
     }).join('') || '<p class="small muted">Никого не нашлось.</p>';
   }
-  async function saveOv(c, ov, log, msg){ c.ov = ov; return act(() => api('setOverrides', { token:S.token, email:c.email, ov, log }), msg); }
+  async function saveOv(c, ov, log, msg){ c.ov = ov; return act(() => api('setOverrides', { token:S.token, email:c.email, ov, log }), msg, () => { rowOf(c.email).ov = ov; }); }
   function lessonActivity(c){
     const ls = eff(c, 'lessons').map(byId).sort((a, b) => a.w - b.w);
     const opened = ls.filter(l => c.state.lx[l.id]).length, done = ls.filter(l => c.state.done[l.id]).length;
@@ -7552,12 +7644,12 @@ const Adm = (() => {
   // ── события ──
   function click(e, b, a){
     const c = AV.s === 'client' ? C.find(x => x.email === AV.id) : null;
-    if (a === 'admForm' && c) { const view = b.dataset.v === '1', t0 = b.textContent;
-      const done = r => { if (!r.data) return toast('Файл не найден'); if (view) return fvOpen(r.data, r.name || 'опросник', b);
-        const x = document.createElement('a'); x.href = r.data; x.download = r.name || 'опросник'; document.body.appendChild(x); x.click(); x.remove(); };
-      if (FV_CACHE['form:' + c.email]) return done(FV_CACHE['form:' + c.email]);
+    if (a === 'admForm' && c) { const view = b.dataset.v === '1', t0 = b.textContent, id = b.dataset.id || '', key = 'form:' + c.email + ':' + id;
+      const done = r => { if (!r.data) return toast('Файл не найден'); if (view) return fvOpen(r.data, r.name || b.dataset.n || 'опросник', b);
+        const x = document.createElement('a'); x.href = r.data; x.download = r.name || b.dataset.n || 'опросник'; document.body.appendChild(x); x.click(); x.remove(); };
+      if (FV_CACHE[key]) return done(FV_CACHE[key]);
       b.disabled = true; b.textContent = 'Загружаем…';
-      api('formFile', { token:S.token, email:c.email }).then(r => { b.disabled = false; b.textContent = t0; if (r.data) FV_CACHE['form:' + c.email] = r; done(r); })
+      api('formFile', { token:S.token, email:c.email, id }).then(r => { b.disabled = false; b.textContent = t0; if (r.data) FV_CACHE[key] = r; done(r); })
         .catch(err => { b.disabled = false; b.textContent = t0; toast(err.message); }); return; }
     if (a === 'photoView' && c) { const d = photos[c.email]; if (d) fvOpen(d, 'Фото языка - ' + (c.name || c.email) + '.' + ((d.match(/^data:image\/(\w+)/) || [])[1] || 'jpg').replace('jpeg', 'jpg'), b); return; }
     if (a === 'schOpen') { schKeep(); SD.open = !SD.open; return render(true); }
@@ -7601,7 +7693,7 @@ const Adm = (() => {
     if (a === 'cmf') { AV.cf = b.dataset.v; return render(true); }
     if (a === 'openChat') { closeDr(); AV = { s:'client', id:b.dataset.id, tab:'lessons' }; render(); const el = document.getElementById('chat'); if (el) el.scrollIntoView(); return; }
     if (a === 'cmReply') { const text = (b.previousElementSibling.value || '').trim(); if (!text) return toast('Напишите ответ');
-      const lid = b.dataset.lid; return act(() => api('reply', { token:S.token, email:b.dataset.email, lessonId:lid, lessonTitle:(byId(lid) || {t:''}).t, text }), 'Ответ отправлен — ученица увидит его под уроком'); }
+      const lid = b.dataset.lid, em = b.dataset.email; return act(() => api('reply', { token:S.token, email:em, lessonId:lid, lessonTitle:(byId(lid) || {t:''}).t, text }), 'Ответ отправлен — ученица увидит его под уроком', () => addMsg(em, lid, text)); }
     if (a === 'pk') { AV.pk = b.dataset.k; return openDr(picker()); }
     if (a === 'assign') { const cc = C.find(x => x.email === b.dataset.cid), id = b.dataset.id; if (!cc) return;
       const ov = { add:(cc.ov.add || []).slice(), rm:(cc.ov.rm || []).filter(x => x !== id) }; if (!autoL(cc, catOf(id)).includes(id) && !ov.add.includes(id)) ov.add.push(id);
@@ -7625,10 +7717,12 @@ const Adm = (() => {
     if (a === 'preview') { U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (a === 'asStudent' && c) { U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (!c) return;
-    if (a === 'assignMe') return act(() => api('assignCurator', { token:S.token, email:c.email, curator:meEmail() }), 'Ученица закреплена за вами');
+    if (a === 'assignMe') return act(() => api('assignCurator', { token:S.token, email:c.email, curator:meEmail() }), 'Ученица закреплена за вами', () => { rowOf(c.email)['Закреплён за'] = meEmail(); });
     if (a === 'demoExtend') return act(() => api('demoExtend', { token:S.token, email:c.email }), 'Продление добавлено (демо)');
     if (a === 'chatSend') { const text = ($('#chatIn').value || '').trim(), pend = c.tariff === TARIFF_IND ? (AV.cf || []) : [];
       if (!text && !pend.length) return toast('Напишите сообщение');
+      if (!pend.length) { const ta = $('#chatIn'); AV.cdraft = ''; if (ta) ta.value = '';
+        return act(() => api('reply', { token:S.token, email:c.email, lessonId:'', text, files:[] }), '', () => addMsg(c.email, '', text)); }
       b.disabled = true;
       return act(async () => { const files = pend.length ? await uploadChatFiles(pend, c.email, (i, n) => { b.textContent = 'Загружаем ' + i + ' из ' + n + '…'; }) : [];
         await api('reply', { token:S.token, email:c.email, lessonId:'', text, files }); AV.cf = []; AV.cdraft = ''; }, 'Сообщение отправлено').then(() => { b.disabled = false; }); }
@@ -7643,20 +7737,21 @@ const Adm = (() => {
       return saveOv(c, ov, 'Убрано: ' + byId(id).t, 'Материал убран'); }
     if (a === 'restore') { const id = b.dataset.id, ov = { add:(c.ov.add || []).slice(), rm:(c.ov.rm || []).filter(x => x !== id) };
       return saveOv(c, ov, 'Возвращено: ' + byId(id).t, 'Материал возвращён'); }
-    if (a === 'aiKeep') return act(() => api('aiResolve', { token:S.token, email:c.email, res:'keep' }), 'Оставлен протокол анкеты');
-    if (a === 'aiSwitch') return act(() => api('aiResolve', { token:S.token, email:c.email, res:'switch' }), 'Выбран протокол, предложенный ИИ — проверьте и назначьте');
+    if (a === 'aiKeep') return act(() => api('aiResolve', { token:S.token, email:c.email, res:'keep' }), 'Оставлен протокол анкеты', () => { rowOf(c.email)['Решение по ИИ'] = 'оставить анкету'; });
+    if (a === 'aiSwitch') return act(() => api('aiResolve', { token:S.token, email:c.email, res:'switch' }), 'Выбран протокол, предложенный ИИ — проверьте и назначьте', () => { rowOf(c.email)['Решение по ИИ'] = 'сменить на ИИ'; });
     if (a === 'aiRun') { b.disabled = true; b.textContent = 'Проверяем…';
       return act(async () => { const r = await api('aiRun', { token:S.token, email:c.email }); if (r.manual) toast('Ключ Claude API не задан — анкета добавлена в таблицу ИИ-проверки для ручной проверки'); }, 'Готово'); }
     if (a === 'confirm') { if (!c.photo || aiOpen(c)) return; const k = $('#proto').value, recs = $('#recs').value;
-      return act(() => api('confirm', { token:S.token, email:c.email, protocol:PNAME[k], recs }), 'Протокол назначен — у ученицы открылась программа'); }
+      return act(() => api('confirm', { token:S.token, email:c.email, protocol:PNAME[k], recs }), 'Протокол назначен — у ученицы открылась программа', () => { const r = rowOf(c.email);
+        Object.assign(r, { 'Протокол итог':PNAME[k], 'Статус':STS.ok, 'Куратор':S.user.name || S.user.email, 'Комментарий куратора':recs }); if (!r['Дата подтверждения']) r['Дата подтверждения'] = nowISO(); if (!r['Закреплён за']) r['Закреплён за'] = meEmail(); }); }
     if (a === 'xAdd') { const t = $('#x-t').value, until = $('#x-u').value || '', note = $('#x-n').value.trim();
       if (until && until <= new Date().toISOString().slice(0, 10)) return toast('Дата должна быть позже сегодняшней');
       const list = c.extra.map(x => Object.assign({}, x)).concat([{ t, until, note, at: new Date().toISOString(), by: S.user.name || S.user.email }]);
-      return act(() => api('setExtra', { token:S.token, email:c.email, extra:list }), 'Протокол «' + PNAME[t] + '» открыт — ученица увидит его в кабинете'); }
+      return act(() => api('setExtra', { token:S.token, email:c.email, extra:list }), 'Протокол «' + PNAME[t] + '» открыт — ученица увидит его в кабинете', () => { rowOf(c.email)['Доп. протоколы'] = JSON.stringify(list); }); }
     if (a === 'xDel') { const x = c.extra[+b.dataset.i]; if (!x || !confirm(`Закрыть ${c.name} протокол «${PNAME[x.t]}»? Отметки о пройденном сохранятся.`)) return;
-      return act(() => api('setExtra', { token:S.token, email:c.email, extra:c.extra.filter((_, i) => i !== +b.dataset.i) }), 'Доступ к протоколу закрыт'); }
-    if (a === 'saveRecs') return act(() => api('saveRecs', { token:S.token, email:c.email, recs:$('#recs').value }), 'Рекомендации сохранены — ученица видит их на главной');
-    if (a === 'saveNote') return act(() => api('saveNote', { token:S.token, email:c.email, note:$('#note').value }), 'Заметка сохранена');
+      const rest = c.extra.filter((_, i) => i !== +b.dataset.i); return act(() => api('setExtra', { token:S.token, email:c.email, extra:rest }), 'Доступ к протоколу закрыт', () => { rowOf(c.email)['Доп. протоколы'] = rest.length ? JSON.stringify(rest) : ''; }); }
+    if (a === 'saveRecs') { const v = $('#recs').value; return act(() => api('saveRecs', { token:S.token, email:c.email, recs:v }), 'Рекомендации сохранены — ученица видит их на главной', () => { rowOf(c.email)['Комментарий куратора'] = v; }); }
+    if (a === 'saveNote') { const v = $('#note').value; return act(() => api('saveNote', { token:S.token, email:c.email, note:v }), 'Заметка сохранена', () => { rowOf(c.email)['Заметка куратора'] = v; }); }
     if (a === 'resetAll') { if (!confirm(`Открыть анкету заново для ${c.name}? Ответы, протокол, рекомендации и прогресс будут сброшены.`)) return;
       return act(() => api('resetQuiz', { token:S.token, email:c.email }), 'Анкета открыта заново'); }
     if (a === 'resetProg') { if (!confirm(`Сбросить прогресс ${c.name}? Анкета и протокол сохранятся.`)) return;
@@ -7670,13 +7765,13 @@ const Adm = (() => {
     if (e.target.id === 'adm-chat-file') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; AV.cf = AV.cf || []; return readChatFiles(e.target, AV.cf).then(() => render(true)); }
     if (e.target.id === 'curF') { CF.cur = e.target.value || 'all'; LS.set('hz_curf', CF.cur); return render(true); }
     if (e.target.id === 'curSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); const v = e.target.value;
-      return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : 'Ученица откреплена'); }
-    if (e.target.id === 'tariff' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); let r = {}; return act(async () => { r = await api('setTariff', { token:S.token, email:c.email, tariff:e.target.value }); }).then(() => toast(r && r.cur ? 'Тариф сохранён · закреплена за ' + curName(r.cur) : 'Тариф сохранён')); }
+      return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : 'Ученица откреплена', () => { rowOf(c.email)['Закреплён за'] = v; }); }
+    if (e.target.id === 'tariff' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); let r = {}; const tv = e.target.value; return act(async () => { r = await api('setTariff', { token:S.token, email:c.email, tariff:tv }); }, '', () => { rowOf(c.email)['Тариф'] = tv; }).then(() => toast(r && r.cur ? 'Тариф сохранён · закреплена за ' + curName(r.cur) : 'Тариф сохранён')); }
     if (e.target.id !== 'proto' || AV.s !== 'client') return;
     const c = C.find(x => x.email === AV.id); if (!c || !c.assigned) return;
     const k = e.target.value;
     if (!confirm(`Сменить протокол на «${PNAME[k]}»?\n\nУроки, специи и фитосоставы у ученицы сменятся на материалы нового протокола.`)) { e.target.value = c.type; return; }
-    act(() => api('confirm', { token:S.token, email:c.email, protocol:PNAME[k] }), 'Протокол изменён');
+    act(() => api('confirm', { token:S.token, email:c.email, protocol:PNAME[k] }), 'Протокол изменён', () => { rowOf(c.email)['Протокол итог'] = PNAME[k]; });
   }
   function input(e){
     const t = e.target;
