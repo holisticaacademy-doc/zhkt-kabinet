@@ -4679,6 +4679,7 @@ const Demo = (() => {
     editMessage({token,email,id,text}){ const a=adminAuth(token), m=load().messages.find(x=>x.id===id&&x.email===email); if(!m) throw new Error('Сообщение не найдено — обновите данные');
       if(m.from!=='cu') throw new Error('Можно изменить только сообщение куратора'); if(!/^(админ|admin|администратор)$/i.test(a['Роль'])&&m.by!==a['Email']) throw new Error('Можно изменить только своё сообщение');
       text=String(text||'').trim(); if(!text&&!(m.files||[]).length) throw new Error('Сообщение не может быть пустым'); m.text=text; m.edited=now(); log(email,'msg_edit',''); save(); return {}; },
+    markRead({token,email,lessonId}){ adminAuth(token); let n=0; load().messages.forEach(m=>{ if(m.email===email&&(m.lessonId||'')===(lessonId||'')&&m.from!=='cu'&&!m.read){ m.read=true; n++; } }); log(email,'msg_read',''); save(); return {marked:n}; },
     deleteMessage({token,email,id}){ const a=adminAuth(token), L=load().messages, i=L.findIndex(x=>x.id===id&&x.email===email); if(i<0) throw new Error('Сообщение не найдено — обновите данные');
       L.splice(i,1); log(email,'msg_delete',''); save(); return {}; },
     gchatEdit({token,type,id,text}){ const a=adminAuth(token), x=gcCtx(a,type), m=gcList(type).find(m=>m.id===id&&!m.del); if(!m) throw new Error('Сообщение не найдено');
@@ -6867,7 +6868,7 @@ function saveDraftSoon(){ clearTimeout(draftT); draftT = setTimeout(saveDraft, 4
 
 // ═══ АДМИНКА ════════════════════════════════════════════════════
 const EVN = { login:'Вход в кабинет', password_set:'Задан пароль', password_reset:'Сброшен пароль', added_from_getcourse:'Карточка создана из выгрузки GetCourse',
-  quiz_submit:'Анкета отправлена', form:'Прикреплён опросник', tests:'Прикреплены анализы', msg_edit:'Куратор изменил сообщение', msg_delete:'Удалено сообщение', form_del:'Удалён файл опросника или анализов', support:'Открыла техподдержку', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён', extra_protocol:'Доп. протоколы', protocol_switch:'Переключила протокол',
+  quiz_submit:'Анкета отправлена', form:'Прикреплён опросник', tests:'Прикреплены анализы', msg_edit:'Куратор изменил сообщение', msg_read:'Отмечено прочитанным без ответа', msg_delete:'Удалено сообщение', form_del:'Удалён файл опросника или анализов', support:'Открыла техподдержку', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён', extra_protocol:'Доп. протоколы', protocol_switch:'Переключила протокол',
   quiz_reset:'Анкета открыта заново', progress_reset:'Прогресс сброшен', open:'Открыт урок', done:'Отмечено выполненным',
   video:'Открыто видео урока', download:'Открыт конспект', menu:'Открыт конструктор меню', webinar:'Перешла на вводный вебинар', feedback:'Заполнена оценка обучения', menu_day:'Сохранён день в конструкторе меню', menu_day_del:'Удалён день из конструктора меню', check:'Замер самочувствия',
   recs:'Обновлены рекомендации', note:'Обновлена заметка куратора', chat:'Сообщение в чат', reply_chat:'Ответ куратора в чате',
@@ -6950,9 +6951,9 @@ const Adm = (() => {
   const aiOpen = c => !!(aiReady(c) && aiK(c) !== c.autoKey && !c.aiRes);
   // сообщения
   const chatOf = c => c.msgs.filter(m => !m.lessonId);
-  function unreadOf(c){ const m = chatOf(c); let n = 0; for (let i = m.length-1; i >= 0; i--) { if (m[i].from === 'cu') break; n++; } return n; }
+  function unreadOf(c){ const m = chatOf(c); let n = 0; for (let i = m.length-1; i >= 0; i--) { if (m[i].from === 'cu' || m[i].read) break; n++; } return n; }
   function threads(){ const t = {}; C.forEach(c => c.msgs.filter(m => m.lessonId).forEach(m => { const k = c.email + '|' + m.lessonId; (t[k] = t[k] || { c, lessonId:m.lessonId, list:[] }).list.push(m); })); return Object.values(t); }
-  const openThreads = () => threads().filter(t => t.list[t.list.length-1].from === 'cl');
+  const openThreads = () => threads().filter(t => { const l = t.list[t.list.length-1]; return l.from === 'cl' && !l.read; });
   const chatClients = () => C.filter(c => !c.paidOnly && (c.tariff === TARIFF_IND || chatOf(c).length));
   function lessonPct(c){ const ls = eff(c, 'lessons'); return ls.length ? Math.round(ls.filter(id => c.state.done[id]).length/ls.length*100) : 0; }
   const wkOpenC = (c, w) => CFG.OPEN_ALL_WEEKS || Date.now() >= openAt(w, D && D.settings);
@@ -7218,7 +7219,7 @@ const Adm = (() => {
     C.filter(c => !c.paidOnly).forEach(c => {
       const g = {}; c.msgs.forEach(m => { (g[m.lessonId || ''] = g[m.lessonId || ''] || []).push(m); });
       Object.keys(g).forEach(k => { let open = 0;
-        g[k].forEach(m => { const t = tsOf(m); if (m.from !== 'cu') { if (!open) open = t; }
+        g[k].forEach(m => { const t = tsOf(m); if (m.from !== 'cu') { if (!open) open = t; if (m.read) open = 0; }
           else if (open) { out.push({ ch: k ? 'lesson' : 'chat', email:c.email, name:c.name, cur:c.cur, where: k ? 'Урок «' + ((byId(k) || {}).t || m.lesson || k) + '»' : RT_CH.chat, lid:k, s:open, e:t, by:m.who || 'Куратор' }); open = 0; } });
         if (open) out.push({ ch: k ? 'lesson' : 'chat', email:c.email, name:c.name, cur:c.cur, where: k ? 'Урок «' + ((byId(k) || {}).t || k) + '»' : RT_CH.chat, lid:k, s:open, e:0 }); });
     });
@@ -7517,7 +7518,7 @@ const Adm = (() => {
       : `<p class="small muted">${ind ? 'Сообщений пока нет.' : 'На общем тарифе чат появится у ученицы, когда вы напишете первой.'}</p>`}
     <textarea id="chatIn" placeholder="Сообщение ученице" style="margin-top:10px;min-height:70px">${esc(AV.cdraft || '')}</textarea>
     ${ind ? `<div class="cattach"><input type="file" multiple id="adm-chat-file" class="vh" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf,.odt,.heic"><label for="adm-chat-file" class="btn sm ghost">${I.clip.replace('<svg', '<svg width="15" height="15"')} Прикрепить файл</label><span class="small muted">до ${CF_MAX} файлов, до ${CF_MB} МБ каждый</span></div>${cfPending(AV.cf || [], 'acfDel')}` : ''}
-    <div style="margin-top:8px"><button class="btn sm" data-a="chatSend">Отправить</button> <span class="small muted">Ученица увидит сообщение в кабинете, в разделе «Чат с куратором».</span></div></div>`;
+    <div style="margin-top:8px"><button class="btn sm" data-a="chatSend">Отправить</button>${unreadOf(c) ? ` <button class="btn sm ghost" data-a="msgRead" data-email="${esc(c.email)}" data-lid="" title="Ответ не нужен — убрать из новых">✓ Прочитано</button>` : ''} <span class="small muted">Ученица увидит сообщение в кабинете, в разделе «Чат с куратором».</span></div></div>`;
   }
   // правка своих сообщений: куратор — свои, админ — любые сообщения кураторов
   const canEdit = x => x.from === 'cu' && x.id && (isAdmRole() || (x.by ? x.by === meEmail() : x.who === (S.user.name || S.user.email)));
@@ -7528,7 +7529,8 @@ const Adm = (() => {
     return `<div class="cmt"><div class="cmt-h"><b>${esc(l ? l.t : t.list[0].lesson)}</b><span class="small muted">${showClient ? `<button class="btn lnk" data-a="open" data-id="${esc(t.c.email)}" style="padding:0">${esc(t.c.name)}</button> · ` : ''}${fmtDT(last.at)}</span></div>
     ${t.list.map(x => x.from === 'cu' ? `<div class="cmt-r"><b>${esc(x.who || 'Куратор')}:</b> ${AV.edit === x.id ? msgEditor(x, t.c) : esc(x.text)}${x.edited ? ' <span class="small muted">· изменено</span>' : ''}${canEdit(x) && AV.edit !== x.id ? ` <button type="button" class="ed-l" data-a="msgEdit" data-id="${esc(x.id)}">изменить</button>` : ''}${canDel(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(t.c.email)}">удалить</button>` : ''}</div>` : `<p style="margin:6px 0 0;white-space:pre-wrap">${esc(x.text)}${canDel(x) ? ` <button type="button" class="ed-l small muted" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(t.c.email)}">удалить</button>` : ''}</p>`).join('')}
     <textarea class="cmIn" placeholder="Ответ появится под уроком у ученицы" style="margin-top:8px;min-height:60px"></textarea>
-    <button class="btn sm" data-a="cmReply" data-email="${esc(t.c.email)}" data-lid="${t.lessonId}" style="margin-top:6px">${last.from === 'cl' ? 'Ответить' : 'Дописать'}</button></div>`;
+    <div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap"><button class="btn sm" data-a="cmReply" data-email="${esc(t.c.email)}" data-lid="${t.lessonId}">${last.from === 'cl' && !last.read ? 'Ответить' : 'Дописать'}</button>
+    ${last.from === 'cl' && !last.read ? `<button class="btn sm ghost" data-a="msgRead" data-email="${esc(t.c.email)}" data-lid="${t.lessonId}" title="Ответ не нужен — убрать из «Без ответа»">✓ Прочитано</button>` : last.from === 'cl' ? '<span class="small muted" style="align-self:center">✓ прочитано, ответ не нужен</span>' : ''}</div></div>`;
   }
   function clientComments(c){ const list = threads().filter(t => t.c === c); if (!list.length) return '';
     return `<div class="panel" style="margin-top:16px"><h2><span>Вопросы под уроками</span></h2>${list.map(t => commentItem(t, false)).join('')}</div>`; }
@@ -7723,6 +7725,8 @@ const Adm = (() => {
     if (a === 'cmf') { AV.cf = b.dataset.v; return render(true); }
     if (a === 'openChat') { closeDr(); AV = { s:'client', id:b.dataset.id, tab:'lessons' }; render(); const el = document.getElementById('chat'); if (el) el.scrollIntoView(); return; }
     if (a === 'msgEdit') { AV.edit = b.dataset.id; render(true); const ta = $('#msgEdIn'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } return; }
+    if (a === 'msgRead') { const em = b.dataset.email, lid = b.dataset.lid || '';
+      return act(() => api('markRead', { token:S.token, email:em, lessonId:lid }), lid ? 'Отмечено прочитанным — вопрос убран из «Без ответа»' : 'Отмечено прочитанным', () => { (D.messages || []).forEach(m => { if (m.email === em && (m.lessonId || '') === lid && m.from !== 'cu') m.read = true; }); }); }
     if (a === 'msgDel') { const id = b.dataset.id, em = b.dataset.email; if (!confirm('Удалить это сообщение? Ученица перестанет его видеть.')) return;
       return act(() => api('deleteMessage', { token:S.token, email:em, id }), 'Сообщение удалено', () => { D.messages = (D.messages || []).filter(x => !(x.id === id && x.email === em)); }); }
     if (a === 'msgEdX') { AV.edit = null; return render(true); }
