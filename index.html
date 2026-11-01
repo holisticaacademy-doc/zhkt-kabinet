@@ -390,7 +390,7 @@ button.fchip:hover{border-color:var(--mint-bd)}
 .sn-ext{margin-left:auto;color:var(--grey);font-size:12px}
 
 /* ── чаты протоколов ── */
-.gc-list{max-height:min(62vh,640px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding:14px;margin-top:12px;background:var(--soft);border:1px solid var(--line);border-radius:16px;scroll-behavior:smooth}
+.gc-list{max-height:min(62vh,640px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding:14px;margin-top:12px;background:var(--soft);border:1px solid var(--line);border-radius:16px}
 .gc-m{align-self:flex-start;max-width:min(86%,560px);background:var(--surface);border:1px solid var(--line);border-radius:4px 16px 16px 16px;padding:9px 12px 7px;transition:box-shadow .3s,border-color .3s}
 .gc-m.me{align-self:flex-end;background:var(--mint-pale);border-color:var(--mint);border-radius:16px 4px 16px 16px}
 .gc-m.cu{border-color:var(--e);box-shadow:inset 3px 0 0 var(--e)}
@@ -1484,7 +1484,7 @@ button.fchip:hover{border-color:var(--mint-bd)}
 .fr:last-of-type{border-bottom:0}
 
 /* ── чаты протоколов ── */
-.gc-list{max-height:min(62vh,640px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding:14px;margin-top:12px;background:var(--soft);border:1px solid var(--line);border-radius:16px;scroll-behavior:smooth}
+.gc-list{max-height:min(62vh,640px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding:14px;margin-top:12px;background:var(--soft);border:1px solid var(--line);border-radius:16px}
 .gc-m{align-self:flex-start;max-width:min(86%,560px);background:var(--surface);border:1px solid var(--line);border-radius:4px 16px 16px 16px;padding:9px 12px 7px;transition:box-shadow .3s,border-color .3s}
 .gc-m.me{align-self:flex-end;background:var(--mint-pale);border-color:var(--mint);border-radius:16px 4px 16px 16px}
 .gc-m.cu{border-color:var(--e);box-shadow:inset 3px 0 0 var(--e)}
@@ -5012,12 +5012,15 @@ async function gcLoad(t, force){
     GC.err = ''; if (r.same) return false; GC.data[t] = r; GC.v[t] = r.v; return true; }
   catch (e) { if (e.message === 'AUTH') { logout(); return false; } GC.err = e.message; return true; }
 }
-function gcKeep(){ const ta = document.getElementById('gcIn'); if (ta) GC.draft = ta.value; const el = document.getElementById('gc-list'); if (el) GC.stick = el.scrollHeight - el.scrollTop - el.clientHeight < 80; }
+function gcKeep(){ const ta = document.getElementById('gcIn'); if (ta) GC.draft = ta.value; const el = document.getElementById('gc-list'); if (el) { GC.stick = el.scrollHeight - el.scrollTop - el.clientHeight < 80; GC.top = el.scrollTop; } }
+// после перерисовки лента остаётся на том же месте (реакция, ответ, новое сообщение не сбивают прокрутку)
 function gcAfter(){
+  const fix = () => { const el = document.getElementById('gc-list'); if (!el || el.dataset.fx) return; el.dataset.fx = 1;
+    el.scrollTop = GC.stick || GC.top == null ? el.scrollHeight : GC.top;
+    el.onscroll = () => { GC.stick = el.scrollHeight - el.scrollTop - el.clientHeight < 80; GC.top = el.scrollTop; }; };
+  queueMicrotask(fix);
   setTimeout(() => {
-    const el = document.getElementById('gc-list'); if (!el) return;
-    if (GC.stick) el.scrollTop = el.scrollHeight;
-    el.onscroll = () => { GC.stick = el.scrollHeight - el.scrollTop - el.clientHeight < 80; };
+    fix();
     document.querySelectorAll('[data-a="gcPhoto"]').forEach(b => { const id = b.dataset.id; if (!GC.photos[id] && !GC.ph[id]) gcPhotoLoad(id); });
   }, 0);
 }
@@ -5113,7 +5116,7 @@ function gcClick(a, b, t, staff, rerender){
   if (a === 'gcBan') { const on = b.dataset.on === '1'; if (on && !confirm(`Запретить ${b.dataset.name || 'участнице'} писать в чатах протоколов? Читать чат она сможет.`)) return true;
     run('gchatBan', { email:b.dataset.email, on }, on ? 'Участнице запрещено писать в чатах' : 'Запрет снят'); return true; }
   if (a === 'gcJump') { const el = document.getElementById('gcm-' + b.dataset.id), box = document.getElementById('gc-list');
-    if (el && box) { box.scrollTop = el.offsetTop - box.offsetTop - 20; el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600); } else toast('Сообщение уже не в ленте'); return true; }
+    if (el && box) { box.scrollTo({ top: el.offsetTop - box.offsetTop - 20, behavior: 'smooth' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600); } else toast('Сообщение уже не в ленте'); return true; }
   if (a === 'gcPhoto') { const src = GC.photos[b.dataset.id]; if (src) fvOpen(src, 'Фото из чата.jpg', b); return true; }
   return false;
 }
@@ -6845,7 +6848,7 @@ function studentClick(e, b, a){
   if (a === 'td') { V.day = +b.dataset.d; return render(); }
   if (a === 'chat') return go('chat');
   if (a === 'send') return sendMsg(b.dataset.id);
-  if (a === 'gchat') { e.preventDefault(); const t = b.dataset.t || V.t; if (V.s === 'gchat') { gcKeep(); GC.reply = null; V.t = t; GC.stick = true; return render(); } return go('gchat', { t }); }
+  if (a === 'gchat') { e.preventDefault(); const t = b.dataset.t || V.t; if (V.s === 'gchat') { gcKeep(); GC.reply = null; V.t = t; GC.stick = true; return render(); } GC.stick = true; return go('gchat', { t }); }
   if (/^gc[A-Z]/.test(a)) return gcClick(a, b, V.t, false, () => keepY(render));
   if (a === 'cfOpen') return openChatFile(b);
   if (a === 'cfDel') { const ta = $('#msgIn'); U.cdraft = ta ? ta.value : ''; (U.cf || []).splice(+b.dataset.i, 1); return keepY(render); }
@@ -6991,7 +6994,7 @@ const Adm = (() => {
     <button class="nav ${AV.s === 'comments' ? 'on' : ''}" data-a="nav" data-s="comments">${I.cm}Комментарии<span class="n">${openThreads().length}</span></button>
     <button class="nav ${AV.s === 'chats' ? 'on' : ''}" data-a="nav" data-s="chats">${I.chs}Чаты<span class="n">${chatClients().filter(unreadOf).length}</span></button>
     <button class="nav ${AV.s === 'gchats' ? 'on' : ''}" data-a="nav" data-s="gchats">${I.chs}Чаты протоколов</button>
-    <button class="nav ${AV.s === 'rtime' ? 'on' : ''}" data-a="nav" data-s="rtime">${I.over}Время ответа${(() => { rtLoad(); const n = rtOpenLate(); return n ? `<span class="n warn">${n}</span>` : ''; })()}</button>
+    ${isAdmRole() ? `<button class="nav ${AV.s === 'rtime' ? 'on' : ''}" data-a="nav" data-s="rtime">${I.over}Время ответа${(() => { rtLoad(); const n = rtOpenLate(); return n ? `<span class="n warn">${n}</span>` : ''; })()}</button>` : ''}
     <button class="nav ${AV.s === 'raffle' ? 'on' : ''}" data-a="nav" data-s="raffle">${I.ck}Розыгрыш<span class="n">${rzList().filter(r => r.status === RZ_ST.wait).length}</span></button>
     <button class="nav ${AV.s === 'reviews' ? 'on' : ''}" data-a="nav" data-s="reviews">${I.star}Итоговые отзывы<span class="n">${rvList().filter(f => f.rv !== RV_OK).length}</span></button>
     <button class="nav ${AV.s === 'ratings' ? 'on' : ''}" data-a="nav" data-s="ratings">${I.star}Оценки<span class="n">${fbFlagged().length}</span></button>
@@ -7236,6 +7239,7 @@ const Adm = (() => {
   function rtStats(list, work){ const d = list.map(w => rtDur(w.s, w.e, work)), sla = rtSet().sla;
     return { n:d.length, med:rtMed(d), avg:d.length ? d.reduce((p, q) => p + q, 0) / d.length : 0, ok:d.length ? Math.round(100 * d.filter(x => x <= sla).length / d.length) : 0, max:d.length ? Math.max(...d) : 0 }; }
   function rtime(){
+    if (!isAdmRole()) { AV = { s:'over' }; return over(); }
     rtLoad(); if (AV.rw == null) AV.rw = LS.get('hz_rtw', '0');
     const per = AV.rp || '30', chf = AV.rc || 'all', work = AV.rw === '1', st = rtSet(), sla = st.sla, slaTxt = rtFmt(sla);
     const from = per === 'all' ? 0 : Date.now() - (+per) * 864e5;
@@ -7697,7 +7701,7 @@ const Adm = (() => {
     if (a === 'rtGo') { closeDr(); GC.stick = true; AV = { s:'gchats', t:b.dataset.t }; render(); return window.scrollTo(0,0); }
     if (a === 'gctab') { schKeep(); gcKeep(); GC.reply = null; GC.photo = null; GC.stick = true; AV.t = b.dataset.t; return render(true); }
     if (/^gc[A-Z]/.test(a)) return gcClick(a, b, AV.t || 'slow', true, () => render(true));
-    if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'rtime') AV.rw = LS.get('hz_rtw', '0'); if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
+    if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'rtime') AV.rw = LS.get('hz_rtw', '0'); if (AV.s === 'gchats') GC.stick = true; if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
     if (a === 'curf') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); return render(true); }
     if (a === 'navcur') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); CF.st = 'all'; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
     if (a === 'rzf') { AV.rf = b.dataset.v; return render(); }
