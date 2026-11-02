@@ -6074,7 +6074,7 @@ function redflag(){
 }
 async function finishQuiz(){
   const red = deriveQuiz(QD).red;
-  if (red.length && !QD.redAck) return go('redflag');
+  // экран «Сначала — к врачу» убран: анкета уходит сразу, а куратор видит пометку в карточке и пишет клиенту сам
   const payload = quizPayload(QD);
   hist = []; V = { s:'calc', msg:'Отправляем ответы…' }; render();
   try {
@@ -7033,7 +7033,7 @@ const Adm = (() => {
       if (aiReady(c)) return `<span class="st rv">Ждёт назначения · ИИ проверил</span>`;
       if (/^ошибка/.test(st)) return `<span class="st rv">Ждёт назначения · ИИ не сработал</span>`;
       return `<span class="st rv">Ждёт проверки ИИ</span>`; }
-    if (c.red.length) return `<span class="st rd">Красный флаг</span>`;
+    if (c.red.length) return `<span class="st rd">Нужен врач</span>`;
     if (c.last !== null && c.last >= 5) return `<span class="st w">Давно не заходит</span>`;
     if (c.day > CAL.programDays) return `<span class="st">${W(c) === WM ? 'Завершил' : 'Завершила'}</span>`;
     return `<span class="st">В программе</span>`;
@@ -7191,12 +7191,12 @@ const Adm = (() => {
     const seg = (k, v, t) => `<button class="${CF[k] === v ? 'on' : ''}" data-a="cf" data-k="${k}" data-v="${v}">${t}</button>`;
     return `<div class="head"><div><h1>${CF.st === 'review' ? 'Проверка назначений' : 'Клиенты'}</h1><p class="muted" style="margin:0">Нажмите на строку, чтобы открыть карточку</p></div><span class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" data-a="syncPaid" title="Новые оплаты из листа «Оплатили (GetCourse)», тарифы и распределение индивидуального тарифа по кураторам">Подтянуть оплаты</button><button class="btn ghost" data-a="addOpen">+ Добавить учениц</button></span></div>
     <div class="tools"><input class="inp" id="cq" placeholder="Имя или email" value="${esc(CF.q)}" style="flex:1 1 220px">
-      <span class="seg">${segN('all','Все')}${segN('review','Ждут проверки')}${segN('photo','Нет фото языка')}${segN('ai','Расхождение с ИИ')}${segN('unclear','На уточнении у ИИ')}${segN('ind','Индивидуальный')}${segN('edited','С правками')}${segN('closed','Доступ закрыт')}${segN('ext','Продлили')}${segN('red','Красный флаг')}${segN('idle','Давно не заходят')}${segN('noform','Без анкеты')}${segN('asg','Назначен протокол')}</span>
+      <span class="seg">${segN('all','Все')}${segN('review','Ждут проверки')}${segN('photo','Нет фото языка')}${segN('ai','Расхождение с ИИ')}${segN('unclear','На уточнении у ИИ')}${segN('ind','Индивидуальный')}${segN('edited','С правками')}${segN('closed','Доступ закрыт')}${segN('ext','Продлили')}${segN('red','Нужен врач')}${segN('idle','Давно не заходят')}${segN('noform','Без анкеты')}${segN('asg','Назначен протокол')}</span>
       <span class="seg">${seg('type','all','Все типы')}${Object.keys(TYPES).map(k => seg('type', k, TYPES[k].short)).join('')}</span>
       ${curSeg()}</div>
     <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th>Статус</th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
     ${list.map(c => { const lp = lessonPct(c), wt = c.assigned ? weekTrack(c, curWeekC(c)) : null;
-      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td>
+      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${c.filled && c.red.length ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td>
       <td>${c.filled && c.type ? `<span class="chip">${TYPES[c.type].short}</span>${c.assigned ? '' : ' <span class="small muted">авто</span>'}` : `<span class="nd muted">—</span>`}</td>
       <td data-l="Уроки">${c.assigned ? `<span class="mini"><span class="pb"><i style="width:${lp}%"></i></span>${lp}%</span>` : '<span class="nd">—</span>'}</td>
       <td data-l="Трекер">${wt ? `<span class="mini"><span class="pb"><i style="width:${wt.p}%"></i></span>${wt.p}%</span>` : '<span class="nd">—</span>'}</td>
@@ -7231,10 +7231,12 @@ const Adm = (() => {
       <span class="acts">${added ? `<span class="chip m">куратор</span>` : rm ? `<span class="chip g">убрано</span>` : `<span class="chip g">авто</span>`}<button class="btn lnk" data-a="prev" data-id="${id}">Открыть</button>
       ${rm ? `<button class="btn lnk" data-a="restore" data-id="${id}">Вернуть</button>` : `<button class="btn lnk" data-a="remove" data-id="${id}">Убрать</button>`}</span></div>`; }).join('');
     return head + `
+    ${c.red.length ? `<div class="alert"><div><b>Нужно согласование с врачом.</b> В анкете отмечено: ${esc(c.red.join(', '))}.${a.redAck ? ` ${W(c).N} отметил${W(c).l === 'ла' ? 'а' : ''}, что обследован${W(c).l === 'ла' ? 'а' : ''} и врач не против программы.` : ''}
+      <br>Напишите ${W(c).d}: до начала программы нужна очная консультация гастроэнтеролога, а если симптомы острые — неотложная помощь. Продолжать программу — после разрешения врача.
+      <div style="margin-top:8px"><button class="btn sm mag" data-a="toChat">Написать ${W(c).d} в чат</button></div></div></div>` : ''}
     ${checkPanel(c)}
     ${extraPanel(c)}
     ${filesPanel(c)}
-    ${c.red.length ? `<div class="alert"><div><b>Красный флаг:</b> ${esc(c.red.join(', '))}.${a.redAck ? ` ${W(c).N} отметил${W(c).l === 'ла' ? 'а' : ''}, что обследован${W(c).l === 'ла' ? 'а' : ''} и врач не против программы.` : ''} Рекомендуется связаться с ${W(c).i} до старта.</div></div>` : ''}
     <div class="grid g3">
       <div class="panel"><h2><span>Профиль</span></h2><dl class="kv">
         <dt>Тип</dt><dd>${c.type ? TYPES[c.type].name : '—'}${c.assigned ? '' : ' (авто)'}${c.extra.length ? '<br><span class="small">+ ' + c.extra.map(x => esc(TYPES[x.t].name) + (extraActive(x) ? '' : ' (срок истёк)')).join(', ') + '</span>' : ''}</dd>
@@ -7800,6 +7802,7 @@ const Adm = (() => {
     if (a === 'ctab') { AV.tab = b.dataset.k; return render(true); }
     if (a === 'prev') { AV.lastPrev = b.dataset.id; return openDr(preview(b.dataset.id)); }
     if (a === 'cmf') { AV.cf = b.dataset.v; return render(true); }
+    if (a === 'toChat') { const el = document.getElementById('chat'); if (el) { el.scrollIntoView({ behavior:'smooth', block:'start' }); setTimeout(() => { const t = $('#chatIn'); if (t) t.focus(); }, 400); } return; }
     if (a === 'openChat') { closeDr(); AV = { s:'client', id:b.dataset.id, tab:'lessons' }; render(); const el = document.getElementById('chat'); if (el) el.scrollIntoView(); return; }
     if (a === 'msgEdit') { AV.edit = b.dataset.id; render(true); const ta = $('#msgEdIn'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } return; }
     if (a === 'msgRead') { const em = b.dataset.email, lid = b.dataset.lid || '';
