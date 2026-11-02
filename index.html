@@ -6901,7 +6901,7 @@ function saveDraftSoon(){ clearTimeout(draftT); draftT = setTimeout(saveDraft, 4
 
 // ═══ АДМИНКА ════════════════════════════════════════════════════
 const EVN = { login:'Вход в кабинет', password_set:'Задан пароль', password_reset:'Сброшен пароль', added_from_getcourse:'Карточка создана из выгрузки GetCourse',
-  quiz_submit:'Анкета отправлена', form:'Прикреплён опросник', tests:'Прикреплены анализы', msg_edit:'Куратор изменил сообщение', msg_read:'Отмечено прочитанным без ответа', msg_delete:'Удалено сообщение', form_del:'Удалён файл опросника или анализов', support:'Открыла техподдержку', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён', extra_protocol:'Доп. протоколы', protocol_switch:'Переключила протокол',
+  quiz_submit:'Анкета отправлена', form:'Прикреплён опросник', tests:'Прикреплены анализы', msg_edit:'Куратор изменил сообщение', msg_read:'Отмечено прочитанным без ответа', getcourse_group:'Добавлена в группу GetCourse', msg_delete:'Удалено сообщение', form_del:'Удалён файл опросника или анализов', support:'Открыла техподдержку', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён', extra_protocol:'Доп. протоколы', protocol_switch:'Переключила протокол',
   quiz_reset:'Анкета открыта заново', progress_reset:'Прогресс сброшен', open:'Открыт урок', done:'Отмечено выполненным',
   video:'Открыто видео урока', download:'Открыт конспект', menu:'Открыт конструктор меню', webinar:'Перешла на вводный вебинар', feedback:'Заполнена оценка обучения', menu_day:'Сохранён день в конструкторе меню', menu_day_del:'Удалён день из конструктора меню', check:'Замер самочувствия',
   recs:'Обновлены рекомендации', note:'Обновлена заметка куратора', chat:'Сообщение в чат', reply_chat:'Ответ куратора в чате',
@@ -6958,7 +6958,7 @@ const Adm = (() => {
         day:assigned && start ? dayNum(new Date(start).getTime()) : 0, events:evs[e] || [], paidOnly:!!x.paidOnly,
         tariff:s['Тариф'] || x.tariff || 'Общий', ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
         msgs:(msgs[e] || []).slice().sort((a, b) => tsOf(a) - tsOf(b)), fb:(fbs[e] || []).slice().sort((a, b) => FB_KEYS.indexOf(a.key) - FB_KEYS.indexOf(b.key)),
-        cur:String(s['Закреплён за'] || '').trim().toLowerCase(), access:s.access || null, extra:assigned ? extraList(s['Доп. протоколы'], type) : [] };
+        cur:String(s['Закреплён за'] || '').trim().toLowerCase(), gcGroup:String(s['GetCourse группа'] || ''), access:s.access || null, extra:assigned ? extraList(s['Доп. протоколы'], type) : [] };
     }).sort((a, b) => (b.lastAt || '').localeCompare(a.lastAt || ''));
   }
   const stageOf = c => c.paidOnly || !c.first ? 0 : !c.filled ? 1 : 3;
@@ -7510,7 +7510,7 @@ const Adm = (() => {
     const recs = `<label class="small muted" for="recs" style="display:block;margin:0 0 6px">Индивидуальные рекомендации — ученица видит их на главной странице программы</label>
       <textarea id="recs" placeholder="Например: первую неделю уменьшите количество специй вдвое; начните с практики дыхания">${esc(c.recs)}</textarea>`;
     if (assigned) return `<div class="panel" style="margin-bottom:16px"><h2><span>Протокол и рекомендации</span></h2>
-      <div class="grid g2"><div>${sel}<p class="small" style="margin:12px 0 0">Назначено ${c.confirmedAt ? fmt(c.confirmedAt) : '—'}${c.curator ? ' · ' + esc(c.curator) : ''}.</p></div>
+      <div class="grid g2"><div>${sel}<p class="small" style="margin:12px 0 0">Назначено ${c.confirmedAt ? fmt(c.confirmedAt) : '—'}${c.curator ? ' · ' + esc(c.curator) : ''}.</p>${c.gcGroup ? `<p class="small ${/^ошибка/.test(c.gcGroup) ? '' : 'muted'}" style="margin:4px 0 0${/^ошибка/.test(c.gcGroup) ? ';color:var(--mag)' : ''}">GetCourse: ${/^ошибка/.test(c.gcGroup) ? 'не удалось добавить в группу — ' + esc(c.gcGroup.replace(/^ошибка · /, '')) + '. Повторим автоматически.' : 'в группе «' + esc(c.gcGroup) + '»'}</p>` : ''}</div>
       <div>${recs}<div style="margin-top:8px"><button class="btn sm" data-a="saveRecs">Сохранить рекомендации</button></div></div></div>
       <details style="margin-top:12px"><summary class="small" style="font-weight:700">ИИ-проверка анкеты</summary><div style="margin-top:10px">${aiBlock(c)}</div></details></div>`;
     return `<div class="panel chk" style="margin-bottom:16px"><h2 class="neg"><span>Проверка назначения</span></h2>
