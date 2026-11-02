@@ -497,6 +497,9 @@ body.fv-on{overflow:hidden}
 .ed-b{display:flex;gap:6px;flex-wrap:wrap}.ed-b .btn{flex:none;width:auto;padding:8px 16px;min-height:38px;font-size:14px}
 .bub.me .ed-b .btn{background:#fff;color:var(--e-dk);border:2px solid #fff}
 .bub.me .ed-b .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+/* анкета открыта для правки */
+.reo{display:grid;gap:4px;background:#FDF3EA;border:1px solid #F0D9C4;border-left:4px solid var(--mag);border-radius:14px;padding:12px 16px;margin:14px 0 16px;font-size:14.5px;line-height:1.5}
+.reo b{color:var(--mag);font-size:15px}
 
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
@@ -1625,6 +1628,13 @@ body.fv-on{overflow:hidden}
   .gc-form textarea{min-height:44px;max-height:30vh;border-radius:16px}
 }
 .pseg{display:flex;flex-wrap:wrap;margin:10px 0}
+/* отметки куратора */
+.mkf{display:inline-flex;align-items:center;gap:6px}.mkf .sel{width:auto;padding:4px 10px}
+.mkc{display:flex;flex-wrap:wrap;gap:4px;max-width:240px}.mknote{display:block;max-width:240px;margin-top:4px;white-space:normal}
+.mkp{margin-top:16px}.mkp h2{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.mkb{display:flex;flex-wrap:wrap;gap:8px}
+.mkt{font:inherit;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink,#173f35);cursor:pointer}
+.mkt:hover{border-color:#9e007e}.mkt.on{background:#173f35;border-color:#173f35;color:#fff}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -4403,6 +4413,22 @@ function applyOv(R, ov){
   return out;
 }
 const TARIFF_IND = 'Индивидуальный';
+// отметки куратора: k — код, t — как пишется в таблице, s — коротко в списке, only — для какого тарифа
+const MARKS = [
+  { k:'seen', t:'Анкета просмотрена', s:'просмотрена' },
+  { k:'clar', t:'Уточняю информацию', s:'уточняю' },
+  { k:'tongue', t:'Жду фото языка', s:'жду фото языка' },
+  { k:'form', t:'Жду опросник', s:'жду опросник', only:'ind' },
+  { k:'tests', t:'Жду анализы', s:'жду анализы' },
+  { k:'exam', t:'Жду УЗИ / обследование', s:'жду обследование' },
+  { k:'doc', t:'Жду согласования врача', s:'жду врача' },
+  { k:'silent', t:'Не отвечает', s:'не отвечает' },
+  { k:'expert', t:'Нужен совет Ирины', s:'совет Ирины' },
+  { k:'offer', t:'Предлагаю индивид. тариф', s:'предлагаю инд.', only:'gen' },
+  { k:'ok', t:'Всё ясно, в работе', s:'в работе' },
+];
+const MARK_T = Object.fromEntries(MARKS.map(m => [m.t, m]));
+const marksOf = v => String(v || '').split(/\s*;\s*/).filter(t => MARK_T[t]);
 const AI_KEY = { 'Индивидуальный протокол':'ind', 'На уточнении':'unclear' };
 const aiKeyOf = n => PKEY[String(n || '').trim()] || AI_KEY[String(n || '').trim()] || null;
 const aiName = k => PNAME[k] || ({ ind:'Индивидуальный протокол', unclear:'На уточнении' })[k] || '—';
@@ -4730,8 +4756,9 @@ const Demo = (() => {
     aiResolve({token,email,res}){ adminAuth(token); const st=find(email); st['Решение по ИИ']=res==='switch'?'сменить на ИИ':'оставить анкету'; log(email,'ai_resolved',st['Решение по ИИ']); return {}; },
     aiRun({token,email}){ adminAuth(token); const q=load().quizzes[email]; if(!q) throw new Error('Анкеты нет');
       load().ai[email]={status:'готово',protocol:q.auto.name,confidence:'средняя',rationale:'Демо: ответы анкеты согласуются с автоподбором. В рабочей версии здесь будет разбор Claude по всем ответам и фото языка.',symptoms:[],quote:q.free||'',exclude:[],red:q.redFlags||[],tongue:'',note:'',at:now()}; log(email,'ai_done'); return {}; },
-    submitQuiz({token,quiz,photo,form}){ const st=auth(token); if(st['Статус']&&st['Статус']!==STS.none) throw new Error('Анкета уже отправлена');
+    submitQuiz({token,quiz,photo,form}){ const st=auth(token); if(st['Статус']&&st['Статус']!==STS.none) throw new Error('Анкета уже отправлена'); const prev=load().quizzes[st['Email']];
       const res=autoProtocol(Q,quiz.answers||{},quiz.diagnoses||[],quiz.redFlags||[]); quiz.auto=res; quiz.date=now(); quiz.photo=!!photo; if(form){ quiz.form={name:form.name}; load().forms=load().forms||{}; load().forms[st['Email']]=form; }
+      if(prev){ if(!photo&&prev.photo){ quiz.photo=true; quiz.tongueLater=false; } if(prev.files||prev.form){ quiz.files=indFiles(prev); quiz.form=prev.form||null; } quiz.edited=now(); }
       load().quizzes[st['Email']]=quiz; if(photo) load().photos[st['Email']]=photo; load().ai[st['Email']]={status:'ждёт'};
       Object.assign(st,{'Статус':STS.wait,'Протокол авто':res.name,'Баллы В/Вс/Ч':`${res.pct.V} / ${res.pct.I} / ${res.pct.C}`,'Красные флаги':(quiz.redFlags||[]).join('; ')||'Нет','Дата анкеты':now()});
       log(st['Email'],'quiz_submit',res.name); return {auto:res}; },
@@ -4772,9 +4799,10 @@ const Demo = (() => {
       const main=PKEY[st['Протокол итог']], clean=(extra||[]).filter(x=>x&&PNAME[x.t]&&x.t!==main).slice(0,3).map(x=>({t:x.t,until:/^\d{4}-\d{2}-\d{2}$/.test(x.until||'')?x.until:'',note:String(x.note||'').slice(0,300),at:x.at||now(),by:x.by||a['Имя']||a['Email']}));
       st['Доп. протоколы']=clean.length?JSON.stringify(clean):''; log(email,'extra_protocol',clean.map(x=>PNAME[x.t]).join(', ')||'закрыты'); return {}; },
     saveRecs({token,email,recs}){ adminAuth(token); const st=find(email); st['Комментарий куратора']=recs; log(email,'recs'); return {}; },
+    setMarks({token,email,marks}){ adminAuth(token); const st=find(email); st['Отметки куратора']=(marks||[]).filter(t=>MARK_T[t]).join('; '); log(email,'marks',st['Отметки куратора']||'сняты'); return {}; },
     saveNote({token,email,note}){ adminAuth(token); const st=find(email); st['Заметка куратора']=note; log(email,'note'); return {}; },
-    resetQuiz({token,email}){ adminAuth(token); const st=find(email); if(!st) throw new Error('Ученица не найдена');
-      delete load().quizzes[st['Email']]; delete load().photos[st['Email']];
+    resetQuiz({token,email}){ const me=adminAuth(token); if(!/^(админ|admin|администратор)$/i.test(me['Роль'])) throw new Error('Открыть анкету для правки может только администратор'); const st=find(email); if(!st) throw new Error('Ученица не найдена');
+      const q0=load().quizzes[st['Email']]; if(q0) q0.reopened=now();
       ['Протокол авто','Баллы В/Вс/Ч','Протокол итог','Красные флаги','Дата анкеты','Дата подтверждения','Комментарий куратора','Прогресс','Правки материалов','Решение по ИИ','Доп. протоколы'].forEach(k=>st[k]=''); delete load().ai[st['Email']];
       st['Статус']=STS.none; log(st['Email'],'quiz_reset'); return {}; },
     resetProgress({token,email}){ adminAuth(token); const st=find(email); st['Прогресс']=''; log(email,'progress_reset'); return {}; },
@@ -5646,9 +5674,9 @@ function preBlock(){
 }
 function welcome(){
   const n = (S.user.name || '').split(' ')[0];
-  return `<div class="top">
+  return `${reopened() ? reoNote() : ''}<div class="top">
     <div class="sub">Формула здоровья ЖКТ</div>
-    <h1>${n ? esc(n) + ', соберём' : 'Соберём'} программу под вас</h1>
+    <h1>${reopened() ? 'Проверьте и исправьте анкету' : (n ? esc(n) + ', соберём' : 'Соберём') + ' программу под вас'}</h1>
     <p>Ответьте на вопросы о самочувствии и питании. По ответам куратор подберёт ваш протокол, а в кабинете откроются уроки, практики, меню, специи и фитосоставы.</p>
     <p style="margin:0">Займёт около 15 минут. Ответы сохраняются по ходу — можно сделать перерыв и вернуться.</p>
   </div>
@@ -5949,6 +5977,17 @@ function check(){
 // ═══ АНКЕТА (полная версия ЖКТ 3.0, в стиле кабинета) ═════════════
 const QSTEP_COUNT = QSTEPS;
 const draftKey = () => 'hz_draft_' + MODE + '_' + ((S.user && S.user.email) || '');
+// Сохранённая анкета → поля формы (для «Открыть анкету заново»: ученик правит свои ответы, а не заполняет с нуля)
+function qdFrom(a){
+  const p = a.personal || {}, ans = {};
+  Object.keys(a.raw || {}).forEach(id => { ans[id] = { v: a.raw[id], label: (a.labels || {})[id] }; });
+  return { fio:p.fio || '', pol:p.sex || '', age:p.age || '', height:p.height || '', weight:p.weight || '', waist:p.waist || '',
+    gates:Object.assign({}, a.gates || {}), diag:(a.diagnoses || []).slice(), chol:a.chol || '', ans, b7prod:a.products || '', meds:a.meds || '', goals:a.goals || '',
+    excluded:(a.excludedCodes || []).slice(), productsOther:a.productsOther || '', free:a.free || '', redAck:!!a.redAck, consent:true,
+    reo:true, hadPhoto:!!a.photo, hadForm:indFiles(a).some(f => f.kind === 'form') };
+}
+const reopened = () => !!(U.quiz && U.quiz.reopened && S.user && S.user.status === STS.none);
+const reoNote = () => `<div class="reo"><b>Ваши ответы сохранены — их нужно скорректировать.</b><span>Мы открыли анкету для правки. Пройдите все шаги внимательно: проверьте каждый ответ и исправьте то, что изменилось или было отмечено неточно. Фото языка и прикреплённые файлы сохранены — заново загружать не нужно.</span></div>`;
 function newQ(){ return { fio:(S.user && S.user.name) || '', pol:'', age:'', height:'', weight:'', waist:'', tongue:null, tongueLater:false,
   gates:{}, diag:[], chol:'', ans:{}, b7prod:'', meds:'', goals:'', excluded:[], productsOther:'', free:'', consent:false, step:1 }; }
 function saveDraft(){ if (!QD) return; const c = Object.assign({}, QD, { tongue:null, form:null, files:null, step:V.step }); LS.set(draftKey(), c); }
@@ -6017,20 +6056,21 @@ function quizStep(){
     body = `<h2><span>Фото языка</span></h2>
     <div class="hint-strong" role="note"><span class="hint-ic" aria-hidden="true">!</span><span>Сфотографируйте язык утром, натощак, до чистки зубов. При дневном свете, без вспышки и фильтров — так, чтобы язык был виден целиком.</span></div>
     <p>Без фото языка куратор не сможет подобрать протокол. Если сейчас не утро — выберите «Загружу утром»: анкета отправится, а фото вы добавите в личном кабинете.</p>
+    ${QD.hadPhoto && !QD.tongue ? `<div class="formok">${I.check}<span><b>Фото языка уже загружено</b><small>Можно оставить его или загрузить новое</small></span></div>` : ''}
     ${tongueBlock(QD.tongue, 'quiz')}
-    ${!QD.tongue ? `<div class="opts" style="margin-top:12px">${opt('Загружу утром', QD.tongueLater, 'tLater', '1', true)}</div>` : ''}
+    ${!QD.tongue && !QD.hadPhoto ? `<div class="opts" style="margin-top:12px">${opt('Загружу утром', QD.tongueLater, 'tLater', '1', true)}</div>` : ''}
     ${isInd() ? `<h2><span>Опросник — тариф «Индивидуальный»</span></h2>
     <p>Скачайте опросник, заполните его и прикрепите сюда — вместе с фото языка он поможет куратору составить ваш индивидуальный протокол. Фото кожи или фото в полный рост, если нужно, можно отправить куратору в чат.</p>
     ${indDownloads()}${indBlock('quiz')}
-    ${!(QD.files && QD.files.form.length) ? `<div class="opts" style="margin-top:12px">${opt('Прикреплю позже, в личном кабинете', QD.formLater, 'fLater', '1', true)}</div>` : ''}` : ''}`;
-    ok = (!!QD.tongue || QD.tongueLater) && (!isInd() || !!(QD.files && QD.files.form.length) || QD.formLater);
+    ${QD.hadForm ? `<div class="formok">${I.check}<span><b>Опросник уже прикреплён</b><small>Новые файлы добавятся к уже загруженным</small></span></div>` : !(QD.files && QD.files.form.length) ? `<div class="opts" style="margin-top:12px">${opt('Прикреплю позже, в личном кабинете', QD.formLater, 'fLater', '1', true)}</div>` : ''}` : ''}`;
+    ok = (!!QD.tongue || QD.tongueLater || QD.hadPhoto) && (!isInd() || !!(QD.files && QD.files.form.length) || QD.formLater || QD.hadForm);
   } else if (n === 16) {
     body = `<h2><span>Проверьте ваши ответы</span></h2><p class="muted">После отправки изменить ответы будет нельзя.</p>${summaryHtml()}
     <div class="q"><div class="opts">${opt('Я даю согласие на обработку моих персональных данных, включая сведения о состоянии здоровья, для подбора программы и рекомендаций в соответствии с Политикой обработки персональных данных', QD.consent, 'consent', '1')}</div><p class="small" style="margin-top:8px"><a href="${esc(CFG.POLICY_URL)}" target="_blank" rel="noopener" class="lnk">Политика обработки персональных данных</a></p></div>
     ${V.serr ? `<div class="errbox" role="alert">${esc(V.serr)}</div>` : ''}`;
     ok = QD.consent && !V.busy;
   }
-  return `<div class="steps" aria-label="Шаг ${n} из ${QSTEP_COUNT}">${dots}</div><div class="muted small">Шаг ${n} из ${QSTEP_COUNT} · ${STEP_NAMES[n-1]}</div>
+  return `${QD && QD.reo ? reoNote() : ''}<div class="steps" aria-label="Шаг ${n} из ${QSTEP_COUNT}">${dots}</div><div class="muted small">Шаг ${n} из ${QSTEP_COUNT} · ${STEP_NAMES[n-1]}</div>
   ${body}
   <div class="row" style="margin-top:22px">
     ${n > 1 ? `<button class="btn ghost" data-a="qPrev">Назад</button>` : ''}
@@ -6833,7 +6873,7 @@ function studentClick(e, b, a){
   if (a === 'demoReset') { Demo.reset(); toast('Демо-данные сброшены'); return; }
   if (a === 'reload') { const wasClosed = accessClosed(); V = { s:'calc', msg:'Проверяем…' }; render(); return loadMe().then(() => { route(); if (wasClosed && accessClosed()) toast('Продление пока не поступило'); else if (S.user.status === STS.wait) toast('Протокол пока не назначен'); }).catch(x => { V = { s:'fail', err:x.message }; render(); }); }
   if (a === 'toAdmin') { U.preview = false; return Adm.open(); }
-  if (a === 'startQuiz') { const d = LS.get(draftKey(), null); QD = Object.assign(newQ(), d || {}); return go('quiz', { step: Math.min(QSTEP_COUNT, Math.max(1, (d && d.step) || 1)) }); }
+  if (a === 'startQuiz') { let d = LS.get(draftKey(), null); if (reopened() && !(d && d.reo)) d = Object.assign(qdFrom(U.quiz), { step:1 }); QD = Object.assign(newQ(), d || {}); return go('quiz', { step: Math.min(QSTEP_COUNT, Math.max(1, (d && d.step) || 1)) }); }
   if (a === 'qp') {
     const [id, v] = b.dataset.v.split('|'); const it = ITEMS.find(x => x.id === id), val = +v;
     if (QD.ans[id] && QD.ans[id].v === val) delete QD.ans[id]; else QD.ans[id] = { v:val, label:labelOf(it, val) };
@@ -6928,13 +6968,13 @@ const EVN = { login:'Вход в кабинет', password_set:'Задан па�
   quiz_submit:'Анкета отправлена', form:'Прикреплён опросник', tests:'Прикреплены анализы', msg_edit:'Куратор изменил сообщение', msg_read:'Отмечено прочитанным без ответа', getcourse_group:'Добавлена в группу GetCourse', msg_delete:'Удалено сообщение', form_del:'Удалён файл опросника или анализов', support:'Открыла техподдержку', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён', extra_protocol:'Доп. протоколы', protocol_switch:'Переключила протокол',
   quiz_reset:'Анкета открыта заново', progress_reset:'Прогресс сброшен', open:'Открыт урок', done:'Отмечено выполненным',
   video:'Открыто видео урока', download:'Открыт конспект', menu:'Открыт конструктор меню', webinar:'Перешла на вводный вебинар', feedback:'Заполнена оценка обучения', menu_day:'Сохранён день в конструкторе меню', menu_day_del:'Удалён день из конструктора меню', check:'Замер самочувствия',
-  recs:'Обновлены рекомендации', note:'Обновлена заметка куратора', chat:'Сообщение в чат', reply_chat:'Ответ куратора в чате',
+  recs:'Обновлены рекомендации', note:'Обновлена заметка куратора', marks:'Отметки куратора', chat:'Сообщение в чат', reply_chat:'Ответ куратора в чате',
   comment:'Вопрос под уроком', reply_comment:'Ответ куратора под уроком', tariff:'Тариф', materials:'Правка материалов',
   ai_resolved:'Решение по ИИ', curator:'Куратор', extended:'Продление', group_chat:'Открыт общий чат протокола', ai_error:'Ошибка ИИ-проверки', ai_done:'ИИ-проверка выполнена' };
 const FLAGNAME = { chole:'Удалён желчный пузырь', ppi:'Принимает препараты от изжоги' };
 const Adm = (() => {
   let D = null, C = [], AV = { s:'over' };
-  const CF = { q:'', st:'all', type:'all', cur:LS.get('hz_curf', 'all') }, KF = { k:'lessons', type:'all', q:'' }, photos = {}, mdays = {};
+  const CF = { q:'', st:'all', type:'all', mk:'all', cur:LS.get('hz_curf', 'all') }, KF = { k:'lessons', type:'all', q:'' }, photos = {}, mdays = {};
   const hidden = () => { const h = {}; const L = (D && D.lessons) || {}; for (const id in L) if (L[id] && L[id].hide) h[id] = 1; return h; };
 
   async function open(){
@@ -6976,13 +7016,13 @@ const Adm = (() => {
       const start = (d.settings && d.settings.start) || CFG.START_DATE || s['Дата подтверждения'] || '';
       return { email:e, name:s['Имя'] || x.name || e, status, assigned, filled, quiz:filled ? q : null, autoKey, type,
         first:s['Первый вход'] || '', lastAt:s['Последний вход'] || '', last:daysAgo(s['Последний вход']), hasPw:s['Пароль задан'] === 'да',
-        recs:s['Комментарий куратора'] || '', note:s['Заметка куратора'] || '', curator:s['Куратор'] || '', profile:(() => { try { return JSON.parse(s['Профиль'] || 'null') || {}; } catch (e) { return {}; } })(),
+        recs:s['Комментарий куратора'] || '', note:s['Заметка куратора'] || '', marks:marksOf(s['Отметки куратора']), curator:s['Куратор'] || '', profile:(() => { try { return JSON.parse(s['Профиль'] || 'null') || {}; } catch (e) { return {}; } })(),
         confirmedAt:s['Дата подтверждения'] || '', filledAt:s['Дата анкеты'] || '', protoName:s['Протокол итог'] || '',
         red:filled ? (q.redFlags || []) : [], photo:!!(filled && q.photo), state:normState(s.state), start,
         day:assigned && start ? dayNum(new Date(start).getTime()) : 0, events:evs[e] || [], paidOnly:!!x.paidOnly,
         tariff:s['Тариф'] || x.tariff || 'Общий', ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
         msgs:(msgs[e] || []).slice().sort((a, b) => tsOf(a) - tsOf(b)), fb:(fbs[e] || []).slice().sort((a, b) => FB_KEYS.indexOf(a.key) - FB_KEYS.indexOf(b.key)),
-        cur:String(s['Закреплён за'] || '').trim().toLowerCase(), gcGroup:String(s['GetCourse группа'] || ''), access:s.access || null, extra:assigned ? extraList(s['Доп. протоколы'], type) : [] };
+        cur:String(s['Закреплён за'] || '').trim().toLowerCase(), reo:!!(q && q.reopened && status === STS.none), gcGroup:String(s['GetCourse группа'] || ''), access:s.access || null, extra:assigned ? extraList(s['Доп. протоколы'], type) : [] };
     }).sort((a, b) => (b.lastAt || '').localeCompare(a.lastAt || ''));
   }
   const stageOf = c => c.paidOnly || !c.first ? 0 : !c.filled ? 1 : 3;
@@ -7023,7 +7063,7 @@ const Adm = (() => {
   function status(c){
     const s = stageOf(c);
     if (!c.paidOnly && closedC(c)) return `<span class="st o">Доступ закрыт</span>`;
-    if (s < 3) return `<span class="st o">${s === 0 ? (W(c) === WM ? 'Не заходил' : 'Не заходила') : 'Анкета не заполнена'}</span>`;
+    if (s < 3) return `<span class="st o">${s === 0 ? (W(c) === WM ? 'Не заходил' : 'Не заходила') : c.reo ? 'Правит анкету' : 'Анкета не заполнена'}</span>`;
     const f = flowOf(c);
     if (f === 'photo') return `<span class="st w">Ждём фото языка</span>`;
     if (f === 'review') { const st = String((c.ai && c.ai.status) || '');
@@ -7177,6 +7217,23 @@ const Adm = (() => {
     return { hold:hold.length, open:hold.filter(c => c.state.lx[id]).length, done:hold.filter(c => c.state.done[id]).length };
   }
 
+  // ── отметки куратора ──
+  const noFormInd = c => c.tariff === TARIFF_IND && c.filled && !indFiles(c.quiz).some(f => f.kind === 'form');
+  const marksFor = c => MARKS.filter(m => !m.only || (m.only === 'ind') === (c.tariff === TARIFF_IND) || c.marks.includes(m.t));
+  function marksCell(c){
+    const ch = c.marks.map(t => `<span class="chip ${t === 'Анкета просмотрена' || t === 'Всё ясно, в работе' ? '' : 'm'}">${esc(MARK_T[t].s)}</span>`);
+    if (noFormInd(c) && !c.marks.includes('Жду опросник')) ch.push(`<span class="chip g" title="Клиент на индивидуальном тарифе не прикрепил опросник">нет опросника</span>`);
+    const n = c.note ? `<span class="sub mknote" title="${esc(c.note)}">${esc(c.note.length > 70 ? c.note.slice(0, 70) + '…' : c.note)}</span>` : '';
+    return ch.length || n ? `<span class="mkc">${ch.join('')}</span>${n}` : '<span class="nd muted">—</span>';
+  }
+  function marksPanel(c){
+    return `<div class="panel mkp"><h2><span>Отметки куратора</span><span class="small muted">видно только сотрудникам · можно выбрать несколько</span></h2>
+      <div class="mkb">${marksFor(c).map(m => `<button class="mkt ${c.marks.includes(m.t) ? 'on' : ''}" data-a="mark" data-v="${esc(m.t)}">${c.marks.includes(m.t) ? '✓ ' : ''}${esc(m.t)}</button>`).join('')}</div>
+      ${noFormInd(c) ? `<p class="small" style="margin:10px 0 0"><span class="mark">Нет опросника:</span> ${W(c).N} на индивидуальном тарифе ещё не прикрепил${W(c).l === 'ла' ? 'а' : ''} опросник.</p>` : ''}
+      <textarea id="note" placeholder="Примечание для себя и коллег: что ждём, о чём договорились" style="margin-top:12px">${esc(AV.ndraft != null ? AV.ndraft : c.note)}</textarea>
+      <div style="margin-top:8px"><button class="btn sm" data-a="saveNote">Сохранить примечание</button></div></div>`;
+  }
+
   // ── клиенты ──
   function clients(){
     const q = CF.q.toLowerCase();
@@ -7188,19 +7245,24 @@ const Adm = (() => {
     if (CF.type !== 'all') list = list.filter(c => c.filled && c.type === CF.type);
     const base = list; list = list.filter(ST[CF.st] || ST.all);
     const segN = (v, t) => `<button class="${CF.st === v ? 'on' : ''}" data-a="cf" data-k="st" data-v="${v}">${t} <span class="sn">${base.filter(ST[v]).length}</span></button>`;
+    const MK = { none: c => c.filled && !c.paidOnly && !c.marks.length, noform: c => noFormInd(c) };
+    MARKS.forEach(m => { MK[m.k] = c => c.marks.includes(m.t); });
+    const mkBase = list; if (CF.mk && CF.mk !== 'all' && MK[CF.mk]) list = list.filter(MK[CF.mk]);
+    const mkOpt = (v, t) => `<option value="${v}" ${CF.mk === v ? 'selected' : ''}>${t} (${v === 'all' ? mkBase.length : mkBase.filter(MK[v]).length})</option>`;
+    const mkSel = `<label class="small muted mkf">Отметка куратора: <select id="mkF" class="sel">${mkOpt('all','все')}${mkOpt('none','без отметок — ещё не смотрела')}${mkOpt('noform','инд. без опросника')}${MARKS.map(m => mkOpt(m.k, m.t)).join('')}</select></label>`;
     const seg = (k, v, t) => `<button class="${CF[k] === v ? 'on' : ''}" data-a="cf" data-k="${k}" data-v="${v}">${t}</button>`;
     return `<div class="head"><div><h1>${CF.st === 'review' ? 'Проверка назначений' : 'Клиенты'}</h1><p class="muted" style="margin:0">Нажмите на строку, чтобы открыть карточку</p></div><span class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" data-a="syncPaid" title="Новые оплаты из листа «Оплатили (GetCourse)», тарифы и распределение индивидуального тарифа по кураторам">Подтянуть оплаты</button><button class="btn ghost" data-a="addOpen">+ Добавить учениц</button></span></div>
     <div class="tools"><input class="inp" id="cq" placeholder="Имя или email" value="${esc(CF.q)}" style="flex:1 1 220px">
       <span class="seg">${segN('all','Все')}${segN('review','Ждут проверки')}${segN('photo','Нет фото языка')}${segN('ai','Расхождение с ИИ')}${segN('unclear','На уточнении у ИИ')}${segN('ind','Индивидуальный')}${segN('edited','С правками')}${segN('closed','Доступ закрыт')}${segN('ext','Продлили')}${segN('red','Нужен врач')}${segN('idle','Давно не заходят')}${segN('noform','Без анкеты')}${segN('asg','Назначен протокол')}</span>
       <span class="seg">${seg('type','all','Все типы')}${Object.keys(TYPES).map(k => seg('type', k, TYPES[k].short)).join('')}</span>
-      ${curSeg()}</div>
-    <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th>Статус</th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
+      ${curSeg()}${mkSel}</div>
+    <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th>Статус</th><th>Отметки</th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
     ${list.map(c => { const lp = lessonPct(c), wt = c.assigned ? weekTrack(c, curWeekC(c)) : null;
-      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${c.filled && c.red.length ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td>
+      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${c.filled && c.red.length ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td><td data-l="Отметки">${marksCell(c)}</td>
       <td>${c.filled && c.type ? `<span class="chip">${TYPES[c.type].short}</span>${c.assigned ? '' : ' <span class="small muted">авто</span>'}` : `<span class="nd muted">—</span>`}</td>
       <td data-l="Уроки">${c.assigned ? `<span class="mini"><span class="pb"><i style="width:${lp}%"></i></span>${lp}%</span>` : '<span class="nd">—</span>'}</td>
       <td data-l="Трекер">${wt ? `<span class="mini"><span class="pb"><i style="width:${wt.p}%"></i></span>${wt.p}%</span>` : '<span class="nd">—</span>'}</td>
- <td data-l="Вход">${lastTxt(c.last)}</td><td>${ovCount(c) ? `<span class="chip m">${ovCount(c)}</span>` : ''}</td></tr>`; }).join('') ||  `<tr><td colspan="8" class="muted">Никого не нашлось. Измените фильтры или поиск.</td></tr>`}
+ <td data-l="Вход">${lastTxt(c.last)}</td><td>${ovCount(c) ? `<span class="chip m">${ovCount(c)}</span>` : ''}</td></tr>`; }).join('') ||  `<tr><td colspan="9" class="muted">Никого не нашлось. Измените фильтры или поиск.</td></tr>`}
     </tbody></table></div>`;
   }
 
@@ -7216,9 +7278,9 @@ const Adm = (() => {
     ${c.paidOnly ? '' : `<label class="small muted">Тариф: <select id="tariff" class="sel" style="width:auto;display:inline-block;padding:4px 10px">${['Общий', TARIFF_IND].map(t => `<option ${t === c.tariff ? 'selected' : ''}>${t}</option>`).join('')}</select></label>`}</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${status(c)}
       ${c.assigned ? `<button class="btn ghost sm" data-a="asStudent">Кабинет ${W(c) === WM ? 'его' : 'её'} глазами</button>` : ''}
-      <button class="btn ghost sm" data-a="resetAll" ${c.filled ? '' : 'disabled'}>Открыть анкету заново</button>
+      ${isAdmRole() ? `<button class="btn ghost sm" data-a="resetAll" ${c.filled ? '' : 'disabled'}>Открыть анкету для правки</button>` : ''}
       <button class="btn ghost sm" data-a="resetProg" ${c.assigned ? '' : 'disabled'}>Сбросить прогресс</button>
-      <button class="btn ghost sm" data-a="resetPw" ${c.hasPw ? '' : 'disabled'}>Сбросить пароль</button></div></div>`;
+      <button class="btn ghost sm" data-a="resetPw" ${c.hasPw ? '' : 'disabled'}>Сбросить пароль</button></div></div>${c.paidOnly ? '' : marksPanel(c)}`;
     if (!c.filled) return head + `<div class="panel"><h2><span>Анкета не заполнена</span></h2><p>${c.paidOnly ? `${W(c).N} ещё не заходил${W(c).l === 'ла' ? 'а' : ''} в кабинет. E-mail есть в выгрузке оплативших из GetCourse — карточка появится в листе «Ученики» при первом входе.` : stageOf(c) === 0 ? `${W(c).N} ещё не заходил${W(c).l === 'ла' ? 'а' : ''} в кабинет.` : `${W(c).N} вош${W(c).l === 'ла' ? 'ла' : 'ёл'} в кабинет${c.first ? ' ' + fmtDT(c.first) : ''}, но анкету ещё не отправил${W(c).l === 'ла' ? 'а' : ''}.`}</p>
       <p class="small muted" style="margin:0">Пароль ${c.hasPw ? 'задан' : 'ещё не задан'}. Доступ: ${accessTxt(c)}.</p></div>${c.paidOnly ? '' : chatPanel(c) + `<div style="margin-top:16px">${histBlock(c)}</div>`}`;
     const a = c.quiz, last = c.state.checks[c.state.checks.length-1], sc = a.scores || {}, p = a.personal || {};
@@ -7261,8 +7323,6 @@ const Adm = (() => {
         ${answersPanel(c)}
     ${chatPanel(c)}
     ${clientComments(c)}
-    <div class="panel" style="margin-top:16px"><h2><span>Заметка куратора</span></h2><textarea id="note" placeholder="Видно только сотрудникам">${esc(c.note)}</textarea>
-      <div style="margin-top:8px"><button class="btn sm" data-a="saveNote">Сохранить заметку</button></div></div>
     ${fbPanel(c)}
     ${menuPanel(c)}
     ${fold('mat', 'Материалы клиента', ['lessons','practices','spices','phyto'].map(k => eff(c, k).length + ' ' + ({lessons:'уроков',practices:'практик',spices:'специй',phyto:'фитосоставов'})[k]).join(' · ') + (ovCount(c) ? ' · правок: ' + ovCount(c) : ''), `<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn mag" data-a="addMat">+ Добавить материал</button></div>
@@ -7872,8 +7932,12 @@ const Adm = (() => {
     if (a === 'xDel') { const x = c.extra[+b.dataset.i]; if (!x || !confirm(`Закрыть ${c.name} протокол «${PNAME[x.t]}»? Отметки о пройденном сохранятся.`)) return;
       const rest = c.extra.filter((_, i) => i !== +b.dataset.i); return act(() => api('setExtra', { token:S.token, email:c.email, extra:rest }), 'Доступ к протоколу закрыт', () => { rowOf(c.email)['Доп. протоколы'] = rest.length ? JSON.stringify(rest) : ''; }); }
     if (a === 'saveRecs') { const v = $('#recs').value; return act(() => api('saveRecs', { token:S.token, email:c.email, recs:v }), `Рекомендации сохранены — ${W(c).n} видит их на главной`, () => { rowOf(c.email)['Комментарий куратора'] = v; }); }
-    if (a === 'saveNote') { const v = $('#note').value; return act(() => api('saveNote', { token:S.token, email:c.email, note:v }), 'Заметка сохранена', () => { rowOf(c.email)['Заметка куратора'] = v; }); }
-    if (a === 'resetAll') { if (!confirm(`Открыть анкету заново для ${c.name}? Ответы, протокол, рекомендации и прогресс будут сброшены.`)) return;
+    if (a === 'mark') { const t = b.dataset.v, on = c.marks.includes(t); const nx = on ? c.marks.filter(x => x !== t) : c.marks.concat(t);
+      const v = MARKS.filter(m => nx.includes(m.t)).map(m => m.t).join('; '); const nv = $('#note') ? $('#note').value : null;
+      return act(() => api('setMarks', { token:S.token, email:c.email, marks:v ? v.split('; ') : [] }), on ? 'Отметка снята' : 'Отметка: ' + t, () => { const r = rowOf(c.email); r['Отметки куратора'] = v; if (nv !== null && nv !== c.note) AV.ndraft = nv; }); }
+    if (a === 'saveNote') { const v = $('#note').value; AV.ndraft = null; return act(() => api('saveNote', { token:S.token, email:c.email, note:v }), 'Примечание сохранено', () => { rowOf(c.email)['Заметка куратора'] = v; }); }
+    if (a === 'resetAll' && !isAdmRole()) return toast('Открыть анкету для правки может только администратор');
+    if (a === 'resetAll') { if (!confirm(`Открыть анкету для правки — ${c.name}? Ответы сохранятся: ${W(c) === WM ? 'он увидит' : 'она увидит'} их и сможет исправить. Протокол, рекомендации и прогресс будут сброшены, протокол нужно будет назначить заново.`)) return;
       return act(() => api('resetQuiz', { token:S.token, email:c.email }), 'Анкета открыта заново'); }
     if (a === 'resetProg') { if (!confirm(`Сбросить прогресс ${c.name}? Анкета и протокол сохранятся.`)) return;
       return act(() => api('resetProgress', { token:S.token, email:c.email }), 'Прогресс сброшен'); }
@@ -7885,6 +7949,7 @@ const Adm = (() => {
     if (e.target.id === 'gc-photo') return gcPhotoPick(e.target, AV.t || 'slow', () => render(true));
     if (e.target.id === 'adm-chat-file') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; AV.cf = AV.cf || []; return readChatFiles(e.target, AV.cf).then(() => render(true)); }
     if (e.target.id === 'curF') { CF.cur = e.target.value || 'all'; LS.set('hz_curf', CF.cur); return render(true); }
+    if (e.target.id === 'mkF') { CF.mk = e.target.value || 'all'; return render(true); }
     if (e.target.id === 'curSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); const v = e.target.value;
       return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : `${W(c).N} ${W(c).ok}`, () => { rowOf(c.email)['Закреплён за'] = v; }); }
     if (e.target.id === 'tariff' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); let r = {}; const tv = e.target.value; return act(async () => { r = await api('setTariff', { token:S.token, email:c.email, tariff:tv }); }, '', () => { rowOf(c.email)['Тариф'] = tv; }).then(() => toast(r && r.cur ? 'Тариф сохранён · закреплена за ' + curName(r.cur) : 'Тариф сохранён')); }
