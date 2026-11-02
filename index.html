@@ -1352,7 +1352,7 @@ blockquote{margin:0 0 10px;padding:8px 12px;border-left:4px solid var(--mint-bd)
 .ar span{color:var(--grey)}
 .ar b{text-align:right;font-weight:600}
 details summary{cursor:pointer}
-.chat{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto;padding:4px 2px}
+.chat{display:flex;flex-direction:column;gap:8px;max-height:460px;overflow:auto;padding:4px 2px;overscroll-behavior:contain}
 .bub{max-width:78%;padding:9px 12px;border-radius:14px;font-size:13.5px;line-height:1.45}
 .bub.cl{background:var(--soft);border:1px solid var(--line);align-self:flex-start}
 .bub.cu{background:var(--e-dk);color:#fff;align-self:flex-end}
@@ -3742,7 +3742,7 @@ LTEXT.st5 = function(){
   const fw = SCHED().final ? whenTxt(Date.parse(SCHED().final)) : '';
   const fin = openAt(6), fig = (n, cap) => `<figure class="lt-ex"><img src="${LT_RZ}${n}.webp" alt="${cap}" loading="lazy"><figcaption>${cap}</figcaption></figure>`;
   return `
-<p class="lt-lead">В конце программы вас ждёт приятное: подарок за обратную связь каждой, кто дошёл до финала, и розыгрыш, в котором пятерым участницам мы вернём стоимость обучения. Рассказываем, как участвовать, — и почему фото «до» стоит сделать уже сейчас.</p>
+<p class="lt-lead">В конце программы вас ждёт приятное: подарок за обратную связь каждой, кто дошёл до финала, и розыгрыш, в котором пятерым участникам мы вернём стоимость обучения. Рассказываем, как участвовать, — и почему фото «до» стоит сделать уже сейчас.</p>
 
 <h3>Гарантированный приз — гайд «Аптечка в отпуск»</h3>
 <div class="lt-inv">
@@ -3760,10 +3760,10 @@ LTEXT.st5 = function(){
 <h3>Розыгрыш за результат — очевидный и невероятный</h3>
 <h4>Что разыгрываем</h4>
 <ol class="lt-steps">
-<li><b>Гарантированный приз каждой участнице, чью работу принял куратор</b>, — бонусный урок ароматерапевта Татьяны Никифоровой «Ароматерапия здоровья и красоты».</li>
+<li><b>Гарантированный приз каждому участнику, чью работу принял куратор</b>, — бонусный урок ароматерапевта Татьяны Никифоровой «Ароматерапия здоровья и красоты».</li>
 </ol>
 <div class="lt-prizes one"><div><span>5 победительниц</span><b>Вернём стоимость обучения</b></div></div>
-<p>Розыгрыш проходит онлайн, прямо в эфире завершающего вебинара${fw ? ' — ' + fw : ''}: победительниц выбираем рандомайзером среди участниц, чьи работы принял куратор. С победительницами свяжется менеджер, чтобы оформить получение приза.</p>
+<p>Розыгрыш проходит онлайн, прямо в эфире завершающего вебинара${fw ? ' — ' + fw : ''}: победительниц выбираем рандомайзером среди участников, чьи работы принял куратор. С победительницами свяжется менеджер, чтобы оформить получение приза.</p>
 
 <h4>Как участвовать</h4>
 <p><b>${period.charAt(0).toUpperCase() + period.slice(1)}${to ? ' (до 23:59 по Москве)' : ''}</b> пришлите на выбор:</p>
@@ -3812,7 +3812,7 @@ LTEXT.fin3 = function(){
   const per = from && to ? (from.split(' ')[1] === to.split(' ')[1] ? `с ${from.split(' ')[0]} по ${to}` : `с ${from} по ${to}`) : '';
   const fw = SCHED().final ? whenTxt(Date.parse(SCHED().final)) : '';
   return `
-<p class="lt-lead">Вы прошли программу — и это уже большой результат. Теперь самое приятное: покажите, что изменилось, и поучаствуйте в розыгрыше: пятерым участницам мы вернём стоимость обучения.</p>
+<p class="lt-lead">Вы прошли программу — и это уже большой результат. Теперь самое приятное: покажите, что изменилось, и поучаствуйте в розыгрыше: пятерым участникам мы вернём стоимость обучения.</p>
 <div class="lt-prizes one"><div><span>5 победительниц</span><b>Вернём стоимость обучения</b></div></div>
 <p>А каждой, чью работу примет куратор, — подарок: бонусный урок Татьяны Никифоровой «Ароматерапия здоровья и красоты».</p>
 <h3>Что отправить</h3>
@@ -3825,7 +3825,7 @@ LTEXT.fin3 = function(){
 <div class="lt-note">Как сделать хорошие фото, смотрите в уроке «Условия участия в розыгрыше» раздела «Перед стартом»: там примеры и инструкция. Размытые и тёмные фото к розыгрышу не допускаются.</div>
 <h3>Что будет дальше</h3>
 <ol class="lt-steps">
-<li>Куратор проверит работу вручную: есть ли «до», «после» и видеоотзыв, хорошо ли всё видно. Как только работу примут, вы попадёте в список участниц розыгрыша, а в кабинете откроется подарок — бонусный урок. Если чего-то не хватит, куратор вернёт работу с комментарием — её можно будет исправить и отправить снова.</li>
+<li>Куратор проверит работу вручную: есть ли «до», «после» и видеоотзыв, хорошо ли всё видно. Как только работу примут, вы попадёте в список участников розыгрыша, а в кабинете откроется подарок — бонусный урок. Если чего-то не хватит, куратор вернёт работу с комментарием — её можно будет исправить и отправить снова.</li>
 <li>${fw ? fw.charAt(0).toUpperCase() + fw.slice(1) : 'На завершающем вебинаре'} в прямом эфире завершающего вебинара рандомайзер выберет 5 победительниц среди принятых работ.</li>
 <li>С победительницами свяжется менеджер, чтобы оформить получение приза — возврат стоимости обучения.</li>
 </ol>
@@ -4586,7 +4586,7 @@ const Demo = (() => {
   const msgsOf = e => load().messages.filter(m => m.email === e);
   const addMsg = (email, lessonId, from, who, text, files, by) => { load().messages.push({ id:'m'+Math.random().toString(36).slice(2), by:by||'', at:now(), email, lessonId:lessonId||'', lesson: lessonId ? (byId(lessonId)||{t:''}).t : '', from, who, text, files: files && files.length ? files : undefined }); log(email, from === 'cu' ? (lessonId ? 'reply_comment' : 'reply_chat') : (lessonId ? 'comment' : 'chat'), lessonId ? (byId(lessonId)||{t:''}).t : ''); };
   const parse = s => { try { return s ? JSON.parse(s) : null } catch(e){ return null } };
-  const demoRaffleOpen = st => { if (st['Статус'] !== STS.ok) throw new Error('Розыгрыш — для участниц программы'); const r = SCHED({ schedule: (load().settings||{}).schedule }).raffle || {};
+  const demoRaffleOpen = st => { if (st['Статус'] !== STS.ok) throw new Error('Розыгрыш — для участников программы'); const r = SCHED({ schedule: (load().settings||{}).schedule }).raffle || {};
     if (r.from && Date.now() < Date.parse(r.from)) throw new Error('Приём работ ещё не начался'); const ex = (load().raffle||{})[st['Email']];
     if (r.to && Date.now() > Date.parse(r.to) + 60000 && !(ex && ex.status === RZ_ST.fix && (!r.at || Date.now() < Date.parse(r.at)))) throw new Error('Приём работ завершён'); };
   // чаты протоколов: кто куда допущен, как подписаны участницы
@@ -5013,7 +5013,7 @@ function chatView(){
   if (!U.preview) { U.st.seenChat = Date.now(); save(); }
   return `<h1 style="margin-top:22px">Чат с куратором</h1>${S.user.curName ? `<p style="margin:-4px 0 8px"><b>Ваш куратор — ${esc(S.user.curName)}</b></p>` : ''}
   <p class="muted">${S.user.tariff === TARIFF_IND ? 'Пишите куратору в любое время: он ответит здесь же, обычно в течение дня.' : 'Куратор написал вам — ответьте здесь.'}</p>
-  <div class="chat">${bubbles(list, 'cl') || '<p class="muted small">Сообщений пока нет. Напишите первой.</p>'}</div>
+  <div class="chat">${bubbles(list, 'cl') || '<p class="muted small">Сообщений пока нет. Напишите куратору — он ответит здесь.</p>'}</div>
   <textarea class="inp" id="msgIn" maxlength="3000" placeholder="Ваше сообщение" style="margin-top:12px;min-height:90px">${esc(U.cdraft || '')}</textarea>
   ${chatFilesOn() && !U.preview ? `<div class="cattach"><input type="file" multiple id="chat-file" class="vh" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf,.odt,.heic"><label for="chat-file" class="btn ghost sm">${I.clip.replace('<svg', '<svg width="16" height="16"')} Прикрепить файл</label>
     <span class="small muted">Анализы, фото, документы — до ${CF_MAX} файлов, до ${CF_MB} МБ каждый</span></div>${cfPending(U.cf || [], 'cfDel')}` : ''}
@@ -5023,6 +5023,18 @@ function chatView(){
 // Сообщения подтягиваются раз в 15 секунд, пока чат открыт. Фото, ответы, реакции, закреп и модерация куратора.
 const GC_RX = ['❤️', '👍', '🙏', '😊'];
 const GC = { data: {}, v: {}, photos: {}, ph: {}, reply: null, photo: null, draft: '', busy: false, stick: true, enter: true, timer: null, err: '' };
+// Пол клиента: из анкеты («Мужской»/«Женский»), а пока анкеты нет — по имени (Арсен, Игорь — мужские; Анна, Любовь — женские)
+const M_NAMES_A = /^(илья|никита|кузьма|фома|лука|савва|данила|гаврила|миша|гоша|паша|петя|вася|дима|лёша|леша|серёжа|сережа|витя|коля|толя|вова|костя|стёпа|степа|ваня|федя|юра|слава|тимоша|ilya|nikita|misha|dima|sasha_m)$/;
+const F_NAMES_SOFT = /^(любовь|нинель|эсфирь|руфь|адель|ассоль|изабель|рахиль|юдифь|айгуль|гульнур|динара_)$/;
+function maleOf(sex, name){
+  if (/муж/i.test(sex || '')) return true; if (/жен/i.test(sex || '')) return false;
+  const f = String(name || '').trim().split(/\s+/)[0].toLowerCase().replace(/ё/g, 'е'); if (!f) return false;
+  if (M_NAMES_A.test(f)) return true; if (F_NAMES_SOFT.test(f)) return false;
+  return /[бвгджзйклмнпрстфхцчшщь]$/.test(f) || (/[bcdfghjklmnpqrstvwxz]$/.test(f) && !/^(ingrid|miriam|karen|ellen|helen|ann)$/.test(f));
+}
+const WF = { n:'ученица', N:'Ученица', d:'ученице', i:'ученицей', g:'ученицы', l:'ла', fr:'свободна', zk:'закреплена', ok:'откреплена', kl:'Клиентка' };
+const WM = { n:'ученик', N:'Ученик', d:'ученику', i:'учеником', g:'ученика', l:'л', fr:'свободен', zk:'закреплён', ok:'откреплён', kl:'Клиент' };
+const uMale = () => maleOf((((typeof U !== 'undefined' && U.quiz) || {}).personal || {}).sex || (typeof QD !== 'undefined' && QD && QD.pol) || '', S.user && S.user.name);
 const isAdmRole = () => !!S.user && /^(админ|admin|администратор)$/i.test(String(S.user.role || '').trim());
 const gcShort = t => (s => s[0].toUpperCase() + s.slice(1))(TYPES[t].short || PNAME[t]);
 function gcTypes(){
@@ -5088,7 +5100,7 @@ function gcMsg(m, d, staff){
 function gcBody(t, staff){
   const d = GC.data[t];
   if (!d) return `<p class="muted">${GC.err ? esc(GC.err) : 'Загружаем сообщения…'}</p>`;
-  const list = d.list.map(m => gcMsg(m, d, staff)).join('') || `<p class="muted small gc-empty">Сообщений пока нет. Напишите первой — поздоровайтесь и расскажите, с чего начинаете программу.</p>`;
+  const list = d.list.map(m => gcMsg(m, d, staff)).join('') || `<p class="muted small gc-empty">Сообщений пока нет. Начните разговор — поздоровайтесь и расскажите, с чего начинаете программу.</p>`;
   const pin = d.pin ? `<button type="button" class="gc-pin" data-a="gcJump" data-id="${esc(d.pin.id)}"><span class="gc-pin-i" aria-hidden="true">📌</span><span><small>Закреплено · ${esc(d.pin.name)}</small><b>${esc(d.pin.text || 'Фото')}</b></span></button>` : '';
   const rp = GC.reply && GC.reply.t === t ? `<div class="gc-rp"><span><small>Ответ ${esc(GC.reply.name)}</small><b>${esc(GC.reply.text || 'Фото')}</b></span><button type="button" class="fx" data-a="gcReplyX" aria-label="Отменить ответ">✕</button></div>` : '';
   const pp = GC.photo && GC.photo.t === t ? `<div class="gc-pp"><img src="${GC.photo.data}" alt=""><button type="button" class="fx" data-a="gcPhotoX" aria-label="Убрать фото">✕</button></div>` : '';
@@ -5108,7 +5120,7 @@ function gchatView(){
   gcAfter();
   return `<h1 style="margin-top:22px">Чат протокола «${esc(PNAME[t])}»</h1>
   ${ts.length > 1 ? `<div class="psw">${ts.map(x => `<button type="button" class="psw-b${x === t ? ' on' : ''}" data-a="gchat" data-t="${x}"><b>${gcShort(x)}</b><small>${x === MAINT() ? 'основной' : 'дополнительный'}</small></button>`).join('')}</div>` : ''}
-  <p class="muted">Здесь участницы с таким же типом пищеварения и кураторы. Делитесь рецептами, находками и вопросами — бережно и с уважением друг к другу. Лекарства и назначения не обсуждаем: эти вопросы — к вашему врачу.</p>
+  <p class="muted">Здесь участники с таким же типом пищеварения и кураторы. Делитесь рецептами, находками и вопросами — бережно и с уважением друг к другу. Лекарства и назначения не обсуждаем: эти вопросы — к вашему врачу.</p>
   ${gcBody(t, false)}`;
 }
 async function gcSend(t, staff, rerender){
@@ -5382,7 +5394,7 @@ function lessonExtra(x){
   if (x.id === 'fin4') { const c = finalCard(true); if (c) out.push(c); }
   if (x.id === 'fin3') out.push(raffleBlock());
   if (/^Чат программы/.test(t)) {
-    out.push(`<div class="ltext"><p class="lt-lead">В общем чате протокола — участницы с таким же типом пищеварения. Здесь делятся рецептами, находками и поддерживают друг друга, а кураторы публикуют важные новости программы.</p>
+    out.push(`<div class="ltext"><p class="lt-lead">В общем чате протокола — участники с таким же типом пищеварения. Здесь делятся рецептами, находками и поддерживают друг друга, а кураторы публикуют важные новости программы.</p>
     <div class="lt-note"><b>Где найти чат:</b> он прямо здесь, в кабинете — раздел «Чаты» в меню слева. Ничего устанавливать и отдельно входить не нужно. Можно писать, отвечать на сообщения, ставить реакции и делиться фото.</div></div>
     ${gcTypes().length ? `<button class="btn mag full" data-a="gchat" data-t="${TYPE()}">Перейти в чат протокола</button>` : `<div class="card alt"><p style="margin:0">Чат откроется, когда куратор назначит протокол.</p></div>`}`); }
   if (x.d === 'Обратная связь' || /^Ваша точка Б/.test(t)) {
@@ -5396,7 +5408,7 @@ function lessonExtra(x){
   if (x.d === 'Трекер') out.push(`<div class="card alt"><p style="margin:0 0 10px">Трекер недели теперь интерактивный: отмечайте действия прямо в кабинете — прогресс сохранится. Файл для печати — ниже.</p><button class="btn full" data-a="tracker">Открыть трекер</button></div>`);
   if (/меню и сборник рецептов/i.test(t)) out.push(`<div class="card alt"><p style="margin:0 0 10px">Меню недели и все рецепты вашего протокола — в конструкторе меню: с заменами блюд, расчётом витаминов и итогами недели.</p><button class="btn full" data-a="menu">Открыть меню и рецепты</button></div>`);
   if (/специй|фитосбор|травы и фитосборы/i.test(t)) out.push(`<div class="card alt"><p style="margin:0 0 10px">Для вас как для участников нашей сезонной программы «ЖКТ» по промокоду <b>ZHKT2026</b> действует скидка 10 % на все фитосборы в нашем магазине Holistica.</p><a class="btn full" href="${SHOP_URL}" target="_blank" rel="noopener">В магазин Holistica</a></div>`);
-  if (/специй/i.test(t)) out.push(`<div class="card alt"><p style="margin:0 0 10px">Мы собрали список магазинов не в РФ, которыми делились участницы наших других программ.</p><a class="btn ghost full" href="${SHOPS_LIST}" target="_blank" rel="noopener">Список магазинов</a></div>`);
+  if (/специй/i.test(t)) out.push(`<div class="card alt"><p style="margin:0 0 10px">Мы собрали список магазинов не в РФ, которыми делились участники наших других программ.</p><a class="btn ghost full" href="${SHOPS_LIST}" target="_blank" rel="noopener">Список магазинов</a></div>`);
   return out.join('');
 }
 function embedUrl(u){
@@ -5802,12 +5814,12 @@ function item(){
   const x = byId(V.id), k = catOf(x.id), d = U.st.done[x.id];
   if (!catOpen(k)) return catLockHtml(CATS.find(c => c.k === k));
   const doneLbl = { lessons:['Отметить как просмотренный','Урок просмотрен'], practices:['Делаю эту практику','Практика в работе'],
-    spices:['Добавил(а) в рацион','В рационе'], phyto:['Обсудил(а) с врачом, принимаю','Принимаю'] }[k];
+    spices:[uMale() ? 'Добавил в рацион' : 'Добавила в рацион','В рационе'], phyto:[uMale() ? 'Обсудил с врачом, принимаю' : 'Обсудила с врачом, принимаю','Принимаю'] }[k];
   const btn = `<button class="btn full ${d ? 'ghost' : ''}" data-a="toggle" data-id="${x.id}">${d ? I.check.replace('<svg','<svg width="18" height="18"') + ' ' + doneLbl[1] : doneLbl[0]}</button>`;
   if (k === 'lessons' && giftLocked(x) && x.id === RV_GIFT)
     return `<h1 style="margin-top:22px">${esc(x.t)}</h1><div class="card"><p>Это подарок за итоговый отзыв. Гайд откроется, как только куратор проверит и примет ваш отзыв в итоговой анкете урока «Ваша точка Б».</p><button class="btn ghost full" data-a="open" data-id="fin1">К уроку «Ваша точка Б»</button></div>`;
   if (k === 'lessons' && giftLocked(x))
-    return `<h1 style="margin-top:22px">${esc(x.t)}</h1><div class="card"><p>Это подарок участницам розыгрыша. Урок откроется, как только куратор проверит и примет вашу работу в уроке «Участие в розыгрыше».</p><button class="btn ghost full" data-a="open" data-id="fin3">К уроку «Участие в розыгрыше»</button></div>`;
+    return `<h1 style="margin-top:22px">${esc(x.t)}</h1><div class="card"><p>Это подарок участникам розыгрыша. Урок откроется, как только куратор проверит и примет вашу работу в уроке «Участие в розыгрыше».</p><button class="btn ghost full" data-a="open" data-id="fin3">К уроку «Участие в розыгрыше»</button></div>`;
   if (k === 'lessons' && !lessonOpen(x))
     return `<h1 style="margin-top:22px">${esc(x.t)}</h1><div class="card"><p>Урок откроется ${whenTxt(lessonOpenAt(x))} по Москве${menuWeekOf(x) ? '' : ' — ' + WEEKNAME[x.w].toLowerCase()}.</p></div>`;
   if (k === 'lessons') {
@@ -6046,7 +6058,7 @@ function redflag(){
     <p>Запишитесь к врачу в ближайшее время. Если симптомы острые — обратитесь за неотложной помощью.</p>
   </div>
   <p class="muted">Если вы уже обследованы и врач не возражает против программы, можно продолжить. Куратор увидит вашу отметку.</p>
-  <div class="row"><button class="btn ghost" data-a="back">Вернуться к анкете</button><button class="btn mag" data-a="ackRed">Я обследован(а), продолжить</button></div>`;
+  <div class="row"><button class="btn ghost" data-a="back">Вернуться к анкете</button><button class="btn mag" data-a="ackRed">Я ${uMale() ? 'обследован' : 'обследована'}, продолжить</button></div>`;
 }
 async function finishQuiz(){
   const red = deriveQuiz(QD).red;
@@ -6143,7 +6155,7 @@ function raffleBlock(){
        <button class="btn full" data-a="open" data-id="${RZ_GIFT}" style="margin:0 0 12px">Открыть подарок — бонусный урок</button>`
     : stt === RZ_ST.fix
     ? `<div class="rz-st fix"><b>Куратор вернул работу на доработку</b>${sent.comment ? `<p>${esc(sent.comment)}</p>` : ''}<small>Исправьте и отправьте ещё раз${w.at ? ' — до ' + dm(w.at) : ''}. В розыгрыше участвуют только принятые работы.</small></div>`
-    : `<div class="rz-st wait"><b>Работа на проверке</b><small>Отправлена${sent.at ? ' ' + dm(Date.parse(sent.at)) : ''} · ${meta}. Куратор проверит её вручную — после этого вы попадёте в список участниц розыгрыша и получите подарок.</small></div>`;
+    : `<div class="rz-st wait"><b>Работа на проверке</b><small>Отправлена${sent.at ? ' ' + dm(Date.parse(sent.at)) : ''} · ${meta}. Куратор проверит её вручную — после этого вы попадёте в список участников розыгрыша и получите подарок.</small></div>`;
   const late = sent && stt === RZ_ST.fix && (!w.at || now < w.at);
   if (!U.preview && w.from && now < w.from) return `<section class="rzbox">${head}<p>Приём работ откроется <b>${dm(w.from)}</b> и продлится до ${w.to ? dm(w.to) + ' 23:59' : 'конца недели'} по Москве. Здесь можно будет загрузить фото или анализы и оставить отзыв.</p><p class="muted small" style="margin:0">Подготовьте фото «после» и отзыв заранее — как снимать, смотрите в уроке «Условия участия в розыгрыше».</p></section>`;
   if (!U.preview && w.to && now > w.to + 60000 && !late) return `<section class="rzbox">${head}${sentCard || '<p style="margin:0">Приём работ завершён. Спасибо, что прошли программу до конца!</p>'}</section>`;
@@ -6970,7 +6982,9 @@ const Adm = (() => {
   const curators = () => ((D && D.students) || []).filter(s => isStaff({ role:s['Роль'] })).map(s => ({ email:String(s['Email']).trim().toLowerCase(), name:s['Имя'] || s['Email'] }));
   const meEmail = () => String(S.user.email || '').trim().toLowerCase();
   const curName = e => { if (!e) return ''; const c = curators().find(x => x.email === e); return c ? c.name : e; };
-  const curChip = c => c.paidOnly ? '' : c.cur ? `<span class="chip ${c.cur === meEmail() ? 'd' : ''}">${c.cur === meEmail() ? 'мой' : esc(curName(c.cur))}</span>` : `<span class="chip g">свободна</span>`;
+  const W = c => c && maleOf(c.quiz && c.quiz.personal && c.quiz.personal.sex, c.name) ? WM : WF;
+  const Wem = em => W(C.find(x => x.email === em));
+  const curChip = c => c.paidOnly ? '' : c.cur ? `<span class="chip ${c.cur === meEmail() ? 'd' : ''}">${c.cur === meEmail() ? 'мой' : esc(curName(c.cur))}</span>` : `<span class="chip g">${W(c).fr}</span>`;
   const curFilter = list => CF.cur === 'all' ? list : CF.cur === 'me' ? list.filter(c => c.cur === meEmail()) : CF.cur === 'free' ? list.filter(c => !c.cur && !c.paidOnly) : list.filter(c => c.cur === CF.cur);
   const curSeg = () => { const b = (v, t) => `<button class="${CF.cur === v ? 'on' : ''}" data-a="curf" data-v="${esc(v)}">${t}</button>`;
     const others = curators().filter(x => x.email !== meEmail());
@@ -6997,13 +7011,17 @@ const Adm = (() => {
   function status(c){
     const s = stageOf(c);
     if (!c.paidOnly && closedC(c)) return `<span class="st o">Доступ закрыт</span>`;
-    if (s < 3) return `<span class="st o">${s === 0 ? 'Не заходил(а)' : 'Анкета не заполнена'}</span>`;
+    if (s < 3) return `<span class="st o">${s === 0 ? (W(c) === WM ? 'Не заходил' : 'Не заходила') : 'Анкета не заполнена'}</span>`;
     const f = flowOf(c);
     if (f === 'photo') return `<span class="st w">Ждём фото языка</span>`;
-    if (f === 'review') return `<span class="st rv">Ждёт проверки${aiOpen(c) ? ' · ИИ' : ''}</span>`;
+    if (f === 'review') { const st = String((c.ai && c.ai.status) || '');
+      if (aiOpen(c)) return `<span class="st rd">Расхождение с ИИ</span>`;
+      if (aiReady(c)) return `<span class="st rv">Ждёт назначения · ИИ проверил</span>`;
+      if (/^ошибка/.test(st)) return `<span class="st rv">Ждёт назначения · ИИ не сработал</span>`;
+      return `<span class="st rv">Ждёт проверки ИИ</span>`; }
     if (c.red.length) return `<span class="st rd">Красный флаг</span>`;
     if (c.last !== null && c.last >= 5) return `<span class="st w">Давно не заходит</span>`;
-    if (c.day > CAL.programDays) return `<span class="st">Завершил(а)</span>`;
+    if (c.day > CAL.programDays) return `<span class="st">${W(c) === WM ? 'Завершил' : 'Завершила'}</span>`;
     return `<span class="st">В программе</span>`;
   }
   function tags(it){
@@ -7039,10 +7057,17 @@ const Adm = (() => {
       ${MODE === 'demo' ? `<button class="btn sm" data-a="demoResetA">Сбросить демо-данные</button>` : ''}
       <button class="btn sm" data-a="logout">Выйти</button></div>`;
   }
+  // Личный чат в карточке: после перерисовки — снова у последнего сообщения (если куратор не листал историю вверх)
+  let chatPos = { id:'', top:0, stick:true };
   function render(keep){
     const y = window.scrollY;
+    const ch0 = document.querySelector('#chat .chat');
+    if (ch0 && chatPos.id === AV.id) { chatPos.top = ch0.scrollTop; chatPos.stick = ch0.scrollHeight - ch0.scrollTop - ch0.clientHeight < 60; }
+    if (chatPos.id !== AV.id) chatPos = { id: AV.id || '', top:0, stick:true };
     side();
     $('#adm').innerHTML = ({ over, clients, client, catalog, comments, chats, gchats, rtime, ratings, raffle, reviews })[AV.s]();
+    const ch1 = document.querySelector('#chat .chat');
+    if (ch1) ch1.scrollTop = chatPos.stick ? ch1.scrollHeight : chatPos.top;
     if (AV.s === 'gchats') { if (!gcPollT) gcPoll(true, () => AV.t || 'slow', () => { schKeep(); render(true); }); } else if (gcPollT) gcPoll(false);
     if (AV.s === 'client') { loadPhoto(); loadMenuDays(); }
     if (keep) window.scrollTo(0, y);
@@ -7172,15 +7197,15 @@ const Adm = (() => {
     const initials = c.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
     const head = `<button class="btn lnk" data-a="nav" data-s="clients" style="margin-bottom:10px">← Все клиенты</button>
     <div class="ch"><div class="who"><span class="av">${esc(initials)}</span><div><h1 style="margin:0">${esc(c.name)}</h1><p class="muted" style="margin:0">${esc(c.email)}${c.paidOnly ? ' · из выгрузки GetCourse' : ''}</p>
-    ${c.paidOnly ? '' : `<div class="row2" style="align-items:center;margin-top:6px"><label class="small muted">Куратор: <select id="curSel" class="sel" style="width:auto;display:inline-block;padding:4px 10px"><option value="">— свободна —</option>${curators().map(x => `<option value="${esc(x.email)}" ${x.email === c.cur ? 'selected' : ''}>${esc(x.name)}${x.email === meEmail() ? ' (я)' : ''}</option>`).join('')}</select></label>
+    ${c.paidOnly ? '' : `<div class="row2" style="align-items:center;margin-top:6px"><label class="small muted">Куратор: <select id="curSel" class="sel" style="width:auto;display:inline-block;padding:4px 10px"><option value="">— ${W(c).fr} —</option>${curators().map(x => `<option value="${esc(x.email)}" ${x.email === c.cur ? 'selected' : ''}>${esc(x.name)}${x.email === meEmail() ? ' (я)' : ''}</option>`).join('')}</select></label>
       ${c.cur !== meEmail() ? `<button class="btn sm mag" data-a="assignMe">Закрепить за мной</button>` : ''}</div>`}
     ${c.paidOnly ? '' : `<label class="small muted">Тариф: <select id="tariff" class="sel" style="width:auto;display:inline-block;padding:4px 10px">${['Общий', TARIFF_IND].map(t => `<option ${t === c.tariff ? 'selected' : ''}>${t}</option>`).join('')}</select></label>`}</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${status(c)}
-      ${c.assigned ? `<button class="btn ghost sm" data-a="asStudent">Кабинет её глазами</button>` : ''}
+      ${c.assigned ? `<button class="btn ghost sm" data-a="asStudent">Кабинет ${W(c) === WM ? 'его' : 'её'} глазами</button>` : ''}
       <button class="btn ghost sm" data-a="resetAll" ${c.filled ? '' : 'disabled'}>Открыть анкету заново</button>
       <button class="btn ghost sm" data-a="resetProg" ${c.assigned ? '' : 'disabled'}>Сбросить прогресс</button>
       <button class="btn ghost sm" data-a="resetPw" ${c.hasPw ? '' : 'disabled'}>Сбросить пароль</button></div></div>`;
-    if (!c.filled) return head + `<div class="panel"><h2><span>Анкета не заполнена</span></h2><p>${c.paidOnly ? 'Ученица ещё не заходила в кабинет. Её e-mail есть в выгрузке оплативших из GetCourse — карточка появится в листе «Ученики» при первом входе.' : stageOf(c) === 0 ? 'Ученица ещё не заходила в кабинет.' : `Ученица вошла в кабинет${c.first ? ' ' + fmtDT(c.first) : ''}, но анкету ещё не отправила.`}</p>
+    if (!c.filled) return head + `<div class="panel"><h2><span>Анкета не заполнена</span></h2><p>${c.paidOnly ? `${W(c).N} ещё не заходил${W(c).l === 'ла' ? 'а' : ''} в кабинет. E-mail есть в выгрузке оплативших из GetCourse — карточка появится в листе «Ученики» при первом входе.` : stageOf(c) === 0 ? `${W(c).N} ещё не заходил${W(c).l === 'ла' ? 'а' : ''} в кабинет.` : `${W(c).N} вош${W(c).l === 'ла' ? 'ла' : 'ёл'} в кабинет${c.first ? ' ' + fmtDT(c.first) : ''}, но анкету ещё не отправил${W(c).l === 'ла' ? 'а' : ''}.`}</p>
       <p class="small muted" style="margin:0">Пароль ${c.hasPw ? 'задан' : 'ещё не задан'}. Доступ: ${accessTxt(c)}.</p></div>${c.paidOnly ? '' : chatPanel(c) + `<div style="margin-top:16px">${histBlock(c)}</div>`}`;
     const a = c.quiz, last = c.state.checks[c.state.checks.length-1], sc = a.scores || {}, p = a.personal || {};
     const tab = AV.tab || 'lessons';
@@ -7195,7 +7220,7 @@ const Adm = (() => {
     ${checkPanel(c)}
     ${extraPanel(c)}
     ${filesPanel(c)}
-    ${c.red.length ? `<div class="alert"><div><b>Красный флаг:</b> ${esc(c.red.join(', '))}.${a.redAck ? ' Ученица отметила, что обследована и врач не против программы.' : ''} Рекомендуется связаться с ученицей до старта.</div></div>` : ''}
+    ${c.red.length ? `<div class="alert"><div><b>Красный флаг:</b> ${esc(c.red.join(', '))}.${a.redAck ? ` ${W(c).N} отметил${W(c).l === 'ла' ? 'а' : ''}, что обследован${W(c).l === 'ла' ? 'а' : ''} и врач не против программы.` : ''} Рекомендуется связаться с ${W(c).i} до старта.</div></div>` : ''}
     <div class="grid g3">
       <div class="panel"><h2><span>Профиль</span></h2><dl class="kv">
         <dt>Тип</dt><dd>${c.type ? TYPES[c.type].name : '—'}${c.assigned ? '' : ' (авто)'}${c.extra.length ? '<br><span class="small">+ ' + c.extra.map(x => esc(TYPES[x.t].name) + (extraActive(x) ? '' : ' (срок истёк)')).join(', ') + '</span>' : ''}</dd>
@@ -7227,7 +7252,7 @@ const Adm = (() => {
     ${fold('mat', 'Материалы клиента', ['lessons','practices','spices','phyto'].map(k => eff(c, k).length + ' ' + ({lessons:'уроков',practices:'практик',spices:'специй',phyto:'фитосоставов'})[k]).join(' · ') + (ovCount(c) ? ' · правок: ' + ovCount(c) : ''), `<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn mag" data-a="addMat">+ Добавить материал</button></div>
       <div class="tabs">${tabs.map(([k, t]) => `<button class="${k === tab ? 'on' : ''}" data-a="ctab" data-k="${k}">${t}<span>${eff(c, k).length}</span></button>`).join('')}</div>
       <div class="mat">${rows || `<p class="muted">В этом разделе у клиента пока нет материалов.</p>`}</div>
-      <p class="small muted" style="margin:12px 0 0">«Авто» — подобрано по протоколу и анкете. «Куратор» — добавлено вручную. Ручные правки хранятся отдельно и не затираются при смене протокола. ${c.assigned ? 'Галочка — ученица отметила материал выполненным.' : 'Ученица увидит материалы после назначения протокола.'}</p>
+      <p class="small muted" style="margin:12px 0 0">«Авто» — подобрано по протоколу и анкете. «Куратор» — добавлено вручную. Ручные правки хранятся отдельно и не затираются при смене протокола. ${c.assigned ? `Галочка — ${W(c).n} отметил${W(c).l === 'ла' ? 'а' : ''} материал выполненным.` : `${W(c).N} увидит материалы после назначения протокола.`}</p>
 `)}
     ${c.assigned ? lessonActivity(c) : ''}
     <div style="margin-top:16px">${histBlock(c)}</div>`;
@@ -7358,11 +7383,11 @@ const Adm = (() => {
   function formBox(c){
     if (c.tariff !== TARIFF_IND || !c.filled) return '';
     const r = indRows(c);
-    return r.form ? r.form + r.tests : `<div class="photo-ph miss" style="margin-top:10px;min-height:0;padding:12px"><span><b>Опросник ещё не прикреплён</b><br><small>Тариф «Индивидуальный»: ученица видит напоминание в кабинете</small></span></div>${r.tests}`;
+    return r.form ? r.form + r.tests : `<div class="photo-ph miss" style="margin-top:10px;min-height:0;padding:12px"><span><b>Опросник ещё не прикреплён</b><br><small>Тариф «Индивидуальный»: ${W(c).n} видит напоминание в кабинете</small></span></div>${r.tests}`;
   }
   function photoBox(c){
     return formBox(c) + (c.photo ? `<div id="photo-box"><div class="photo-ph"><span>Загружаем фото…</span></div></div>`
-      : `<div class="photo-ph miss"><span><b>Фото языка ещё не загружено</b><br><small>Ученица видит карточку загрузки в кабинете</small></span></div>`);
+      : `<div class="photo-ph miss"><span><b>Фото языка ещё не загружено</b><br><small>${W(c).N} видит карточку загрузки в кабинете</small></span></div>`);
   }
   // ── Оценки обучения ──
   const fbAll = () => C.filter(c => c.assigned).flatMap(c => c.fb.map(f => Object.assign({ c }, f)));
@@ -7379,7 +7404,7 @@ const Adm = (() => {
     const open = FB_KEYS.filter(k => Date.now() >= fbOpenAt(k, SCHED(D && D.settings)));
     const sub = c.fb.length ? 'заполнено ' + c.fb.length + ' из ' + open.length + (c.fb.some(f => f.flag) ? ' · есть сигналы' : '') : open.length ? 'ещё не заполняла' : 'первая анкета откроется в пятницу 1-й недели';
     return fold('fbk', 'Оценки обучения', sub, c.fb.length ? c.fb.map(f => `<div style="margin-bottom:16px"><p style="margin:0 0 6px"><b>${FB_TITLE[f.key]}</b> · ${fmtDT(f.date)}${f.flag ? ` <span class="chip r">${esc(f.flag)}</span>` : ''}${f.key === 'final' ? ` <span class="chip ${f.rv === RV_OK ? 'g' : ''}">отзыв: ${f.rv === RV_OK ? 'принят' : 'на проверке'}</span>` : ''}</p><div class="ans">${fbAnswersHtml(f)}</div>${f.key === 'final' ? `<div class="row" style="margin-top:8px">${f.rv === RV_OK ? `<button class="btn sm ghost" data-a="rvNo" data-em="${esc(c.email)}">Отменить принятие отзыва</button>` : `<button class="btn sm" data-a="rvOk" data-em="${esc(c.email)}">Принять отзыв — открыть гайд «Аптечка в отпуск»</button>`}</div>` : ''}</div>`).join('')
-      : '<p class="small muted">Анкеты открываются в пятницу каждой недели. Ученица видит карточку «Оцените, как прошла неделя» на главной.</p>');
+      : `<p class="small muted">Анкеты открываются в пятницу каждой недели. ${W(c).N} видит карточку «Оцените, как прошла неделя» на главной.</p>`);
   }
   function ratings(){
     const k = AV.fk || 'all', p = AV.fp || 'all';
@@ -7449,7 +7474,7 @@ const Adm = (() => {
     if (/^ждёт|^в работе/.test(ai.status)) return `<div class="aib g"><b>ИИ-проверка в очереди.</b> ${D.aiKey ? 'Анкеты проверяются автоматически каждые 5 минут.' : 'Ключ Claude API не задан: ответ ИИ можно вставить вручную в таблицу «ЖКТ — ИИ-проверка анкет», колонка «Ответ ИИ (JSON)».'}<br>${D.aiKey || MODE === 'demo' ? runBtn('Проверить сейчас') : ''}</div>`;
     if (/^ошибка/.test(ai.status)) return `<div class="aib r"><b>ИИ-проверка не прошла:</b> ${esc(ai.status.replace(/^ошибка:?\s*/, ''))}<br>${runBtn('Повторить')}</div>`;
     const k = aiK(c), agrees = k === c.autoKey, special = !PNAME[k];
-    let h = a.free ? `<p class="small muted" style="margin:0 0 6px">Ученица написала в свободном поле:</p><blockquote>«${esc(a.free)}»</blockquote>` : '';
+    let h = a.free ? `<p class="small muted" style="margin:0 0 6px">${W(c).N} написал${W(c).l === 'ла' ? 'а' : ''} в свободном поле:</p><blockquote>«${esc(a.free)}»</blockquote>` : '';
     if (agrees) h += `<div class="aib g"><b>ИИ согласен с анкетой: ${aiName(k)}.</b>${ai.confidence ? ` Уверенность: ${esc(ai.confidence)}.` : ''} ${esc(ai.rationale)}</div>`;
     else {
       h += `<div class="aib w"><b>ИИ предлагает ${special ? '' : 'другой протокол: '}${esc(aiName(k) === '—' ? ai.protocol : aiName(k))}. Проверьте.</b>${ai.confidence ? ` Уверенность: ${esc(ai.confidence)}.` : ''}
@@ -7470,7 +7495,7 @@ const Adm = (() => {
     if (!c.assigned) return '';
     const f = c.quiz && c.quiz.form, ind = c.tariff === TARIFF_IND;
     const cf = chatOf(c).filter(m => (m.files || []).length).slice().reverse();
-    const rows = cf.map(m => `<div class="fr"><span class="small muted">${fmtDT(m.at)} · ${m.from === 'cu' ? esc(m.who || 'куратор') : 'ученица'}</span>${fileChips(m.files, c.email)}</div>`).join('');
+    const rows = cf.map(m => `<div class="fr"><span class="small muted">${fmtDT(m.at)} · ${m.from === 'cu' ? esc(m.who || 'куратор') : W(c).n}</span>${fileChips(m.files, c.email)}</div>`).join('');
     return `<div class="panel" style="margin-bottom:16px"><h2><span>Файлы клиентки</span></h2>
       <div class="grid g2"><div>
         <p class="small muted" style="margin:0 0 6px">Фото языка</p>
@@ -7498,7 +7523,7 @@ const Adm = (() => {
       <div class="xf-n"><label class="small muted" for="x-n">Комментарий для ученицы (необязательно)</label><input id="x-n" class="inp" maxlength="300" placeholder="Например: добавляем противовоспалительные меры на 2 недели"></div>
       <div class="xf-b"><button class="btn sm" data-a="xAdd">Открыть дополнительный протокол</button></div></div>` : '';
     return `<div class="panel" style="margin-bottom:16px"><h2><span>Дополнительные протоколы</span></h2>
-      <p class="small muted" style="margin:0 0 10px">Основной протокол — ${esc(PNAME[c.type])}. Дополнительный открывает ученице весь протокол: уроки, практики, специи, фитосоставы, меню и трекер. В кабинете она переключается между протоколами, отметки и трекер у каждого свои.</p>
+      <p class="small muted" style="margin:0 0 10px">Основной протокол — ${esc(PNAME[c.type])}. Дополнительный открывает ${W(c).d} весь протокол: уроки, практики, специи, фитосоставы, меню и трекер. В кабинете она переключается между протоколами, отметки и трекер у каждого свои.</p>
       ${rows || '<p class="small" style="margin:0 0 10px">Дополнительных протоколов нет.</p>'}${form}</div>`;
   }
   function checkPanel(c){
@@ -7507,7 +7532,7 @@ const Adm = (() => {
     const sel = `<label class="small muted" for="proto" style="display:block;margin-bottom:6px">Протокол${assigned ? '' : c.autoKey ? ' (автоподбор по анкете — ' + TYPES[c.autoKey].short + ')' : ''}</label>
       <select id="proto" class="sel">${Object.keys(TYPES).map(k => `<option value="${k}" ${k === selType(c) ? 'selected' : ''}>${PNAME[k]}</option>`).join('')}</select>
       <p class="small muted" style="margin:6px 0 0">${assigned ? 'При смене протокола уроки, специи и фитосоставы сменятся на материалы нового протокола. Отметки о пройденном сохранятся.' : 'Автоподбор подсказывает протокол по анкете. Итоговое решение — за куратором.'}</p>`;
-    const recs = `<label class="small muted" for="recs" style="display:block;margin:0 0 6px">Индивидуальные рекомендации — ученица видит их на главной странице программы</label>
+    const recs = `<label class="small muted" for="recs" style="display:block;margin:0 0 6px">Индивидуальные рекомендации — ${W(c).n} видит их на главной странице программы</label>
       <textarea id="recs" placeholder="Например: первую неделю уменьшите количество специй вдвое; начните с практики дыхания">${esc(c.recs)}</textarea>`;
     if (assigned) return `<div class="panel" style="margin-bottom:16px"><h2><span>Протокол и рекомендации</span></h2>
       <div class="grid g2"><div>${sel}<p class="small" style="margin:12px 0 0">Назначено ${c.confirmedAt ? fmt(c.confirmedAt) : '—'}${c.curator ? ' · ' + esc(c.curator) : ''}.</p>${c.gcGroup ? `<p class="small ${/^ошибка/.test(c.gcGroup) ? '' : 'muted'}" style="margin:4px 0 0${/^ошибка/.test(c.gcGroup) ? ';color:var(--mag)' : ''}">GetCourse: ${/^ошибка/.test(c.gcGroup) ? 'не удалось добавить в группу — ' + esc(c.gcGroup.replace(/^ошибка · /, '')) + '. Повторим автоматически.' : 'в группе «' + esc(c.gcGroup) + '»'}</p>` : ''}</div>
@@ -7518,7 +7543,7 @@ const Adm = (() => {
       <div class="span2"><p class="small muted" style="margin:0 0 6px">ИИ-проверка всех ответов анкеты</p>${aiBlock(c)}
         ${a.auto ? `<p class="small muted" style="margin:10px 0 0">Автоподбор по баллам: <b>${TYPES[c.autoKey].name}</b> ${a.auto.mix ? ' (' + esc(a.auto.mix) + ')' : ''} · вялое ${a.auto.pct.V}% · воспалённое ${a.auto.pct.I}% · чувствительное ${a.auto.pct.C}%</p>${(a.auto.notes || []).length ? `<p class="small" style="margin:6px 0 0;color:var(--mag)">${a.auto.notes.map(esc).join('<br>')}</p>` : ''}` : ''}</div></div>
       <div class="grid g2" style="margin-top:16px"><div>${sel}</div><div>${recs}</div></div>
-      <button class="btn mag big" data-a="confirm" ${reasons.length ? 'disabled' : ''}>Всё проверено — назначить ученице этот протокол</button>
+      <button class="btn mag big" data-a="confirm" ${reasons.length ? 'disabled' : ''}>Всё проверено — назначить ${W(c).d} этот протокол</button>
       ${reasons.length ? `<p class="small" style="margin:8px 0 0;color:var(--mag);font-weight:700">Назначить пока нельзя: ${reasons.join(', ')}.</p>` : `<p class="small muted" style="margin:8px 0 0">После нажатия у ученицы откроется программа выбранного протокола.</p>`}
     </div>`;
   }
@@ -7546,12 +7571,12 @@ const Adm = (() => {
   }
   function chatPanel(c){
     const m = chatOf(c), ind = c.tariff === TARIFF_IND;
-    return `<div class="panel" id="chat" style="margin-top:16px"><h2><span>Чат с ученицей</span> <span class="chip ${ind ? 'm' : 'g'}" style="vertical-align:middle">${ind ? 'индивидуальный тариф' : 'общий тариф'}</span></h2>
+    return `<div class="panel" id="chat" style="margin-top:16px"><h2><span>Чат с ${W(c).i}</span> <span class="chip ${ind ? 'm' : 'g'}" style="vertical-align:middle">${ind ? 'индивидуальный тариф' : 'общий тариф'}</span></h2>
     ${m.length ? `<div class="chat">${m.map(x => `<div class="bub ${x.from}">${AV.edit === x.id ? msgEditor(x, c) : (x.text ? esc(x.text) : '')}${fileChips(x.files, c.email)}<small>${x.from === 'cu' ? esc(x.who || 'Куратор') : esc(c.name.split(' ')[0])} · ${fmtDT(x.at)}${x.edited ? ' · изменено' : ''}${canEdit(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgEdit" data-id="${esc(x.id)}">изменить</button>` : ''}${canDel(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(c.email)}">удалить</button>` : ''}</small></div>`).join('')}</div>`
-      : `<p class="small muted">${ind ? 'Сообщений пока нет.' : 'На общем тарифе чат появится у ученицы, когда вы напишете первой.'}</p>`}
+      : `<p class="small muted">${ind ? 'Сообщений пока нет.' : `На общем тарифе чат появится у ${W(c).g}, когда вы напишете первое сообщение.`}</p>`}
     <textarea id="chatIn" placeholder="Сообщение ученице" style="margin-top:10px;min-height:70px">${esc(AV.cdraft || '')}</textarea>
     ${ind ? `<div class="cattach"><input type="file" multiple id="adm-chat-file" class="vh" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf,.odt,.heic"><label for="adm-chat-file" class="btn sm ghost">${I.clip.replace('<svg', '<svg width="15" height="15"')} Прикрепить файл</label><span class="small muted">до ${CF_MAX} файлов, до ${CF_MB} МБ каждый</span></div>${cfPending(AV.cf || [], 'acfDel')}` : ''}
-    <div style="margin-top:8px"><button class="btn sm" data-a="chatSend">Отправить</button>${unreadOf(c) ? ` <button class="btn sm ghost" data-a="msgRead" data-email="${esc(c.email)}" data-lid="" title="Ответ не нужен — убрать из новых">✓ Прочитано</button>` : ''} <span class="small muted">Ученица увидит сообщение в кабинете, в разделе «Чат с куратором».</span></div></div>`;
+    <div style="margin-top:8px"><button class="btn sm" data-a="chatSend">Отправить</button>${unreadOf(c) ? ` <button class="btn sm ghost" data-a="msgRead" data-email="${esc(c.email)}" data-lid="" title="Ответ не нужен — убрать из новых">✓ Прочитано</button>` : ''} <span class="small muted">${W(c).N} увидит сообщение в кабинете, в разделе «Чат с куратором».</span></div></div>`;
   }
   // правка своих сообщений: куратор — свои, админ — любые сообщения кураторов
   const canEdit = x => x.from === 'cu' && x.id && (isAdmRole() || (x.by ? x.by === meEmail() : x.who === (S.user.name || S.user.email)));
@@ -7621,7 +7646,7 @@ const Adm = (() => {
     const ptabs = [['all','Все'], ...Object.keys(TYPES).map(x => [x, (s => s[0].toUpperCase() + s.slice(1))(TYPES[x].short) + (x === c.type ? ' · её' : '')]), ['core','Общие']]
       .map(([v, t]) => [v, t, CAT[k].filter(it => inP(it, v)).length]).filter(x => x[0] === 'all' || x[2]);
     return `<div class="top"><h2 style="margin:0"><span>Добавить материал</span></h2><button class="x" data-a="close" aria-label="Закрыть">×</button></div>
-    <p class="muted small">Ученица: ${esc(c.name)} · ${c.type ? TYPES[c.type].name : '—'}. Выберите протокол, чтобы видеть только его материалы.</p>
+    <p class="muted small">${W(c).N}: ${esc(c.name)} · ${c.type ? TYPES[c.type].name : '—'}. Выберите протокол, чтобы видеть только его материалы.</p>
     <div class="tabs">${[['lessons','Уроки'],['practices','Практики'],['spices','Специи'],['phyto','Фитосоставы']].map(([x, t]) => `<button class="${x === k ? 'on' : ''}" data-a="pk" data-k="${x}">${t}</button>`).join('')}</div>
     <div class="seg pseg">${ptabs.map(([v, t, n]) => `<button class="${pp === v ? 'on' : ''}" data-a="pp" data-v="${v}">${esc(t)} <span class="sn">${n}</span></button>`).join('')}</div>
     <input class="inp" id="pq" placeholder="Поиск" value="${esc(AV.pq || '')}" style="width:100%">
@@ -7746,7 +7771,7 @@ const Adm = (() => {
     if (a === 'navcur') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); CF.st = 'all'; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
     if (a === 'rzf') { AV.rf = b.dataset.v; return render(); }
     if (a === 'rvf') { AV.vf = b.dataset.v; return render(); }
-    if (a === 'rvOk' || a === 'rvNo') return act(() => api('reviewAccept', { token:S.token, email:b.dataset.em, ok: a === 'rvOk' }), a === 'rvOk' ? 'Отзыв принят — гайд открыт ученице' : 'Принятие отменено');
+    if (a === 'rvOk' || a === 'rvNo') return act(() => api('reviewAccept', { token:S.token, email:b.dataset.em, ok: a === 'rvOk' }), a === 'rvOk' ? `Отзыв принят — гайд открыт ${Wem(b.dataset.em).d}` : 'Принятие отменено');
     if (a === 'rzOk' || a === 'rzFix' || a === 'rzWait') { const t = document.getElementById('rzc-' + b.dataset.i);
       return act(() => api('raffleReview', { token:S.token, email:t.dataset.em, status: a === 'rzOk' ? 'ok' : a === 'rzFix' ? 'fix' : 'wait', comment:t.value }), a === 'rzOk' ? 'Работа принята' : a === 'rzFix' ? 'Работа возвращена на доработку' : 'Статус сброшен'); }
     if (a === 'navq') { CF.st = b.dataset.st; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
@@ -7765,13 +7790,13 @@ const Adm = (() => {
     if (a === 'msgEdit') { AV.edit = b.dataset.id; render(true); const ta = $('#msgEdIn'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } return; }
     if (a === 'msgRead') { const em = b.dataset.email, lid = b.dataset.lid || '';
       return act(() => api('markRead', { token:S.token, email:em, lessonId:lid }), lid ? 'Отмечено прочитанным — вопрос убран из «Без ответа»' : 'Отмечено прочитанным', () => { (D.messages || []).forEach(m => { if (m.email === em && (m.lessonId || '') === lid && m.from !== 'cu') m.read = true; }); }); }
-    if (a === 'msgDel') { const id = b.dataset.id, em = b.dataset.email; if (!confirm('Удалить это сообщение? Ученица перестанет его видеть.')) return;
+    if (a === 'msgDel') { const id = b.dataset.id, em = b.dataset.email; if (!confirm(`Удалить это сообщение? ${Wem(em).N} перестанет его видеть.`)) return;
       return act(() => api('deleteMessage', { token:S.token, email:em, id }), 'Сообщение удалено', () => { D.messages = (D.messages || []).filter(x => !(x.id === id && x.email === em)); }); }
     if (a === 'msgEdX') { AV.edit = null; return render(true); }
     if (a === 'msgEdSave') { const text = ($('#msgEdIn').value || '').trim(), id = b.dataset.id, em = b.dataset.email; AV.edit = null;
-      return act(() => api('editMessage', { token:S.token, email:em, id, text }), 'Сообщение изменено — ученица увидит исправленный текст', () => { const m = (D.messages || []).find(x => x.id === id && x.email === em); if (m) { m.text = text; m.edited = new Date().toISOString(); } }); }
+      return act(() => api('editMessage', { token:S.token, email:em, id, text }), `Сообщение изменено — ${Wem(em).n} увидит исправленный текст`, () => { const m = (D.messages || []).find(x => x.id === id && x.email === em); if (m) { m.text = text; m.edited = new Date().toISOString(); } }); }
     if (a === 'cmReply') { const box = b.closest('.cmt'), inp = box && box.querySelector('.cmIn'), text = ((inp && inp.value) || '').trim(); if (!text) return toast('Напишите ответ');
-      const lid = b.dataset.lid, em = b.dataset.email; return act(() => api('reply', { token:S.token, email:em, lessonId:lid, lessonTitle:(byId(lid) || {t:''}).t, text }), 'Ответ отправлен — ученица увидит его под уроком', () => addMsg(em, lid, text)); }
+      const lid = b.dataset.lid, em = b.dataset.email; return act(() => api('reply', { token:S.token, email:em, lessonId:lid, lessonTitle:(byId(lid) || {t:''}).t, text }), `Ответ отправлен — ${Wem(em).n} увидит его под уроком`, () => addMsg(em, lid, text)); }
     if (a === 'pk') { AV.pk = b.dataset.k; return openDr(picker()); }
     if (a === 'pp') { AV.pp = b.dataset.v; const sc = $('#drp').scrollTop; openDr(picker()); return; }
     if (a === 'assign') { const cc = C.find(x => x.email === b.dataset.cid), id = b.dataset.id; if (!cc) return;
@@ -7796,15 +7821,15 @@ const Adm = (() => {
     if (a === 'preview') { U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (a === 'asStudent' && c) { U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (!c) return;
-    if (a === 'assignMe') return act(() => api('assignCurator', { token:S.token, email:c.email, curator:meEmail() }), 'Ученица закреплена за вами', () => { rowOf(c.email)['Закреплён за'] = meEmail(); });
+    if (a === 'assignMe') return act(() => api('assignCurator', { token:S.token, email:c.email, curator:meEmail() }), `${W(c).N} ${W(c).zk} за вами`, () => { rowOf(c.email)['Закреплён за'] = meEmail(); });
     if (a === 'demoExtend') return act(() => api('demoExtend', { token:S.token, email:c.email }), 'Продление добавлено (демо)');
     if (a === 'chatSend') { const text = ($('#chatIn').value || '').trim(), pend = c.tariff === TARIFF_IND ? (AV.cf || []) : [];
       if (!text && !pend.length) return toast('Напишите сообщение');
       if (!pend.length) { const ta = $('#chatIn'); AV.cdraft = ''; if (ta) ta.value = '';
-        return act(() => api('reply', { token:S.token, email:c.email, lessonId:'', text, files:[] }), '', () => addMsg(c.email, '', text)); }
+        chatPos.stick = true; return act(() => api('reply', { token:S.token, email:c.email, lessonId:'', text, files:[] }), '', () => { chatPos.stick = true; addMsg(c.email, '', text); }); }
       b.disabled = true;
       return act(async () => { const files = pend.length ? await uploadChatFiles(pend, c.email, (i, n) => { b.textContent = 'Загружаем ' + i + ' из ' + n + '…'; }) : [];
-        await api('reply', { token:S.token, email:c.email, lessonId:'', text, files }); AV.cf = []; AV.cdraft = ''; }, 'Сообщение отправлено').then(() => { b.disabled = false; }); }
+        await api('reply', { token:S.token, email:c.email, lessonId:'', text, files }); AV.cf = []; AV.cdraft = ''; chatPos.stick = true; }, 'Сообщение отправлено').then(() => { b.disabled = false; }); }
     if (a === 'acfDel') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; (AV.cf || []).splice(+b.dataset.i, 1); return render(true); }
     if (a === 'cfOpen') return openChatFile(b);
     if (a === 'addMat') { AV.pk = AV.tab || 'lessons'; AV.pq = ''; return openDr(picker()); }
@@ -7826,10 +7851,10 @@ const Adm = (() => {
     if (a === 'xAdd') { const t = $('#x-t').value, until = $('#x-u').value || '', note = $('#x-n').value.trim();
       if (until && until <= new Date().toISOString().slice(0, 10)) return toast('Дата должна быть позже сегодняшней');
       const list = c.extra.map(x => Object.assign({}, x)).concat([{ t, until, note, at: new Date().toISOString(), by: S.user.name || S.user.email }]);
-      return act(() => api('setExtra', { token:S.token, email:c.email, extra:list }), 'Протокол «' + PNAME[t] + '» открыт — ученица увидит его в кабинете', () => { rowOf(c.email)['Доп. протоколы'] = JSON.stringify(list); }); }
+      return act(() => api('setExtra', { token:S.token, email:c.email, extra:list }), 'Протокол «' + PNAME[t] + '» открыт — ' + W(c).n + ' увидит его в кабинете', () => { rowOf(c.email)['Доп. протоколы'] = JSON.stringify(list); }); }
     if (a === 'xDel') { const x = c.extra[+b.dataset.i]; if (!x || !confirm(`Закрыть ${c.name} протокол «${PNAME[x.t]}»? Отметки о пройденном сохранятся.`)) return;
       const rest = c.extra.filter((_, i) => i !== +b.dataset.i); return act(() => api('setExtra', { token:S.token, email:c.email, extra:rest }), 'Доступ к протоколу закрыт', () => { rowOf(c.email)['Доп. протоколы'] = rest.length ? JSON.stringify(rest) : ''; }); }
-    if (a === 'saveRecs') { const v = $('#recs').value; return act(() => api('saveRecs', { token:S.token, email:c.email, recs:v }), 'Рекомендации сохранены — ученица видит их на главной', () => { rowOf(c.email)['Комментарий куратора'] = v; }); }
+    if (a === 'saveRecs') { const v = $('#recs').value; return act(() => api('saveRecs', { token:S.token, email:c.email, recs:v }), `Рекомендации сохранены — ${W(c).n} видит их на главной`, () => { rowOf(c.email)['Комментарий куратора'] = v; }); }
     if (a === 'saveNote') { const v = $('#note').value; return act(() => api('saveNote', { token:S.token, email:c.email, note:v }), 'Заметка сохранена', () => { rowOf(c.email)['Заметка куратора'] = v; }); }
     if (a === 'resetAll') { if (!confirm(`Открыть анкету заново для ${c.name}? Ответы, протокол, рекомендации и прогресс будут сброшены.`)) return;
       return act(() => api('resetQuiz', { token:S.token, email:c.email }), 'Анкета открыта заново'); }
@@ -7844,7 +7869,7 @@ const Adm = (() => {
     if (e.target.id === 'adm-chat-file') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; AV.cf = AV.cf || []; return readChatFiles(e.target, AV.cf).then(() => render(true)); }
     if (e.target.id === 'curF') { CF.cur = e.target.value || 'all'; LS.set('hz_curf', CF.cur); return render(true); }
     if (e.target.id === 'curSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); const v = e.target.value;
-      return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : 'Ученица откреплена', () => { rowOf(c.email)['Закреплён за'] = v; }); }
+      return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : `${W(c).N} ${W(c).ok}`, () => { rowOf(c.email)['Закреплён за'] = v; }); }
     if (e.target.id === 'tariff' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); let r = {}; const tv = e.target.value; return act(async () => { r = await api('setTariff', { token:S.token, email:c.email, tariff:tv }); }, '', () => { rowOf(c.email)['Тариф'] = tv; }).then(() => toast(r && r.cur ? 'Тариф сохранён · закреплена за ' + curName(r.cur) : 'Тариф сохранён')); }
     if (e.target.id !== 'proto' || AV.s !== 'client') return;
     const c = C.find(x => x.email === AV.id); if (!c || !c.assigned) return;
