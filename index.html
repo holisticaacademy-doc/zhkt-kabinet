@@ -490,6 +490,13 @@ body.fv-on{overflow:hidden}
   .gc-form{position:sticky;bottom:0;z-index:4;margin:10px -16px 0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line);box-shadow:0 -8px 20px -12px rgba(20,55,46,.35)}
   .gc-form textarea{min-height:44px;max-height:30vh;border-radius:16px}
 }
+/* правка своих сообщений */
+.ed-l{border:0;background:none;padding:0;font:inherit;font-size:inherit;color:inherit;text-decoration:underline;cursor:pointer;opacity:.85;width:auto;flex:none}
+.ed-box{display:grid;gap:6px;min-width:min(420px,70vw)}
+.ed-box textarea{width:100%;min-height:70px;resize:vertical;border-radius:12px}
+.ed-b{display:flex;gap:6px;flex-wrap:wrap}.ed-b .btn{flex:none;width:auto;padding:8px 16px;min-height:38px;font-size:14px}
+.bub.me .ed-b .btn{background:#fff;color:var(--e-dk);border:2px solid #fff}
+.bub.me .ed-b .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
 
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
@@ -1617,6 +1624,7 @@ body.fv-on{overflow:hidden}
   .gc-form{position:sticky;bottom:0;z-index:4;margin:10px -10px -10px;padding:10px 10px calc(10px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 20px -12px rgba(20,55,46,.35);border-radius:0 0 14px 14px}
   .gc-form textarea{min-height:44px;max-height:30vh;border-radius:16px}
 }
+.pseg{display:flex;flex-wrap:wrap;margin:10px 0}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -4692,11 +4700,13 @@ const Demo = (() => {
     editMessage({token,email,id,text}){ const a=adminAuth(token), m=load().messages.find(x=>x.id===id&&x.email===email); if(!m) throw new Error('Сообщение не найдено — обновите данные');
       if(m.from!=='cu') throw new Error('Можно изменить только сообщение куратора'); if(!/^(админ|admin|администратор)$/i.test(a['Роль'])&&m.by!==a['Email']) throw new Error('Можно изменить только своё сообщение');
       text=String(text||'').trim(); if(!text&&!(m.files||[]).length) throw new Error('Сообщение не может быть пустым'); m.text=text; m.edited=now(); log(email,'msg_edit',''); save(); return {}; },
+    editMyMessage({token,id,text}){ const st=auth(token), m=load().messages.find(x=>x.id===id&&x.email===st['Email']&&x.from!=='cu'); if(!m) throw new Error('Сообщение не найдено — обновите страницу');
+      text=String(text||'').trim(); if(!text&&!(m.files||[]).length) throw new Error('Сообщение не может быть пустым'); m.text=text; m.edited=now(); save(); return {messages:msgsOf(st['Email'])}; },
     markRead({token,email,lessonId}){ adminAuth(token); let n=0; load().messages.forEach(m=>{ if(m.email===email&&(m.lessonId||'')===(lessonId||'')&&m.from!=='cu'&&!m.read){ m.read=true; n++; } }); log(email,'msg_read',''); save(); return {marked:n}; },
     deleteMessage({token,email,id}){ const a=adminAuth(token), L=load().messages, i=L.findIndex(x=>x.id===id&&x.email===email); if(i<0) throw new Error('Сообщение не найдено — обновите данные');
       L.splice(i,1); log(email,'msg_delete',''); save(); return {}; },
-    gchatEdit({token,type,id,text}){ const a=adminAuth(token), x=gcCtx(a,type), m=gcList(type).find(m=>m.id===id&&!m.del); if(!m) throw new Error('Сообщение не найдено');
-      if(!m.cu) throw new Error('Можно изменить только сообщение куратора'); if(!/^(админ|admin|администратор)$/i.test(a['Роль'])&&m.email!==a['Email']) throw new Error('Можно изменить только своё сообщение');
+    gchatEdit({token,type,id,text}){ const a=auth(token), x=gcCtx(a,type), m=gcList(type).find(m=>m.id===id&&!m.del); if(!m) throw new Error('Сообщение не найдено'); if(x.banned) throw new Error('Куратор ограничил отправку сообщений в чат');
+      if(m.email!==a['Email']&&!(m.cu&&/^(админ|admin|администратор)$/i.test(a['Роль']))) throw new Error('Можно изменить только своё сообщение');
       text=String(text||'').trim(); if(!text&&!m.photo) throw new Error('Сообщение не может быть пустым'); m.text=text; m.ed=true; gcBump(type); return gcOut(a,type,null,x); },
     raffleReview({token,email,status,comment}){ const a=adminAuth(token), r=(load().raffle||{})[email]; if(!r) throw new Error('Работа не найдена'); const cm=String(comment||'').trim();
       if(status==='fix'&&!cm) throw new Error('Напишите, что нужно доработать — ученица увидит комментарий'); Object.assign(r,{status:status==='ok'?RZ_ST.ok:status==='fix'?RZ_ST.fix:RZ_ST.wait,comment:cm,by:a['Имя']||a['Email'],rat:now()}); log(email,'raffle_review',r.status); return {}; },
@@ -4978,7 +4988,8 @@ async function openChatFile(b){
 }
 const chatFilesOn = () => !!S.user && S.user.tariff === TARIFF_IND;
 function bubbles(list, mine){
-  return list.map(m => `<div class="bub ${m.from === mine ? 'me' : 'them'}">${m.text ? esc(m.text) : ''}${fileChips(m.files)}<small>${m.from === 'cu' ? esc(m.who || 'Куратор') : 'Вы'} · ${fmtDT(m.at)}${m.edited ? ' · изменено' : ''}</small></div>`).join('');
+  return list.map(m => { const own = m.from === mine && mine === 'cl' && m.id && !U.preview, ed = own && U.edit === m.id;
+    return `<div class="bub ${m.from === mine ? 'me' : 'them'}">${ed ? `<div class="ed-box"><textarea class="inp" id="myEdIn" maxlength="3000">${esc(m.text)}</textarea><div class="ed-b"><button type="button" class="btn sm" data-a="myEdSave" data-id="${esc(m.id)}">Сохранить</button><button type="button" class="btn sm ghost" data-a="myEdX">Отмена</button></div></div>` : m.text ? esc(m.text) : ''}${fileChips(m.files)}<small>${m.from === 'cu' ? esc(m.who || 'Куратор') : 'Вы'} · ${fmtDT(m.at)}${m.edited ? ' · изменено' : ''}${own && !ed ? ` · <button type="button" class="ed-l" data-a="myEdit" data-id="${esc(m.id)}">изменить</button>` : ''}</small></div>`; }).join('');
 }
 let pollT = null;
 function startPoll(){ stopPoll(); if (U.preview || MODE === 'demo') return; pollT = setInterval(async () => {
@@ -5064,7 +5075,7 @@ function gcMsg(m, d, staff){
   const rx = GC_RX.map(e => { const l = (m.rx && m.rx[e]) || [], on = l.includes(d.me);
     return `<button type="button" class="gc-rx${on ? ' on' : ''}${l.length ? ' has' : ''}" data-a="gcRx" data-id="${esc(m.id)}" data-e="${e}" aria-pressed="${on}" aria-label="Реакция ${e}">${e}${l.length ? `<small>${l.length}</small>` : ''}</button>`; }).join('');
   const acts = [`<button type="button" class="gc-a" data-a="gcReply" data-id="${esc(m.id)}">Ответить</button>`];
-  if (staff && m.cu && (mine || isAdmRole())) acts.push(`<button type="button" class="gc-a" data-a="gcEdit" data-id="${esc(m.id)}">Изменить</button>`);
+  if (!U.preview && !(d.banned && !staff) && (mine || (staff && m.cu && isAdmRole()))) acts.push(`<button type="button" class="gc-a" data-a="gcEdit" data-id="${esc(m.id)}">Изменить</button>`);
   if (mine || staff) acts.push(`<button type="button" class="gc-a" data-a="gcDel" data-id="${esc(m.id)}">Удалить</button>`);
   if (staff) acts.push(`<button type="button" class="gc-a" data-a="gcPin" data-id="${esc(m.id)}" data-on="${d.pin && d.pin.id === m.id ? 0 : 1}">${d.pin && d.pin.id === m.id ? 'Открепить' : 'Закрепить'}</button>`);
   if (staff && !m.cu && m.email) { const ban = (d.bans || []).some(x => x.email === m.email);
@@ -6865,6 +6876,12 @@ function studentClick(e, b, a){
   if (a === 'td') { V.day = +b.dataset.d; return render(); }
   if (a === 'chat') return go('chat');
   if (a === 'send') return sendMsg(b.dataset.id);
+  if (a === 'myEdit') { U.edit = b.dataset.id; keepY(render); const ta = $('#myEdIn'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } return; }
+  if (a === 'myEdX') { U.edit = null; return keepY(render); }
+  if (a === 'myEdSave') { const ta = $('#myEdIn'), text = ta ? ta.value.trim() : '', id = b.dataset.id, m = U.msgs.find(x => x.id === id);
+    if (!text && !(m && (m.files || []).length)) return toast('Сообщение не может быть пустым');
+    if (m) { m.text = text; m.edited = new Date().toISOString(); } U.edit = null; keepY(render);
+    api('editMyMessage', { token:S.token, id, text }).then(r => { if (r && r.messages) { U.msgs = r.messages; keepY(render); } toast('Сообщение изменено'); }).catch(e => { toast(e.message); }); return; }
   if (a === 'gchat') { e.preventDefault(); const t = b.dataset.t || V.t; if (V.s === 'gchat') { gcKeep(); GC.reply = null; V.t = t; GC.stick = true; GC.enter = true; return render(); } GC.stick = true; GC.enter = true; return go('gchat', { t }); }
   if (/^gc[A-Z]/.test(a)) return gcClick(a, b, V.t, false, () => keepY(render));
   if (a === 'cfOpen') return openChatFile(b);
@@ -7599,13 +7616,18 @@ const Adm = (() => {
   }
   function picker(){
     const c = C.find(x => x.email === AV.id), k = AV.pk || AV.tab || 'lessons', q = (AV.pq || '').toLowerCase();
-    const items = CAT[k].filter(it => !q || it.t.toLowerCase().includes(q));
+    const pp = AV.pp || 'all', inP = (it, v) => v === 'all' || (v === 'core' ? (it.core || !(it.types || []).length) : (it.types || []).includes(v));
+    const items = CAT[k].filter(it => inP(it, pp) && (!q || it.t.toLowerCase().includes(q)));
+    const ptabs = [['all','Все'], ...Object.keys(TYPES).map(x => [x, (s => s[0].toUpperCase() + s.slice(1))(TYPES[x].short) + (x === c.type ? ' · её' : '')]), ['core','Общие']]
+      .map(([v, t]) => [v, t, CAT[k].filter(it => inP(it, v)).length]).filter(x => x[0] === 'all' || x[2]);
     return `<div class="top"><h2 style="margin:0"><span>Добавить материал</span></h2><button class="x" data-a="close" aria-label="Закрыть">×</button></div>
-    <p class="muted small">Ученица: ${esc(c.name)} · ${c.type ? TYPES[c.type].name : '—'}. Показан весь каталог программы.</p>
+    <p class="muted small">Ученица: ${esc(c.name)} · ${c.type ? TYPES[c.type].name : '—'}. Выберите протокол, чтобы видеть только его материалы.</p>
     <div class="tabs">${[['lessons','Уроки'],['practices','Практики'],['spices','Специи'],['phyto','Фитосоставы']].map(([x, t]) => `<button class="${x === k ? 'on' : ''}" data-a="pk" data-k="${x}">${t}</button>`).join('')}</div>
+    <div class="seg pseg">${ptabs.map(([v, t, n]) => `<button class="${pp === v ? 'on' : ''}" data-a="pp" data-v="${v}">${esc(t)} <span class="sn">${n}</span></button>`).join('')}</div>
     <input class="inp" id="pq" placeholder="Поиск" value="${esc(AV.pq || '')}" style="width:100%">
     <div class="pick">${items.map(it => { const has = eff(c, k).includes(it.id), suit = it.core || (it.types && it.types.includes(c.type));
-      return `<div class="mi"><span class="tx"><b>${esc(it.t)}</b><span>${esc(meta(it))}${suit ? ' · подходит типу' : ''}</span></span>
+      const pr = it.core || !(it.types || []).length ? 'общий' : it.types.map(x => TYPES[x].short).join(', ');
+      return `<div class="mi"><span class="tx"><b>${esc(it.t)}</b><span>${esc([meta(it), pr, suit ? 'подходит типу' : ''].filter(Boolean).join(' · '))}</span></span>
       ${has ? `<span class="chip g">уже есть</span>` : `<button class="btn sm" data-a="add" data-id="${it.id}">Добавить</button>`}</div>`; }).join('')}</div>`;
   }
   function assignList(id, q){
@@ -7751,6 +7773,7 @@ const Adm = (() => {
     if (a === 'cmReply') { const box = b.closest('.cmt'), inp = box && box.querySelector('.cmIn'), text = ((inp && inp.value) || '').trim(); if (!text) return toast('Напишите ответ');
       const lid = b.dataset.lid, em = b.dataset.email; return act(() => api('reply', { token:S.token, email:em, lessonId:lid, lessonTitle:(byId(lid) || {t:''}).t, text }), 'Ответ отправлен — ученица увидит его под уроком', () => addMsg(em, lid, text)); }
     if (a === 'pk') { AV.pk = b.dataset.k; return openDr(picker()); }
+    if (a === 'pp') { AV.pp = b.dataset.v; const sc = $('#drp').scrollTop; openDr(picker()); return; }
     if (a === 'assign') { const cc = C.find(x => x.email === b.dataset.cid), id = b.dataset.id; if (!cc) return;
       const ov = { add:(cc.ov.add || []).slice(), rm:(cc.ov.rm || []).filter(x => x !== id) }; if (!autoL(cc, catOf(id)).includes(id) && !ov.add.includes(id)) ov.add.push(id);
       return saveOv(cc, ov, 'Добавлено из каталога: ' + byId(id).t, 'Назначено: ' + cc.name).then(() => { if ($('#asl')) $('#asl').innerHTML = assignList(id, ($('#asq') || {}).value || ''); }); }
