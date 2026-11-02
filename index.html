@@ -484,6 +484,12 @@ body.fv-on{overflow:hidden}
 .cucard .btn{width:auto;flex:none}
 .indg .btn.sm{padding:8px 16px;min-height:38px;font-size:14px}
 .gc-ed{display:grid;gap:6px;margin:4px 0}.gc-ed textarea{width:100%;min-height:70px}.gc-ed-b{display:flex;gap:6px}
+/* чат протокола на телефоне: поле ввода всегда внизу экрана */
+@media (max-width:760px){
+  .gc-list{max-height:62vh}
+  .gc-form{position:sticky;bottom:0;z-index:4;margin:10px -16px 0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line);box-shadow:0 -8px 20px -12px rgba(20,55,46,.35)}
+  .gc-form textarea{min-height:44px;max-height:30vh;border-radius:16px}
+}
 
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
@@ -1604,6 +1610,13 @@ body.fv-on{overflow:hidden}
 .bub.cu .ed-b .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
 .seg button .sn{display:inline-block;min-width:20px;padding:0 6px;margin-left:2px;border-radius:999px;background:var(--mint-pale);color:var(--e);font-size:11.5px;font-weight:700;line-height:18px;text-align:center}
 .seg button.on .sn{background:rgba(255,255,255,.2);color:#fff}
+/* чат протокола на телефоне: поле ввода всегда внизу экрана */
+@media (max-width:760px){
+  .gc-card{padding:10px}
+  .gc-card .gc-list{max-height:62vh}
+  .gc-form{position:sticky;bottom:0;z-index:4;margin:10px -10px -10px;padding:10px 10px calc(10px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 20px -12px rgba(20,55,46,.35);border-radius:0 0 14px 14px}
+  .gc-form textarea{min-height:44px;max-height:30vh;border-radius:16px}
+}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -4998,7 +5011,7 @@ function chatView(){
 // ═══ Чаты протоколов: общий чат участниц одного типа пищеварения прямо в платформе ═══
 // Сообщения подтягиваются раз в 15 секунд, пока чат открыт. Фото, ответы, реакции, закреп и модерация куратора.
 const GC_RX = ['❤️', '👍', '🙏', '😊'];
-const GC = { data: {}, v: {}, photos: {}, ph: {}, reply: null, photo: null, draft: '', busy: false, stick: true, timer: null, err: '' };
+const GC = { data: {}, v: {}, photos: {}, ph: {}, reply: null, photo: null, draft: '', busy: false, stick: true, enter: true, timer: null, err: '' };
 const isAdmRole = () => !!S.user && /^(админ|admin|администратор)$/i.test(String(S.user.role || '').trim());
 const gcShort = t => (s => s[0].toUpperCase() + s.slice(1))(TYPES[t].short || PNAME[t]);
 function gcTypes(){
@@ -5018,6 +5031,9 @@ function gcKeep(){ const ta = document.getElementById('gcIn'); if (ta) GC.draft 
 function gcAfter(){
   const fix = () => { const el = document.getElementById('gc-list'); if (!el || el.dataset.fx) return; el.dataset.fx = 1;
     el.scrollTop = GC.stick || GC.top == null ? el.scrollHeight : GC.top;
+    // на телефоне при входе в чат прокручиваем страницу к концу ленты, чтобы последние сообщения не прятались под полем ввода
+    if (GC.enter) { GC.enter = false; if (innerWidth <= 760) { const f = document.querySelector('.gc-form'), fh = f ? f.offsetHeight : 0;
+      window.scrollTo(0, Math.max(0, el.getBoundingClientRect().bottom + window.scrollY + fh + 12 - innerHeight)); } }
     el.onscroll = () => { GC.stick = el.scrollHeight - el.scrollTop - el.clientHeight < 80; GC.top = el.scrollTop; }; };
   queueMicrotask(fix);
   setTimeout(() => {
@@ -6849,7 +6865,7 @@ function studentClick(e, b, a){
   if (a === 'td') { V.day = +b.dataset.d; return render(); }
   if (a === 'chat') return go('chat');
   if (a === 'send') return sendMsg(b.dataset.id);
-  if (a === 'gchat') { e.preventDefault(); const t = b.dataset.t || V.t; if (V.s === 'gchat') { gcKeep(); GC.reply = null; V.t = t; GC.stick = true; return render(); } GC.stick = true; return go('gchat', { t }); }
+  if (a === 'gchat') { e.preventDefault(); const t = b.dataset.t || V.t; if (V.s === 'gchat') { gcKeep(); GC.reply = null; V.t = t; GC.stick = true; GC.enter = true; return render(); } GC.stick = true; GC.enter = true; return go('gchat', { t }); }
   if (/^gc[A-Z]/.test(a)) return gcClick(a, b, V.t, false, () => keepY(render));
   if (a === 'cfOpen') return openChatFile(b);
   if (a === 'cfDel') { const ta = $('#msgIn'); U.cdraft = ta ? ta.value : ''; (U.cf || []).splice(+b.dataset.i, 1); return keepY(render); }
@@ -7665,7 +7681,7 @@ const Adm = (() => {
   }
   function addForm(){
     return `<div class="top"><h2 style="margin:0"><span>Добавить учениц</span></h2><button class="x" data-a="close" aria-label="Закрыть">×</button></div>
-    <p class="small">Обычно это не нужно: ученицы из листа «Оплатили (GetCourse)» появляются сами при первом входе. Добавляйте вручную тех, кого нет в выгрузке, — например, тестовые адреса или кураторов.</p>
+    <p class="small">Обычно это не нужно: ученицы из листов «GetCourse» и «Оплатили (GetCourse)» появляются сами при первом входе. Добавляйте вручную тех, кого нет в выгрузке, — например, тестовые адреса или кураторов.</p>
     <p class="small muted">По одной на строку: <b>email; Имя</b>. Для куратора добавьте третью часть: <b>email; Имя; куратор</b>.</p>
     <textarea class="inp area" id="addRows" placeholder="test@holistica.test; Тестовая ученица"></textarea>
     <div style="margin-top:10px"><button class="btn" data-a="addSave">Добавить</button></div>`;
@@ -7700,10 +7716,10 @@ const Adm = (() => {
         .catch(e => { b.disabled = false; toast(e.message); }); }
     if (a === 'rtf') { AV[b.dataset.k] = b.dataset.v; if (b.dataset.k === 'rw') LS.set('hz_rtw', b.dataset.v); return render(true); }
     if (a === 'rtReload') { RTG = null; return open(); }
-    if (a === 'rtGo') { closeDr(); GC.stick = true; AV = { s:'gchats', t:b.dataset.t }; render(); return window.scrollTo(0,0); }
-    if (a === 'gctab') { schKeep(); gcKeep(); GC.reply = null; GC.photo = null; GC.stick = true; AV.t = b.dataset.t; return render(true); }
+    if (a === 'rtGo') { closeDr(); GC.stick = true; GC.enter = true; AV = { s:'gchats', t:b.dataset.t }; render(); return window.scrollTo(0,0); }
+    if (a === 'gctab') { schKeep(); gcKeep(); GC.reply = null; GC.photo = null; GC.stick = true; GC.enter = true; AV.t = b.dataset.t; return render(true); }
     if (/^gc[A-Z]/.test(a)) return gcClick(a, b, AV.t || 'slow', true, () => render(true));
-    if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'rtime') AV.rw = LS.get('hz_rtw', '0'); if (AV.s === 'gchats') GC.stick = true; if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
+    if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'rtime') AV.rw = LS.get('hz_rtw', '0'); if (AV.s === 'gchats') { GC.stick = true; GC.enter = true; } if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
     if (a === 'curf') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); return render(true); }
     if (a === 'navcur') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); CF.st = 'all'; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
     if (a === 'rzf') { AV.rf = b.dataset.v; return render(); }
