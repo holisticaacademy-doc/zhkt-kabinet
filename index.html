@@ -4959,10 +4959,22 @@ function fvKind(type, name){ type = String(type || ''); name = String(name || ''
   return 'none'; }
 function fvClose(){ const el = document.getElementById('fv'); if (el) el.remove(); document.body.classList.remove('fv-on');
   if (FV.url) { const u = FV.url; setTimeout(() => URL.revokeObjectURL(u), 1000); FV.url = ''; } if (FV.back && FV.back.focus) FV.back.focus(); FV.back = null; }
-function fvDownload(){ if (!FV.url) return; const a = document.createElement('a'); a.href = FV.url; a.download = FV.name || 'файл'; document.body.appendChild(a); a.click(); a.remove(); }
+// Фото скачиваем как обычный JPG в цветах экрана: снимки с телефонов (профили Display P3, HDR, CMYK-сканы) в некоторых
+// программах просмотра на компьютере открываются синими или розовыми. Браузер показывает их правильно — так и сохраняем.
+function saveAs(href, name){ const a = document.createElement('a'); a.href = href; a.download = name || 'файл'; document.body.appendChild(a); a.click(); a.remove(); }
+function imgJpeg(src){ return new Promise((res, rej) => { const im = new Image(); im.onload = () => { try { const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0); c.toBlob(b => b ? res(b) : rej('jpeg'), 'image/jpeg', 0.92); } catch (e) { rej(e); } }; im.onerror = rej; im.src = src; }); }
+const jpgName = n => String(n || 'фото').replace(/\.(jpe?g|png|heic|heif|webp|gif|bmp|tiff?)$/i, '') + '.jpg';
+async function downloadFile(href, name, type){
+  if (/^image\/(?!svg)/.test(type || '') || /\.(jpe?g|png|heic|heif|webp|bmp|tiff?)$/i.test(name || '')) {
+    try { const b = await imgJpeg(href), u = URL.createObjectURL(b); saveAs(u, jpgName(name)); setTimeout(() => URL.revokeObjectURL(u), 60000); return; } catch (e) {}
+  }
+  saveAs(href, name);
+}
+function fvDownload(){ if (!FV.url) return; downloadFile(FV.url, FV.name, FV.type); }
 function fvOpen(data, name, from){
   const blob = data instanceof Blob ? data : fvBlob(data); if (!blob) return toast('Файл не найден');
-  fvClose(); FV.url = URL.createObjectURL(blob); FV.name = name || 'файл'; FV.back = from || document.activeElement;
+  fvClose(); FV.url = URL.createObjectURL(blob); FV.name = name || 'файл'; FV.type = blob.type; FV.back = from || document.activeElement;
   const k = fvKind(blob.type, name), u = FV.url;
   const body = k === 'img' ? `<img src="${u}" alt="${esc(FV.name)}">`
     : k === 'pdf' || k === 'txt' ? `<iframe src="${u}" title="${esc(FV.name)}"></iframe>`
@@ -7015,6 +7027,8 @@ const Adm = (() => {
     const f = flowOf(c);
     if (f === 'photo') return `<span class="st w">Ждём фото языка</span>`;
     if (f === 'review') { const st = String((c.ai && c.ai.status) || '');
+      if (aiOpen(c) && aiK(c) === 'unclear') return `<span class="st w">На уточнении у ИИ</span>`;
+      if (aiOpen(c) && aiK(c) === 'ind') return `<span class="st rd">ИИ: нужен индивидуальный протокол</span>`;
       if (aiOpen(c)) return `<span class="st rd">Расхождение с ИИ</span>`;
       if (aiReady(c)) return `<span class="st rv">Ждёт назначения · ИИ проверил</span>`;
       if (/^ошибка/.test(st)) return `<span class="st rv">Ждёт назначения · ИИ не сработал</span>`;
@@ -7167,7 +7181,7 @@ const Adm = (() => {
   function clients(){
     const q = CF.q.toLowerCase();
     let list = C.filter(c => !q || c.name.toLowerCase().includes(q) || c.email.includes(q));
-    const ST = { all: () => true, review: c => ['review','photo'].includes(flowOf(c)), photo: c => flowOf(c) === 'photo', ai: c => flowOf(c) !== 'assigned' && aiOpen(c),
+    const ST = { all: () => true, review: c => ['review','photo'].includes(flowOf(c)), photo: c => flowOf(c) === 'photo', ai: c => flowOf(c) !== 'assigned' && aiOpen(c) && aiK(c) !== 'unclear', unclear: c => flowOf(c) !== 'assigned' && aiOpen(c) && aiK(c) === 'unclear',
       ind: c => c.tariff === TARIFF_IND, edited: c => ovCount(c), closed: c => !c.paidOnly && closedC(c), ext: extC, red: c => c.filled && c.red.length,
       idle: c => c.assigned && c.last !== null && c.last >= 5, noform: c => !c.filled, asg: c => c.assigned };
     list = curFilter(list);
@@ -7177,7 +7191,7 @@ const Adm = (() => {
     const seg = (k, v, t) => `<button class="${CF[k] === v ? 'on' : ''}" data-a="cf" data-k="${k}" data-v="${v}">${t}</button>`;
     return `<div class="head"><div><h1>${CF.st === 'review' ? 'Проверка назначений' : 'Клиенты'}</h1><p class="muted" style="margin:0">Нажмите на строку, чтобы открыть карточку</p></div><span class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" data-a="syncPaid" title="Новые оплаты из листа «Оплатили (GetCourse)», тарифы и распределение индивидуального тарифа по кураторам">Подтянуть оплаты</button><button class="btn ghost" data-a="addOpen">+ Добавить учениц</button></span></div>
     <div class="tools"><input class="inp" id="cq" placeholder="Имя или email" value="${esc(CF.q)}" style="flex:1 1 220px">
-      <span class="seg">${segN('all','Все')}${segN('review','Ждут проверки')}${segN('photo','Нет фото языка')}${segN('ai','Расхождение с ИИ')}${segN('ind','Индивидуальный')}${segN('edited','С правками')}${segN('closed','Доступ закрыт')}${segN('ext','Продлили')}${segN('red','Красный флаг')}${segN('idle','Давно не заходят')}${segN('noform','Без анкеты')}${segN('asg','Назначен протокол')}</span>
+      <span class="seg">${segN('all','Все')}${segN('review','Ждут проверки')}${segN('photo','Нет фото языка')}${segN('ai','Расхождение с ИИ')}${segN('unclear','На уточнении у ИИ')}${segN('ind','Индивидуальный')}${segN('edited','С правками')}${segN('closed','Доступ закрыт')}${segN('ext','Продлили')}${segN('red','Красный флаг')}${segN('idle','Давно не заходят')}${segN('noform','Без анкеты')}${segN('asg','Назначен протокол')}</span>
       <span class="seg">${seg('type','all','Все типы')}${Object.keys(TYPES).map(k => seg('type', k, TYPES[k].short)).join('')}</span>
       ${curSeg()}</div>
     <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th>Статус</th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
@@ -7741,7 +7755,7 @@ const Adm = (() => {
     const c = AV.s === 'client' ? C.find(x => x.email === AV.id) : null;
     if (a === 'admForm' && c) { const view = b.dataset.v === '1', t0 = b.textContent, id = b.dataset.id || '', key = 'form:' + c.email + ':' + id;
       const done = r => { if (!r.data) return toast('Файл не найден'); if (view) return fvOpen(r.data, r.name || b.dataset.n || 'опросник', b);
-        const x = document.createElement('a'); x.href = r.data; x.download = r.name || b.dataset.n || 'опросник'; document.body.appendChild(x); x.click(); x.remove(); };
+        downloadFile(r.data, r.name || b.dataset.n || 'опросник', (String(r.data).match(/^data:([^;,]*)/) || [])[1]); };
       if (FV_CACHE[key]) return done(FV_CACHE[key]);
       b.disabled = true; b.textContent = 'Загружаем…';
       api('formFile', { token:S.token, email:c.email, id }).then(r => { b.disabled = false; b.textContent = t0; if (r.data) FV_CACHE[key] = r; done(r); })
