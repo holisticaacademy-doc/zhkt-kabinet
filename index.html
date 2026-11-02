@@ -7732,7 +7732,7 @@ const Adm = (() => {
     if (a === 'msgEdX') { AV.edit = null; return render(true); }
     if (a === 'msgEdSave') { const text = ($('#msgEdIn').value || '').trim(), id = b.dataset.id, em = b.dataset.email; AV.edit = null;
       return act(() => api('editMessage', { token:S.token, email:em, id, text }), 'Сообщение изменено — ученица увидит исправленный текст', () => { const m = (D.messages || []).find(x => x.id === id && x.email === em); if (m) { m.text = text; m.edited = new Date().toISOString(); } }); }
-    if (a === 'cmReply') { const text = (b.previousElementSibling.value || '').trim(); if (!text) return toast('Напишите ответ');
+    if (a === 'cmReply') { const box = b.closest('.cmt'), inp = box && box.querySelector('.cmIn'), text = ((inp && inp.value) || '').trim(); if (!text) return toast('Напишите ответ');
       const lid = b.dataset.lid, em = b.dataset.email; return act(() => api('reply', { token:S.token, email:em, lessonId:lid, lessonTitle:(byId(lid) || {t:''}).t, text }), 'Ответ отправлен — ученица увидит его под уроком', () => addMsg(em, lid, text)); }
     if (a === 'pk') { AV.pk = b.dataset.k; return openDr(picker()); }
     if (a === 'assign') { const cc = C.find(x => x.email === b.dataset.cid), id = b.dataset.id; if (!cc) return;
