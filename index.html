@@ -1635,6 +1635,8 @@ body.fv-on{overflow:hidden}
 .mkb{display:flex;flex-wrap:wrap;gap:8px}
 .mkt{font:inherit;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink,#173f35);cursor:pointer}
 .mkt:hover{border-color:#9e007e}.mkt.on{background:#173f35;border-color:#173f35;color:#fff}
+.thsort{font:inherit;font-weight:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;display:inline-flex;gap:6px;align-items:center;text-transform:inherit;letter-spacing:inherit}
+.thsort span{color:#9e007e;font-size:1.1em}.thsort.on{color:#173f35}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -6974,7 +6976,7 @@ const EVN = { login:'Вход в кабинет', password_set:'Задан па�
 const FLAGNAME = { chole:'Удалён желчный пузырь', ppi:'Принимает препараты от изжоги' };
 const Adm = (() => {
   let D = null, C = [], AV = { s:'over' };
-  const CF = { q:'', st:'all', type:'all', mk:'all', cur:LS.get('hz_curf', 'all') }, KF = { k:'lessons', type:'all', q:'' }, photos = {}, mdays = {};
+  const CF = { q:'', st:'all', type:'all', mk:'all', sort:LS.get('hz_stsort', ''), cur:LS.get('hz_curf', 'all') }, KF = { k:'lessons', type:'all', q:'' }, photos = {}, mdays = {};
   const hidden = () => { const h = {}; const L = (D && D.lessons) || {}; for (const id in L) if (L[id] && L[id].hide) h[id] = 1; return h; };
 
   async function open(){
@@ -7047,7 +7049,7 @@ const Adm = (() => {
   // ИИ
   const aiReady = c => c.ai && c.ai.status === 'готово' && c.ai.protocol;
   const aiK = c => aiReady(c) ? aiKeyOf(c.ai.protocol) : null;
-  const aiOpen = c => !!(aiReady(c) && aiK(c) !== c.autoKey && !c.aiRes);
+  const aiOpen = c => !!(aiReady(c) && aiK(c) !== 'unclear' && aiK(c) !== c.autoKey && !c.aiRes);
   // сообщения
   const chatOf = c => c.msgs.filter(m => !m.lessonId);
   function unreadOf(c){ const m = chatOf(c); let n = 0; for (let i = m.length-1; i >= 0; i--) { if (m[i].from === 'cu' || m[i].read) break; n++; } return n; }
@@ -7060,6 +7062,23 @@ const Adm = (() => {
   const weekTrack = (c, w) => c.assigned && c.day ? weekStatT(c.state.track, c.type, c.day, w) : null;
   const lastTxt = n => n === null ? 'не заходил(а)' : n === 0 ? 'сегодня' : n === 1 ? 'вчера' : `${n} ${plural(n, ['день','дня','дней'])} назад`;
   const pctOf = (a, b) => b ? Math.round(a/b*100) : 0;
+  // порядок статусов для сортировки: сначала то, что куратору нужно забрать
+  function stRank(c){
+    const s = stageOf(c);
+    if (!c.paidOnly && closedC(c)) return 12;
+    if (s < 3) return s === 0 ? 10 : 9;
+    const f = flowOf(c);
+    if (f === 'photo') return 5;
+    if (f === 'review') { const st = String((c.ai && c.ai.status) || '');
+      if (aiOpen(c)) return 0;
+      if (aiReady(c)) return 1;
+      if (/^ошибка/.test(st)) return 2;
+      return 3; }
+    if (c.red.length) return 6;
+    if (c.last !== null && c.last >= 5) return 7;
+    if (c.day > CAL.programDays) return 11;
+    return 8;
+  }
   function status(c){
     const s = stageOf(c);
     if (!c.paidOnly && closedC(c)) return `<span class="st o">Доступ закрыт</span>`;
@@ -7067,7 +7086,6 @@ const Adm = (() => {
     const f = flowOf(c);
     if (f === 'photo') return `<span class="st w">Ждём фото языка</span>`;
     if (f === 'review') { const st = String((c.ai && c.ai.status) || '');
-      if (aiOpen(c) && aiK(c) === 'unclear') return `<span class="st w">На уточнении у ИИ</span>`;
       if (aiOpen(c) && aiK(c) === 'ind') return `<span class="st rd">ИИ: нужен индивидуальный протокол</span>`;
       if (aiOpen(c)) return `<span class="st rd">Расхождение с ИИ</span>`;
       if (aiReady(c)) return `<span class="st rv">Ждёт назначения · ИИ проверил</span>`;
@@ -7238,12 +7256,13 @@ const Adm = (() => {
   function clients(){
     const q = CF.q.toLowerCase();
     let list = C.filter(c => !q || c.name.toLowerCase().includes(q) || c.email.includes(q));
-    const ST = { all: () => true, review: c => ['review','photo'].includes(flowOf(c)), photo: c => flowOf(c) === 'photo', ai: c => flowOf(c) !== 'assigned' && aiOpen(c) && aiK(c) !== 'unclear', unclear: c => flowOf(c) !== 'assigned' && aiOpen(c) && aiK(c) === 'unclear',
+    const ST = { all: () => true, review: c => ['review','photo'].includes(flowOf(c)), photo: c => flowOf(c) === 'photo', ai: c => flowOf(c) !== 'assigned' && aiOpen(c),
       ind: c => c.tariff === TARIFF_IND, edited: c => ovCount(c), closed: c => !c.paidOnly && closedC(c), ext: extC, red: c => c.filled && c.red.length,
       idle: c => c.assigned && c.last !== null && c.last >= 5, noform: c => !c.filled, asg: c => c.assigned };
     list = curFilter(list);
     if (CF.type !== 'all') list = list.filter(c => c.filled && c.type === CF.type);
     const base = list; list = list.filter(ST[CF.st] || ST.all);
+    if (CF.sort === 'st' || CF.sort === 'st-') { const d = CF.sort === 'st' ? 1 : -1; list = list.slice().sort((a, b) => d * (stRank(a) - stRank(b)) || (b.lastAt || '').localeCompare(a.lastAt || '')); }
     const segN = (v, t) => `<button class="${CF.st === v ? 'on' : ''}" data-a="cf" data-k="st" data-v="${v}">${t} <span class="sn">${base.filter(ST[v]).length}</span></button>`;
     const MK = { none: c => c.filled && !c.paidOnly && !c.marks.length, noform: c => noFormInd(c) };
     MARKS.forEach(m => { MK[m.k] = c => c.marks.includes(m.t); });
@@ -7253,10 +7272,10 @@ const Adm = (() => {
     const seg = (k, v, t) => `<button class="${CF[k] === v ? 'on' : ''}" data-a="cf" data-k="${k}" data-v="${v}">${t}</button>`;
     return `<div class="head"><div><h1>${CF.st === 'review' ? 'Проверка назначений' : 'Клиенты'}</h1><p class="muted" style="margin:0">Нажмите на строку, чтобы открыть карточку</p></div><span class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" data-a="syncPaid" title="Новые оплаты из листа «Оплатили (GetCourse)», тарифы и распределение индивидуального тарифа по кураторам">Подтянуть оплаты</button><button class="btn ghost" data-a="addOpen">+ Добавить учениц</button></span></div>
     <div class="tools"><input class="inp" id="cq" placeholder="Имя или email" value="${esc(CF.q)}" style="flex:1 1 220px">
-      <span class="seg">${segN('all','Все')}${segN('review','Ждут проверки')}${segN('photo','Нет фото языка')}${segN('ai','Расхождение с ИИ')}${segN('unclear','На уточнении у ИИ')}${segN('ind','Индивидуальный')}${segN('edited','С правками')}${segN('closed','Доступ закрыт')}${segN('ext','Продлили')}${segN('red','Нужен врач')}${segN('idle','Давно не заходят')}${segN('noform','Без анкеты')}${segN('asg','Назначен протокол')}</span>
+      <span class="seg">${segN('all','Все')}${segN('review','Ждут проверки')}${segN('photo','Нет фото языка')}${segN('ai','Расхождение с ИИ')}${segN('ind','Индивидуальный')}${segN('edited','С правками')}${segN('closed','Доступ закрыт')}${segN('ext','Продлили')}${segN('red','Нужен врач')}${segN('idle','Давно не заходят')}${segN('noform','Без анкеты')}${segN('asg','Назначен протокол')}</span>
       <span class="seg">${seg('type','all','Все типы')}${Object.keys(TYPES).map(k => seg('type', k, TYPES[k].short)).join('')}</span>
       ${curSeg()}${mkSel}</div>
-    <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th>Статус</th><th>Отметки</th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
+    <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th><button class="thsort ${CF.sort ? 'on' : ''}" data-a="stsort" title="Сортировка: сначала те, кого нужно забрать в работу → в обратном порядке → по последнему входу">Статус <span>${CF.sort === 'st' ? '↓' : CF.sort === 'st-' ? '↑' : '⇅'}</span></button></th><th>Отметки</th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
     ${list.map(c => { const lp = lessonPct(c), wt = c.assigned ? weekTrack(c, curWeekC(c)) : null;
       return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${c.filled && c.red.length ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td><td data-l="Отметки">${marksCell(c)}</td>
       <td>${c.filled && c.type ? `<span class="chip">${TYPES[c.type].short}</span>${c.assigned ? '' : ' <span class="small muted">авто</span>'}` : `<span class="nd muted">—</span>`}</td>
@@ -7843,6 +7862,7 @@ const Adm = (() => {
     if (a === 'gctab') { schKeep(); gcKeep(); GC.reply = null; GC.photo = null; GC.stick = true; GC.enter = true; AV.t = b.dataset.t; return render(true); }
     if (/^gc[A-Z]/.test(a)) return gcClick(a, b, AV.t || 'slow', true, () => render(true));
     if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'rtime') AV.rw = LS.get('hz_rtw', '0'); if (AV.s === 'gchats') { GC.stick = true; GC.enter = true; } if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
+    if (a === 'stsort') { CF.sort = CF.sort === 'st' ? 'st-' : CF.sort === 'st-' ? '' : 'st'; LS.set('hz_stsort', CF.sort); return render(true); }
     if (a === 'curf') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); return render(true); }
     if (a === 'navcur') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); CF.st = 'all'; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
     if (a === 'rzf') { AV.rf = b.dataset.v; return render(); }
