@@ -500,6 +500,18 @@ body.fv-on{overflow:hidden}
 /* анкета открыта для правки */
 .reo{display:grid;gap:4px;background:#FDF3EA;border:1px solid #F0D9C4;border-left:4px solid var(--mag);border-radius:14px;padding:12px 16px;margin:14px 0 16px;font-size:14.5px;line-height:1.5}
 .reo b{color:var(--mag);font-size:15px}
+/* смайлики */
+.emo-w{position:relative;display:block;flex:1 1 auto;min-width:0}
+.emo-w>textarea{width:100%;padding-right:44px}
+.emo-b{position:absolute;right:8px;bottom:8px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;font-size:19px;line-height:1;cursor:pointer;opacity:.75;transition:opacity .15s,background .15s}
+.emo-b:hover{opacity:1;background:rgba(23,63,53,.08)}
+.emo-pop{position:absolute;z-index:9999;background:#fff;border:1px solid #d6e8dc;border-radius:16px;box-shadow:0 12px 32px rgba(23,63,53,.18);padding:8px;font-family:inherit}
+.emo-tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;border-bottom:1px solid #e6f4ee;margin-bottom:6px;scrollbar-width:none}
+.emo-tabs button{flex:0 0 auto;font:inherit;font-size:12px;font-weight:700;color:#173f35;background:none;border:0;border-radius:999px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.emo-tabs button.on{background:#173f35;color:#fff}
+.emo-g{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;max-height:190px;overflow-y:auto}
+.emo-g button{font-size:22px;line-height:1;padding:6px 0;border:0;background:none;border-radius:8px;cursor:pointer}
+.emo-g button:hover{background:#e6f4ee}
 
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
@@ -1637,6 +1649,19 @@ body.fv-on{overflow:hidden}
 .mkt:hover{border-color:#9e007e}.mkt.on{background:#173f35;border-color:#173f35;color:#fff}
 .thsort{font:inherit;font-weight:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;display:inline-flex;gap:6px;align-items:center;text-transform:inherit;letter-spacing:inherit}
 .thsort span{color:#9e007e;font-size:1.1em}.thsort.on{color:#173f35}
+
+/* смайлики */
+.emo-w{position:relative;display:block;flex:1 1 auto;min-width:0}
+.emo-w>textarea{width:100%;padding-right:44px}
+.emo-b{position:absolute;right:8px;bottom:8px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;font-size:19px;line-height:1;cursor:pointer;opacity:.75;transition:opacity .15s,background .15s}
+.emo-b:hover{opacity:1;background:rgba(23,63,53,.08)}
+.emo-pop{position:absolute;z-index:9999;background:#fff;border:1px solid #d6e8dc;border-radius:16px;box-shadow:0 12px 32px rgba(23,63,53,.18);padding:8px;font-family:inherit}
+.emo-tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;border-bottom:1px solid #e6f4ee;margin-bottom:6px;scrollbar-width:none}
+.emo-tabs button{flex:0 0 auto;font:inherit;font-size:12px;font-weight:700;color:#173f35;background:none;border:0;border-radius:999px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.emo-tabs button.on{background:#173f35;color:#fff}
+.emo-g{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;max-height:190px;overflow-y:auto}
+.emo-g button{font-size:22px;line-height:1;padding:6px 0;border:0;background:none;border-radius:8px;cursor:pointer}
+.emo-g button:hover{background:#e6f4ee}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -7063,6 +7088,8 @@ const Adm = (() => {
   const lastTxt = n => n === null ? 'не заходил(а)' : n === 0 ? 'сегодня' : n === 1 ? 'вчера' : `${n} ${plural(n, ['день','дня','дней'])} назад`;
   const pctOf = (a, b) => b ? Math.round(a/b*100) : 0;
   // порядок статусов для сортировки: сначала то, что куратору нужно забрать
+  // «нужен врач» показываем, пока протокол не назначен: после назначения вопрос считается прояснённым
+  const needDoc = c => !!(c.filled && c.red.length && !c.assigned);
   function stRank(c){
     const s = stageOf(c);
     if (!c.paidOnly && closedC(c)) return 12;
@@ -7074,7 +7101,6 @@ const Adm = (() => {
       if (aiReady(c)) return 1;
       if (/^ошибка/.test(st)) return 2;
       return 3; }
-    if (c.red.length) return 6;
     if (c.last !== null && c.last >= 5) return 7;
     if (c.day > CAL.programDays) return 11;
     return 8;
@@ -7091,7 +7117,6 @@ const Adm = (() => {
       if (aiReady(c)) return `<span class="st rv">Ждёт назначения · ИИ проверил</span>`;
       if (/^ошибка/.test(st)) return `<span class="st rv">Ждёт назначения · ИИ не сработал</span>`;
       return `<span class="st rv">Ждёт проверки ИИ</span>`; }
-    if (c.red.length) return `<span class="st rd">Нужен врач</span>`;
     if (c.last !== null && c.last >= 5) return `<span class="st w">Давно не заходит</span>`;
     if (c.day > CAL.programDays) return `<span class="st">${W(c) === WM ? 'Завершил' : 'Завершила'}</span>`;
     return `<span class="st">В программе</span>`;
@@ -7176,7 +7201,7 @@ const Adm = (() => {
     const types = { slow:0, infl:0, sens:0, mix:0 }; filled.forEach(c => { if (c.type) types[c.type]++; });
     const withSc = filled.filter(c => c.quiz.scores);
     const symStat = SYM.map(s => ({ t:s.t, p:pctOf(withSc.filter(c => c.quiz.scores[s.k] >= 4).length, withSc.length), avg:withSc.length ? (withSc.reduce((a, c) => a + (c.quiz.scores[s.k] || 0), 0)/withSc.length).toFixed(1) : '0' })).sort((a, b) => b.p - a.p);
-    const red = filled.filter(c => c.red.length), idle = asg.filter(c => c.last !== null && c.last >= 5).sort((a, b) => b.last - a.last);
+    const red = filled.filter(needDoc), idle = asg.filter(c => c.last !== null && c.last >= 5).sort((a, b) => b.last - a.last);
     const trk = TRK_WEEKS.map(w => { const v = asg.map(c => weekTrack(c, w)).filter(Boolean); return v.length ? Math.round(v.reduce((a, s) => a + s.p, 0)/v.length) : null; });
     const withCheck = asg.filter(c => c.state.checks.length && c.quiz.scores);
     const impr = pctOf(withCheck.filter(c => { const sum = o => Object.values(o).reduce((x, y) => x + y, 0); return sum(c.state.checks[c.state.checks.length-1].scores) < sum(c.quiz.scores); }).length, withCheck.length);
@@ -7238,6 +7263,12 @@ const Adm = (() => {
   // ── отметки куратора ──
   const noFormInd = c => c.tariff === TARIFF_IND && c.filled && !indFiles(c.quiz).some(f => f.kind === 'form');
   const marksFor = c => MARKS.filter(m => !m.only || (m.only === 'ind') === (c.tariff === TARIFF_IND) || c.marks.includes(m.t));
+  // порядок отметок для сортировки — как в списке MARKS; «нет опросника» — рядом с «Жду опросник»; без отметок — в конце
+  function mkRank(c){
+    const ix = c.marks.map(t => MARKS.findIndex(m => m.t === t)).filter(i => i > -1);
+    if (noFormInd(c) && !c.marks.length) ix.push(MARKS.findIndex(m => m.k === 'form') + 0.5);
+    return ix.length ? Math.min(...ix) : 99;
+  }
   function marksCell(c){
     const ch = c.marks.map(t => `<span class="chip ${t === 'Анкета просмотрена' || t === 'Всё ясно, в работе' ? '' : 'm'}">${esc(MARK_T[t].s)}</span>`);
     if (noFormInd(c) && !c.marks.includes('Жду опросник')) ch.push(`<span class="chip g" title="Клиент на индивидуальном тарифе не прикрепил опросник">нет опросника</span>`);
@@ -7257,12 +7288,13 @@ const Adm = (() => {
     const q = CF.q.toLowerCase();
     let list = C.filter(c => !q || c.name.toLowerCase().includes(q) || c.email.includes(q));
     const ST = { all: () => true, review: c => ['review','photo'].includes(flowOf(c)), photo: c => flowOf(c) === 'photo', ai: c => flowOf(c) !== 'assigned' && aiOpen(c),
-      ind: c => c.tariff === TARIFF_IND, edited: c => ovCount(c), closed: c => !c.paidOnly && closedC(c), ext: extC, red: c => c.filled && c.red.length,
+      ind: c => c.tariff === TARIFF_IND, edited: c => ovCount(c), closed: c => !c.paidOnly && closedC(c), ext: extC, red: needDoc,
       idle: c => c.assigned && c.last !== null && c.last >= 5, noform: c => !c.filled, asg: c => c.assigned };
     list = curFilter(list);
     if (CF.type !== 'all') list = list.filter(c => c.filled && c.type === CF.type);
     const base = list; list = list.filter(ST[CF.st] || ST.all);
-    if (CF.sort === 'st' || CF.sort === 'st-') { const d = CF.sort === 'st' ? 1 : -1; list = list.slice().sort((a, b) => d * (stRank(a) - stRank(b)) || (b.lastAt || '').localeCompare(a.lastAt || '')); }
+    if (CF.sort) { const d = CF.sort.endsWith('-') ? -1 : 1, R = CF.sort.startsWith('mk') ? mkRank : stRank;
+      list = list.slice().sort((a, b) => d * (R(a) - R(b)) || stRank(a) - stRank(b) || (b.lastAt || '').localeCompare(a.lastAt || '')); }
     const segN = (v, t) => `<button class="${CF.st === v ? 'on' : ''}" data-a="cf" data-k="st" data-v="${v}">${t} <span class="sn">${base.filter(ST[v]).length}</span></button>`;
     const MK = { none: c => c.filled && !c.paidOnly && !c.marks.length, noform: c => noFormInd(c) };
     MARKS.forEach(m => { MK[m.k] = c => c.marks.includes(m.t); });
@@ -7275,9 +7307,9 @@ const Adm = (() => {
       <span class="seg">${segN('all','Все')}${segN('review','Ждут проверки')}${segN('photo','Нет фото языка')}${segN('ai','Расхождение с ИИ')}${segN('ind','Индивидуальный')}${segN('edited','С правками')}${segN('closed','Доступ закрыт')}${segN('ext','Продлили')}${segN('red','Нужен врач')}${segN('idle','Давно не заходят')}${segN('noform','Без анкеты')}${segN('asg','Назначен протокол')}</span>
       <span class="seg">${seg('type','all','Все типы')}${Object.keys(TYPES).map(k => seg('type', k, TYPES[k].short)).join('')}</span>
       ${curSeg()}${mkSel}</div>
-    <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th><button class="thsort ${CF.sort ? 'on' : ''}" data-a="stsort" title="Сортировка: сначала те, кого нужно забрать в работу → в обратном порядке → по последнему входу">Статус <span>${CF.sort === 'st' ? '↓' : CF.sort === 'st-' ? '↑' : '⇅'}</span></button></th><th>Отметки</th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
+    <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th><button class="thsort ${/^st/.test(CF.sort) ? 'on' : ''}" data-a="stsort" data-v="st" title="Сортировка: сначала те, кого нужно забрать в работу → в обратном порядке → по последнему входу">Статус <span>${CF.sort === 'st' ? '↓' : CF.sort === 'st-' ? '↑' : '⇅'}</span></button></th><th><button class="thsort ${/^mk/.test(CF.sort) ? 'on' : ''}" data-a="stsort" data-v="mk" title="Сортировка по отметкам: одинаковые отметки рядом, без отметок — в конце → в обратном порядке (без отметок — сверху) → по последнему входу">Отметки <span>${CF.sort === 'mk' ? '↓' : CF.sort === 'mk-' ? '↑' : '⇅'}</span></button></th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
     ${list.map(c => { const lp = lessonPct(c), wt = c.assigned ? weekTrack(c, curWeekC(c)) : null;
-      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${c.filled && c.red.length ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td><td data-l="Отметки">${marksCell(c)}</td>
+      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${needDoc(c) ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td><td data-l="Отметки">${marksCell(c)}</td>
       <td>${c.filled && c.type ? `<span class="chip">${TYPES[c.type].short}</span>${c.assigned ? '' : ' <span class="small muted">авто</span>'}` : `<span class="nd muted">—</span>`}</td>
       <td data-l="Уроки">${c.assigned ? `<span class="mini"><span class="pb"><i style="width:${lp}%"></i></span>${lp}%</span>` : '<span class="nd">—</span>'}</td>
       <td data-l="Трекер">${wt ? `<span class="mini"><span class="pb"><i style="width:${wt.p}%"></i></span>${wt.p}%</span>` : '<span class="nd">—</span>'}</td>
@@ -7312,7 +7344,7 @@ const Adm = (() => {
       <span class="acts">${added ? `<span class="chip m">куратор</span>` : rm ? `<span class="chip g">убрано</span>` : `<span class="chip g">авто</span>`}<button class="btn lnk" data-a="prev" data-id="${id}">Открыть</button>
       ${rm ? `<button class="btn lnk" data-a="restore" data-id="${id}">Вернуть</button>` : `<button class="btn lnk" data-a="remove" data-id="${id}">Убрать</button>`}</span></div>`; }).join('');
     return head + `
-    ${c.red.length ? `<div class="alert"><div><b>Нужно согласование с врачом.</b> В анкете отмечено: ${esc(c.red.join(', '))}.${a.redAck ? ` ${W(c).N} отметил${W(c).l === 'ла' ? 'а' : ''}, что обследован${W(c).l === 'ла' ? 'а' : ''} и врач не против программы.` : ''}
+    ${needDoc(c) ? `<div class="alert"><div><b>Нужно согласование с врачом.</b> В анкете отмечено: ${esc(c.red.join(', '))}.${a.redAck ? ` ${W(c).N} отметил${W(c).l === 'ла' ? 'а' : ''}, что обследован${W(c).l === 'ла' ? 'а' : ''} и врач не против программы.` : ''}
       <br>Напишите ${W(c).d}: до начала программы нужна очная консультация гастроэнтеролога, а если симптомы острые — неотложная помощь. Продолжать программу — после разрешения врача.
       <div style="margin-top:8px"><button class="btn sm mag" data-a="toChat">Написать ${W(c).d} в чат</button></div></div></div>` : ''}
     ${checkPanel(c)}
@@ -7862,7 +7894,7 @@ const Adm = (() => {
     if (a === 'gctab') { schKeep(); gcKeep(); GC.reply = null; GC.photo = null; GC.stick = true; GC.enter = true; AV.t = b.dataset.t; return render(true); }
     if (/^gc[A-Z]/.test(a)) return gcClick(a, b, AV.t || 'slow', true, () => render(true));
     if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'rtime') AV.rw = LS.get('hz_rtw', '0'); if (AV.s === 'gchats') { GC.stick = true; GC.enter = true; } if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
-    if (a === 'stsort') { CF.sort = CF.sort === 'st' ? 'st-' : CF.sort === 'st-' ? '' : 'st'; LS.set('hz_stsort', CF.sort); return render(true); }
+    if (a === 'stsort') { const k = b.dataset.v || 'st'; CF.sort = CF.sort === k ? k + '-' : CF.sort === k + '-' ? '' : k; LS.set('hz_stsort', CF.sort); return render(true); }
     if (a === 'curf') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); return render(true); }
     if (a === 'navcur') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); CF.st = 'all'; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
     if (a === 'rzf') { AV.rf = b.dataset.v; return render(); }
@@ -8004,6 +8036,74 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.matches && e.target.matches('tr[data-a=open]')) e.target.click();
 });
 $('#dr').addEventListener('click', e => { if (e.target.id === 'dr') Adm.closeDr(); });
+
+// ── смайлики в полях сообщений (чаты, комментарии, отложенные сообщения) ──
+const EMO = (() => {
+  const SETS = [
+    ['Holistica', '🌿 🍵 🫖 🫚 🌶️ 🧄 🍋 🫐 🍐 🍎 🥕 🎃 🥣 🍲 🥗 🥑 🍯 🌰 🧘‍♀️ 🌞 🌙 💧 🔥 ✨ 💚 💜'],
+    ['Улыбки', '😊 🙂 😀 😁 😂 🤣 😅 😉 😍 🥰 😘 🤗 😌 🤔 🙃 😎 🤩 🥳 😇 😋 😴 🥲 😢 😭 😮 😱 😬 🙈'],
+    ['Сердца', '❤️ 🧡 💛 💚 💙 💜 🤍 🤎 🖤 💖 💗 💕 💞 💓 💘 💝 ❤️‍🩹 🫶'],
+    ['Руки', '👍 👎 👏 🙌 🙏 🤝 👋 ✌️ 🤞 💪 👌 🤌 ☝️ 👉 ✋ 🫡 🫶 ✍️'],
+    ['Цветы', '🌸 🌼 🌻 🌷 🌹 💐 🌺 🪻 🌱 🍀 🍃 🌞 ⭐ 🌈 ☀️ 🦋'],
+    ['Ещё', '✅ ❗ ❓ ⏰ 📌 📝 📎 📷 🎉 🎁 🏆 💯 ☕ 🚶‍♀️ 🛌 🧡'],
+  ];
+  const SEL = '#msgIn, #gcIn, #chatIn, .cmIn, #schText, #myEdIn, #gcEdIn, #msgEdIn';
+  const RK = 'hz_emo_recent';
+  let pop = null, tgt = null, tab = 0;
+  const recent = () => { try { return JSON.parse(localStorage.getItem(RK) || '[]'); } catch (e) { return []; } };
+  function decorate(root){
+    (root.querySelectorAll ? root : document).querySelectorAll(SEL).forEach(t => {
+      if (t.dataset.emo || t.closest('#emoPop')) return; t.dataset.emo = '1';
+      const w = document.createElement('span'); w.className = 'emo-w'; t.parentNode.insertBefore(w, t); w.appendChild(t);
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'emo-b'; b.title = 'Смайлики'; b.setAttribute('aria-label', 'Смайлики'); b.textContent = '🙂';
+      b.addEventListener('mousedown', e => e.preventDefault());
+      b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); pop && tgt === t ? close() : open(t, b); });
+      w.appendChild(b);
+    });
+  }
+  function grid(){
+    const r = recent(), list = tab < 0 ? r : SETS[tab][1].split(' ');
+    return `<div class="emo-tabs">${r.length ? `<button type="button" class="${tab < 0 ? 'on' : ''}" data-t="-1" title="Недавние">🕘</button>` : ''}${SETS.map((x, i) => `<button type="button" class="${i === tab ? 'on' : ''}" data-t="${i}">${x[0]}</button>`).join('')}</div>
+      <div class="emo-g">${list.map(e => `<button type="button" data-e="${e}">${e}</button>`).join('')}</div>`;
+  }
+  function place(b){
+    const r = b.getBoundingClientRect(), W = Math.min(320, innerWidth - 16);
+    pop.style.width = W + 'px';
+    pop.style.left = Math.max(8, Math.min(r.right - W, innerWidth - W - 8)) + 'px';
+    const h = pop.offsetHeight || 260, up = r.top > h + 12;
+    pop.style.top = (up ? r.top - h - 6 : r.bottom + 6) + scrollY + 'px';
+  }
+  function open(t, b){
+    close(); tgt = t;
+    pop = document.createElement('div'); pop.id = 'emoPop'; pop.className = 'emo-pop'; pop.innerHTML = grid();
+    pop.addEventListener('mousedown', e => e.preventDefault());
+    pop.addEventListener('click', e => {
+      e.stopPropagation(); const tb = e.target.closest('[data-t]'); if (tb) { tab = +tb.dataset.t; pop.innerHTML = grid(); return; }
+      const eb = e.target.closest('[data-e]'); if (eb) insert(eb.dataset.e);
+    });
+    document.body.appendChild(pop); place(b);
+  }
+  function live(){ // поле могло перерисоваться — ищем его заново
+    if (tgt && document.contains(tgt)) return tgt;
+    const id = tgt && tgt.id; return id ? document.getElementById(id) : null;
+  }
+  function insert(e){
+    const t = live(); if (!t) return close();
+    const a = t.selectionStart ?? t.value.length, z = t.selectionEnd ?? a;
+    t.value = t.value.slice(0, a) + e + t.value.slice(z); const p = a + e.length;
+    t.focus(); try { t.setSelectionRange(p, p); } catch (x) {}
+    t.dispatchEvent(new Event('input', { bubbles:true }));
+    try { localStorage.setItem(RK, JSON.stringify([e].concat(recent().filter(x => x !== e)).slice(0, 24))); } catch (x) {}
+  }
+  function close(){ if (pop) pop.remove(); pop = null; tgt = null; }
+  document.addEventListener('click', e => { if (pop && !e.target.closest('#emoPop') && !e.target.closest('.emo-b')) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && pop) close(); });
+  addEventListener('resize', close);
+  new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1) decorate(n); }).observe(document.body, { childList:true, subtree:true });
+  decorate(document);
+  return { decorate, close };
+})();
+
 boot();
 
 </script>
