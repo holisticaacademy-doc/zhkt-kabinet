@@ -1662,6 +1662,7 @@ body.fv-on{overflow:hidden}
 .emo-g{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;max-height:190px;overflow-y:auto}
 .emo-g button{font-size:22px;line-height:1;padding:6px 0;border:0;background:none;border-radius:8px;cursor:pointer}
 .emo-g button:hover{background:#e6f4ee}
+.ci.late{border-left:4px solid #9e007e}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -7759,12 +7760,21 @@ const Adm = (() => {
     <div class="tools">${curSeg()}</div>
     ${list.length ? list.map(t => commentItem(t, true)).join('') : `<div class="panel"><p style="margin:0">${f === 'open' ? 'Все комментарии отвечены.' : 'Комментариев пока нет.'}</p></div>`}`;
   }
+  // с какого момента клиент ждёт ответа: первое его сообщение после последнего ответа куратора (или отметки «Прочитано»)
+  function waitSince(c){ const m = chatOf(c); let t = 0; for (let i = m.length-1; i >= 0; i--) { if (m[i].from === 'cu' || m[i].read) break; t = tsOf(m[i]); } return t; }
+  function waitTxt(ms){ const h = Math.floor(ms / 36e5), d = Math.floor(h / 24); return d ? `${d} д ${h % 24} ч` : h ? `${h} ч ${Math.floor(ms % 36e5 / 6e4)} мин` : `${Math.max(1, Math.floor(ms / 6e4))} мин`; }
   function chats(){
-    const list = curFilter(chatClients()).sort((a, b) => unreadOf(b) - unreadOf(a) || (chatOf(b).length ? tsOf(chatOf(b).slice(-1)[0]) : 0) - (chatOf(a).length ? tsOf(chatOf(a).slice(-1)[0]) : 0));
-    return `<div class="head"><div><h1>Чаты</h1><p class="muted" style="margin:0">Индивидуальный тариф — всегда; общий — если куратор написал первым. Сначала — чаты с новыми сообщениями.</p></div></div>
-    <div class="tools">${curSeg()}</div>
-    <div class="cat">${list.map(c => { const m = chatOf(c), l = m[m.length-1], u = unreadOf(c);
-      return `<button class="ci" data-a="openChat" data-id="${esc(c.email)}"><span><b>${esc(c.name)}</b> ${c.tariff === TARIFF_IND ? '<span class="chip m">инд.</span>' : ''} ${curChip(c)}<span class="tg"><span class="small muted">${l ? (l.from === 'cu' ? 'Вы: ' : '') + esc((l.text || ((l.files || []).length ? '📎 ' + l.files.map(f => f.name).join(', ') : '')).slice(0, 90)) + ((l.text || '').length > 90 ? '…' : '') : 'Сообщений пока нет'}</span></span></span><span class="cnt">${u ? `<span class="chip r">${u} нов.</span>` : ''}${l ? `<br>${fmtDT(l.at)}` : ''}</span></button>`; }).join('') || '<p class="muted">Чатов пока нет. Индивидуальный тариф отмечается в карточке ученицы.</p>'}</div>`;
+    const sort = LS.get('hz_chsort', 'wait'), now = Date.now(), sla = rtSet().sla, lastT = c => { const m = chatOf(c); return m.length ? tsOf(m[m.length-1]) : 0; };
+    const list = curFilter(chatClients()).sort(sort === 'wait'
+      ? (a, b) => { const x = waitSince(a), y = waitSince(b); return (x ? 0 : 1) - (y ? 0 : 1) || (x && y ? x - y : lastT(b) - lastT(a)); }
+      : (a, b) => unreadOf(b) - unreadOf(a) || lastT(b) - lastT(a));
+    const nWait = list.filter(c => waitSince(c)).length, nLate = list.filter(c => { const w = waitSince(c); return w && now - w > sla; }).length;
+    const sb = (v, t) => `<button class="${sort === v ? 'on' : ''}" data-a="chsort" data-v="${v}">${t}</button>`;
+    return `<div class="head"><div><h1>Чаты</h1><p class="muted" style="margin:0">Индивидуальный тариф — всегда; общий — если куратор написал первым. ${sort === 'wait' ? 'Сначала — те, кто дольше всех ждёт ответа.' : 'Сначала — чаты с новыми сообщениями.'}</p></div></div>
+    <div class="tools">${curSeg()}<span class="seg">${sb('wait', 'Дольше ждут ответа')}${sb('new', 'Новые сверху')}</span>
+      <span class="small muted">ждут ответа: <b>${nWait}</b>${nLate ? ` · <b style="color:#9e007e">${nLate}</b> дольше ${rtSet().sla / 36e5} ч` : ''}</span></div>
+    <div class="cat">${list.map(c => { const m = chatOf(c), l = m[m.length-1], u = unreadOf(c), w = waitSince(c), late = w && now - w > sla;
+      return `<button class="ci ${late ? 'late' : ''}" data-a="openChat" data-id="${esc(c.email)}"><span><b>${esc(c.name)}</b> ${c.tariff === TARIFF_IND ? '<span class="chip m">инд.</span>' : ''} ${curChip(c)}<span class="tg"><span class="small muted">${l ? (l.from === 'cu' ? 'Вы: ' : '') + esc((l.text || ((l.files || []).length ? '📎 ' + l.files.map(f => f.name).join(', ') : '')).slice(0, 90)) + ((l.text || '').length > 90 ? '…' : '') : 'Сообщений пока нет'}</span></span></span><span class="cnt">${w ? `<span class="chip ${late ? 'r' : 'm'}" title="Ждёт ответа с ${esc(fmtDT(new Date(w).toISOString()))}">ждёт ${waitTxt(now - w)}</span> ` : ''}${u ? `<span class="chip ${w ? 'g' : 'r'}">${u} нов.</span>` : ''}${l ? `<br>${fmtDT(l.at)}` : ''}</span></button>`; }).join('') || '<p class="muted">Чатов пока нет. Индивидуальный тариф отмечается в карточке ученицы.</p>'}</div>`;
   }
   function picker(){
     const c = C.find(x => x.email === AV.id), k = AV.pk || AV.tab || 'lessons', q = (AV.pq || '').toLowerCase();
@@ -7894,6 +7904,7 @@ const Adm = (() => {
     if (a === 'gctab') { schKeep(); gcKeep(); GC.reply = null; GC.photo = null; GC.stick = true; GC.enter = true; AV.t = b.dataset.t; return render(true); }
     if (/^gc[A-Z]/.test(a)) return gcClick(a, b, AV.t || 'slow', true, () => render(true));
     if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'rtime') AV.rw = LS.get('hz_rtw', '0'); if (AV.s === 'gchats') { GC.stick = true; GC.enter = true; } if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
+    if (a === 'chsort') { LS.set('hz_chsort', b.dataset.v); return render(true); }
     if (a === 'stsort') { const k = b.dataset.v || 'st'; CF.sort = CF.sort === k ? k + '-' : CF.sort === k + '-' ? '' : k; LS.set('hz_stsort', CF.sort); return render(true); }
     if (a === 'curf') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); return render(true); }
     if (a === 'navcur') { CF.cur = b.dataset.v; LS.set('hz_curf', CF.cur); CF.st = 'all'; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
