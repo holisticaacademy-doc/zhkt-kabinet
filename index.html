@@ -1666,6 +1666,7 @@ body.fv-on{overflow:hidden}
 .tup{margin-top:10px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .tup-chat{display:flex;flex-direction:column;gap:6px;width:100%}
 .tup-i{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.chip.rec{background:#fdf3ea;border-color:#f0d9c2;color:#8a4b12}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -4444,6 +4445,7 @@ function applyOv(R, ov){
   return out;
 }
 const TARIFF_IND = 'Индивидуальный';
+const FMT_REC = 'В записи', isRecFmt = v => /запис/i.test(String(v || ''));
 // отметки куратора: k — код, t — как пишется в таблице, s — коротко в списке, only — для какого тарифа
 const MARKS = [
   { k:'seen', t:'Анкета просмотрена', s:'просмотрена' },
@@ -4573,7 +4575,7 @@ const Demo = (() => {
       const email=id+'@holistica.test';
       db.paid.push({email,name,tariff: id==='olga' ? TARIFF_IND : 'Общий'});
       if(stage==='paid') return;
-      const st=add(email,name); st._pw='seeded'; st['Тариф'] = (id==='vera'||id==='irina') ? TARIFF_IND : 'Общий'; st['Закреплён за'] = CUR[id] || '';
+      const st=add(email,name); st._pw='seeded'; st['Тариф'] = (id==='vera'||id==='irina') ? TARIFF_IND : 'Общий'; st['Закреплён за'] = CUR[id] || ''; if (id === 'daria') st['Формат'] = FMT_REC;
       const first=ago((dIn||2)+3, 9); Object.assign(st,{'Первый вход':first,'Последний вход':ago(lastAgo!=null?lastAgo:0, 19)});
       ev(email,'login','',first);
       if(stage==='login') return;
@@ -4637,7 +4639,7 @@ const Demo = (() => {
   function session(st){ const t='demo-'+Math.random().toString(36).slice(2); load().sessions[t]=st['Email']; if(!st['Первый вход']) st['Первый вход']=now(); st['Последний вход']=now(); log(st['Email'],'login'); return t; }
   const accessOf = d => accessCalc({ start: load().settings.start || d['Дата подтверждения'] || d['Первый вход'], endAt: load().settings.accessEnd, accessDays: load().settings.accessDays, extDays: load().settings.extDays, exts: load().ext[d['Email']] || [], until: d['Доступ до'] });
   const openOnly = st => { if (!isStaff({role:st['Роль']}) && accessOf(st).closed) throw new Error('Доступ к программе закрыт'); };
-  const pub = d => ({ access: accessOf(d), email:d['Email'], name:d['Имя'], role:d['Роль'], status:d['Статус']||STS.none, autoProtocol:d['Протокол авто']||'', protocol:d['Протокол итог']||'',
+  const pub = d => ({ access: accessOf(d), rec:isRecFmt(d['Формат']), email:d['Email'], name:d['Имя'], role:d['Роль'], status:d['Статус']||STS.none, autoProtocol:d['Протокол авто']||'', protocol:d['Протокол итог']||'',
     recs:d['Комментарий куратора']||'', confirmedAt:d['Дата подтверждения']||'', filledAt:d['Дата анкеты']||'', hasPhoto:!!(load().quizzes[d['Email']]||{}).photo, hasForm:!!(load().quizzes[d['Email']]||{}).form, raffle:(load().raffle||{})[d['Email']]||null,
     tariff:d['Тариф']||'Общий', ov:parse(d['Правки материалов']), profile:parse(d['Профиль'])||{}, extra:parse(d['Доп. протоколы'])||[] });
   const msgsOf = e => load().messages.filter(m => m.email === e);
@@ -4662,7 +4664,7 @@ const Demo = (() => {
   const gcBump = t => { const g=gcDb(); g.ver[t]=(g.ver[t]||0)+1; save(); };
   const gcName = st => { const p=String(st['Имя']||'').trim().split(/\s+/); return isStaff({role:st['Роль']}) ? (st['Имя']||'Куратор') : p[0] ? p[0]+(p[1]?' '+p[1][0]+'.':'') : 'Участница'; };
   function gcCtx(st,type){ if(!PNAME[type]) throw new Error('Нет такого протокола'); const staff=isStaff({role:st['Роль']});
-    if(!staff){ openOnly(st); if(st['Статус']!==STS.ok) throw new Error('Чат откроется, когда куратор назначит протокол');
+    if(!staff){ openOnly(st); if(isRecFmt(st['Формат'])) throw new Error('В формате «в записи» общего чата протокола нет'); if(st['Статус']!==STS.ok) throw new Error('Чат откроется, когда куратор назначит протокол');
       const main=PKEY[st['Протокол итог']]||'slow', ok=[main].concat(extraList(st['Доп. протоколы'],main).filter(extraActive).map(x=>x.t)); if(!ok.includes(type)) throw new Error('Этот чат вам не открыт'); }
     return {staff, banned: !staff && !!st['Чат: запрет']}; }
   function gcOut(me,type,ver,x){ const g=gcDb(), all=gcList(type), live=all.filter(m=>!m.del).slice(-150), byId=Object.fromEntries(all.map(m=>[m.id,m]));
@@ -4769,6 +4771,7 @@ const Demo = (() => {
       if(status==='fix'&&!cm) throw new Error('Напишите, что нужно доработать — ученица увидит комментарий'); Object.assign(r,{status:status==='ok'?RZ_ST.ok:status==='fix'?RZ_ST.fix:RZ_ST.wait,comment:cm,by:a['Имя']||a['Email'],rat:now()}); log(email,'raffle_review',r.status); return {}; },
     reviewAccept({token,email,ok}){ const a=adminAuth(token), f=(load().feedback||[]).find(x=>x.email===String(email).toLowerCase()&&x.key==='final'); if(!f) throw new Error('Итоговая анкета не найдена');
       Object.assign(f,{rv:ok?RV_OK:'',rvBy:ok?(a['Имя']||a['Email']):'',rvAt:ok?now():''}); log(email,'review_accept',ok?RV_OK:'сброшено'); return {}; },
+    setFormat({token,email,rec}){ adminAuth(token); const st=find(email); st['Формат']=rec?FMT_REC:''; log(email,'format',st['Формат']||'Поток'); return {}; },
     setTariff({token,email,tariff}){ adminAuth(token); const st=find(email); st['Тариф']=tariff===TARIFF_IND?TARIFF_IND:'Общий'; log(email,'tariff',st['Тариф']); return {cur: st['Тариф']===TARIFF_IND ? demoAutoCur(st) : ''}; },
     syncPaid({token}){ adminAuth(token); const db=load(), res={added:0,upgraded:0,assigned:[]};
       db.paid.forEach(p=>{ const st=find(p.email); if(!st){ db.students.push({'Email':p.email,'Имя':p.name,'Роль':'ученик','Статус':STS.none,'Тариф':p.tariff===TARIFF_IND?TARIFF_IND:'Общий'}); log(p.email,'added_from_getcourse',p.tariff||''); res.added++; }
@@ -5112,8 +5115,8 @@ const uMale = () => maleOf((((typeof U !== 'undefined' && U.quiz) || {}).persona
 const isAdmRole = () => !!S.user && /^(админ|admin|администратор)$/i.test(String(S.user.role || '').trim());
 const gcShort = t => (s => s[0].toUpperCase() + s.slice(1))(TYPES[t].short || PNAME[t]);
 function gcTypes(){
-  if (U.preview) return [U.ptype];
-  if (!S.user || S.user.status !== STS.ok || isStaff(S.user)) return [];
+  if (U.preview) return U.prec ? [] : [U.ptype];
+  if (!S.user || S.user.status !== STS.ok || isStaff(S.user) || S.user.rec) return [];
   return [MAINT()].concat(EXTRA().map(x => x.t));
 }
 const gcSeenKey = t => 'hz_gcs_' + ((S.user && S.user.email) || '') + '_' + t;
@@ -5470,7 +5473,7 @@ function lessonExtra(x){
   if (/^Чат программы/.test(t)) {
     out.push(`<div class="ltext"><p class="lt-lead">В общем чате протокола — участники с таким же типом пищеварения. Здесь делятся рецептами, находками и поддерживают друг друга, а кураторы публикуют важные новости программы.</p>
     <div class="lt-note"><b>Где найти чат:</b> он прямо здесь, в кабинете — раздел «Чаты» в меню слева. Ничего устанавливать и отдельно входить не нужно. Можно писать, отвечать на сообщения, ставить реакции и делиться фото.</div></div>
-    ${gcTypes().length ? `<button class="btn mag full" data-a="gchat" data-t="${TYPE()}">Перейти в чат протокола</button>` : `<div class="card alt"><p style="margin:0">Чат откроется, когда куратор назначит протокол.</p></div>`}`); }
+    ${gcTypes().length ? `<button class="btn mag full" data-a="gchat" data-t="${TYPE()}">Перейти в чат протокола</button>` : S.user && S.user.rec ? `<div class="card alt"><p style="margin:0">Вы проходите программу в записи — общего чата протокола в этом формате нет. ${isInd() ? 'Все вопросы задавайте куратору в личном чате.' : 'Вопросы по урокам можно оставлять в комментариях под уроком — куратор ответит.'}</p></div>` : `<div class="card alt"><p style="margin:0">Чат откроется, когда куратор назначит протокол.</p></div>`}`); }
   if (x.d === 'Обратная связь' || /^Ваша точка Б/.test(t)) {
     const key = /после программы|точка Б/i.test(t) ? 'final' : 'w' + x.w;
     const opened = fbOpen(key), done = fbDone()[key];
@@ -7054,7 +7057,7 @@ const Adm = (() => {
         confirmedAt:s['Дата подтверждения'] || '', filledAt:s['Дата анкеты'] || '', protoName:s['Протокол итог'] || '',
         red:filled ? (q.redFlags || []) : [], photo:!!(filled && q.photo), state:normState(s.state), start,
         day:assigned && start ? dayNum(new Date(start).getTime()) : 0, events:evs[e] || [], paidOnly:!!x.paidOnly,
-        tariff:s['Тариф'] || x.tariff || 'Общий', ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
+        tariff:s['Тариф'] || x.tariff || 'Общий', rec:isRecFmt(s['Формат']) || (!s['Email'] && !!x.rec), ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
         msgs:(msgs[e] || []).slice().sort((a, b) => tsOf(a) - tsOf(b)), fb:(fbs[e] || []).slice().sort((a, b) => FB_KEYS.indexOf(a.key) - FB_KEYS.indexOf(b.key)),
         lost:!q && !!status && status !== STS.none, cur:String(s['Закреплён за'] || '').trim().toLowerCase(), reo:!!(q && q.reopened && status === STS.none), gcGroup:String(s['GetCourse группа'] || ''), access:s.access || null, extra:assigned ? extraList(s['Доп. протоколы'], type) : [] };
     }).sort((a, b) => (b.lastAt || '').localeCompare(a.lastAt || ''));
@@ -7295,7 +7298,7 @@ const Adm = (() => {
     const q = CF.q.toLowerCase();
     let list = C.filter(c => !q || c.name.toLowerCase().includes(q) || c.email.includes(q));
     const ST = { all: () => true, review: c => ['review','photo'].includes(flowOf(c)), photo: c => flowOf(c) === 'photo', ai: c => flowOf(c) !== 'assigned' && aiOpen(c),
-      ind: c => c.tariff === TARIFF_IND, edited: c => ovCount(c), closed: c => !c.paidOnly && closedC(c), ext: extC, red: needDoc,
+      ind: c => c.tariff === TARIFF_IND, rec: c => c.rec, edited: c => ovCount(c), closed: c => !c.paidOnly && closedC(c), ext: extC, red: needDoc,
       idle: c => c.assigned && c.last !== null && c.last >= 5, noform: c => !c.filled, asg: c => c.assigned };
     list = curFilter(list);
     if (CF.type !== 'all') list = list.filter(c => c.filled && c.type === CF.type);
@@ -7311,12 +7314,12 @@ const Adm = (() => {
     const seg = (k, v, t) => `<button class="${CF[k] === v ? 'on' : ''}" data-a="cf" data-k="${k}" data-v="${v}">${t}</button>`;
     return `<div class="head"><div><h1>${CF.st === 'review' ? 'Проверка назначений' : 'Клиенты'}</h1><p class="muted" style="margin:0">Нажмите на строку, чтобы открыть карточку</p></div><span class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" data-a="syncPaid" title="Новые оплаты из листа «Оплатили (GetCourse)», тарифы и распределение индивидуального тарифа по кураторам">Подтянуть оплаты</button><button class="btn ghost" data-a="addOpen">+ Добавить учениц</button></span></div>
     <div class="tools"><input class="inp" id="cq" placeholder="Имя или email" value="${esc(CF.q)}" style="flex:1 1 220px">
-      <span class="seg">${segN('all','Все')}${segN('review','Ждут проверки')}${segN('photo','Нет фото языка')}${segN('ai','Расхождение с ИИ')}${segN('ind','Индивидуальный')}${segN('edited','С правками')}${segN('closed','Доступ закрыт')}${segN('ext','Продлили')}${segN('red','Нужен врач')}${segN('idle','Давно не заходят')}${segN('noform','Без анкеты')}${segN('asg','Назначен протокол')}</span>
+      <span class="seg">${segN('all','Все')}${segN('review','Ждут проверки')}${segN('photo','Нет фото языка')}${segN('ai','Расхождение с ИИ')}${segN('ind','Индивидуальный')}${segN('rec','В записи')}${segN('edited','С правками')}${segN('closed','Доступ закрыт')}${segN('ext','Продлили')}${segN('red','Нужен врач')}${segN('idle','Давно не заходят')}${segN('noform','Без анкеты')}${segN('asg','Назначен протокол')}</span>
       <span class="seg">${seg('type','all','Все типы')}${Object.keys(TYPES).map(k => seg('type', k, TYPES[k].short)).join('')}</span>
       ${curSeg()}${mkSel}</div>
     <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th><button class="thsort ${/^st/.test(CF.sort) ? 'on' : ''}" data-a="stsort" data-v="st" title="Сортировка: сначала те, кого нужно забрать в работу → в обратном порядке → по последнему входу">Статус <span>${CF.sort === 'st' ? '↓' : CF.sort === 'st-' ? '↑' : '⇅'}</span></button></th><th><button class="thsort ${/^mk/.test(CF.sort) ? 'on' : ''}" data-a="stsort" data-v="mk" title="Сортировка по отметкам: одинаковые отметки рядом, без отметок — в конце → в обратном порядке (без отметок — сверху) → по последнему входу">Отметки <span>${CF.sort === 'mk' ? '↓' : CF.sort === 'mk-' ? '↑' : '⇅'}</span></button></th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
     ${list.map(c => { const lp = lessonPct(c), wt = c.assigned ? weekTrack(c, curWeekC(c)) : null;
-      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${needDoc(c) ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td><td data-l="Отметки">${marksCell(c)}</td>
+      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${c.rec ? ` <span class="chip rec" title="Купили запись: программа по расписанию потока, без чата протокола">в записи</span>` : ''}${needDoc(c) ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td><td data-l="Отметки">${marksCell(c)}</td>
       <td>${c.filled && c.type ? `<span class="chip">${TYPES[c.type].short}</span>${c.assigned ? '' : ' <span class="small muted">авто</span>'}` : `<span class="nd muted">—</span>`}</td>
       <td data-l="Уроки">${c.assigned ? `<span class="mini"><span class="pb"><i style="width:${lp}%"></i></span>${lp}%</span>` : '<span class="nd">—</span>'}</td>
       <td data-l="Трекер">${wt ? `<span class="mini"><span class="pb"><i style="width:${wt.p}%"></i></span>${wt.p}%</span>` : '<span class="nd">—</span>'}</td>
@@ -7333,7 +7336,8 @@ const Adm = (() => {
     <div class="ch"><div class="who"><span class="av">${esc(initials)}</span><div><h1 style="margin:0">${esc(c.name)}</h1><p class="muted" style="margin:0">${esc(c.email)}${c.paidOnly ? ' · из выгрузки GetCourse' : ''}</p>
     ${c.paidOnly ? '' : `<div class="row2" style="align-items:center;margin-top:6px"><label class="small muted">Куратор: <select id="curSel" class="sel" style="width:auto;display:inline-block;padding:4px 10px"><option value="">— ${W(c).fr} —</option>${curators().map(x => `<option value="${esc(x.email)}" ${x.email === c.cur ? 'selected' : ''}>${esc(x.name)}${x.email === meEmail() ? ' (я)' : ''}</option>`).join('')}</select></label>
       ${c.cur !== meEmail() ? `<button class="btn sm mag" data-a="assignMe">Закрепить за мной</button>` : ''}</div>`}
-    ${c.paidOnly ? '' : `<label class="small muted">Тариф: <select id="tariff" class="sel" style="width:auto;display:inline-block;padding:4px 10px">${['Общий', TARIFF_IND].map(t => `<option ${t === c.tariff ? 'selected' : ''}>${t}</option>`).join('')}</select></label>`}</div></div>
+    ${c.paidOnly ? '' : `<label class="small muted">Тариф: <select id="tariff" class="sel" style="width:auto;display:inline-block;padding:4px 10px">${['Общий', TARIFF_IND].map(t => `<option ${t === c.tariff ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <label class="small muted" title="«В записи» — программа по расписанию потока, без чата протокола; на индивидуальном тарифе остаётся личный чат с куратором">Формат: <select id="fmtSel" class="sel" style="width:auto;display:inline-block;padding:4px 10px"><option value="" ${c.rec ? '' : 'selected'}>Поток</option><option value="rec" ${c.rec ? 'selected' : ''}>В записи</option></select></label>`}</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${status(c)}
       ${c.assigned ? `<button class="btn ghost sm" data-a="asStudent">Кабинет ${W(c) === WM ? 'его' : 'её'} глазами</button>` : c.filled ? `<button class="btn ghost sm" disabled title="Пока протокол не назначен, ${W(c) === WM ? 'клиент видит' : 'клиентка видит'} только экран «Анкета на проверке»: фото языка, файлы и чат с куратором (на индивидуальном тарифе). Уроки и меню откроются после назначения протокола.">Кабинет ${W(c) === WM ? 'его' : 'её'} глазами — после назначения</button>` : ''}
       ${isAdmRole() ? `<button class="btn ghost sm" data-a="resetAll" ${c.filled ? '' : 'disabled'}>Открыть анкету для правки</button>` : ''}
@@ -7794,7 +7798,7 @@ const Adm = (() => {
     <div class="tools">${curSeg()}<span class="seg">${sb('wait', 'Дольше ждут ответа')}${sb('new', 'Новые сверху')}</span>
       <span class="small muted">ждут ответа: <b>${nWait}</b>${nLate ? ` · <b style="color:#9e007e">${nLate}</b> дольше ${rtSet().sla / 36e5} ч` : ''}</span></div>
     <div class="cat">${list.map(c => { const m = chatOf(c), l = m[m.length-1], u = unreadOf(c), w = waitSince(c), late = w && now - w > sla;
-      return `<button class="ci ${late ? 'late' : ''}" data-a="openChat" data-id="${esc(c.email)}"><span><b>${esc(c.name)}</b> ${c.tariff === TARIFF_IND ? '<span class="chip m">инд.</span>' : ''} ${curChip(c)}<span class="tg"><span class="small muted">${l ? (l.from === 'cu' ? 'Вы: ' : '') + esc((l.text || ((l.files || []).length ? '📎 ' + l.files.map(f => f.name).join(', ') : '')).slice(0, 90)) + ((l.text || '').length > 90 ? '…' : '') : 'Сообщений пока нет'}</span></span></span><span class="cnt">${w ? `<span class="chip ${late ? 'r' : 'm'}" title="Ждёт ответа с ${esc(fmtDT(new Date(w).toISOString()))}">ждёт ${waitTxt(now - w)}</span> ` : ''}${u ? `<span class="chip ${w ? 'g' : 'r'}">${u} нов.</span>` : ''}${l ? `<br>${fmtDT(l.at)}` : ''}</span></button>`; }).join('') || '<p class="muted">Чатов пока нет. Индивидуальный тариф отмечается в карточке ученицы.</p>'}</div>`;
+      return `<button class="ci ${late ? 'late' : ''}" data-a="openChat" data-id="${esc(c.email)}"><span><b>${esc(c.name)}</b> ${c.rec ? '<span class="chip rec">в записи</span> ' : ''}${c.tariff === TARIFF_IND ? '<span class="chip m">инд.</span>' : ''} ${curChip(c)}<span class="tg"><span class="small muted">${l ? (l.from === 'cu' ? 'Вы: ' : '') + esc((l.text || ((l.files || []).length ? '📎 ' + l.files.map(f => f.name).join(', ') : '')).slice(0, 90)) + ((l.text || '').length > 90 ? '…' : '') : 'Сообщений пока нет'}</span></span></span><span class="cnt">${w ? `<span class="chip ${late ? 'r' : 'm'}" title="Ждёт ответа с ${esc(fmtDT(new Date(w).toISOString()))}">ждёт ${waitTxt(now - w)}</span> ` : ''}${u ? `<span class="chip ${w ? 'g' : 'r'}">${u} нов.</span>` : ''}${l ? `<br>${fmtDT(l.at)}` : ''}</span></button>`; }).join('') || '<p class="muted">Чатов пока нет. Индивидуальный тариф отмечается в карточке ученицы.</p>'}</div>`;
   }
   function picker(){
     const c = C.find(x => x.email === AV.id), k = AV.pk || AV.tab || 'lessons', q = (AV.pq || '').toLowerCase();
@@ -7979,7 +7983,7 @@ const Adm = (() => {
     if (a === 'logout') return logout();
     if (a === 'demoResetA') { Demo.reset(); toast('Демо-данные сброшены'); return logout(); }
     if (a === 'preview') { U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
-    if (a === 'asStudent' && c) { U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
+    if (a === 'asStudent' && c) { U.prec = !!c.rec; U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (!c) return;
     if (a === 'assignMe') return act(() => api('assignCurator', { token:S.token, email:c.email, curator:meEmail() }), `${W(c).N} ${W(c).zk} за вами`, () => { rowOf(c.email)['Закреплён за'] = meEmail(); });
     if (a === 'demoExtend') return act(() => api('demoExtend', { token:S.token, email:c.email }), 'Продление добавлено (демо)');
@@ -8034,6 +8038,8 @@ const Adm = (() => {
     if (e.target.id === 'adm-chat-file') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; AV.cf = AV.cf || []; return readChatFiles(e.target, AV.cf).then(() => render(true)); }
     if (e.target.id === 'curF') { CF.cur = e.target.value || 'all'; LS.set('hz_curf', CF.cur); return render(true); }
     if (e.target.id === 'adm-tongue' && AV.s === 'client') { const c = C.find(x => x.email === AV.id), f = e.target.files && e.target.files[0]; e.target.value = ''; if (!c || !f) return; if (!/^image\//.test(f.type || '') && !/\.heic$/i.test(f.name)) return toast('Нужна картинка: JPG, PNG или HEIC'); return gcShrink(f).then(d => tongueSet(c, { photo:d })).catch(err => toast(err.message || err)); }
+    if (e.target.id === 'fmtSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id), rec = e.target.value === 'rec';
+      return act(() => api('setFormat', { token:S.token, email:c.email, rec }), rec ? 'Формат: в записи — без чата протокола' : 'Формат: поток', () => { rowOf(c.email)['Формат'] = rec ? FMT_REC : ''; }); }
     if (e.target.id === 'mkF') { CF.mk = e.target.value || 'all'; return render(true); }
     if (e.target.id === 'curSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); const v = e.target.value;
       return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : `${W(c).N} ${W(c).ok}`, () => { rowOf(c.email)['Закреплён за'] = v; }); }
