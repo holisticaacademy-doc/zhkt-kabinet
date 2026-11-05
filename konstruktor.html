@@ -1010,8 +1010,9 @@ function renderWeek(){
 }
 
 /* ═══ Расписание меню: на платформе недели меню открываются по пятницам ═══
-   Даты приходят из платформы (hz_menu_link.menu = {3,4,5: ISO}). Отдельный файл — без ограничений. */
-function menuAt(w){ var m=LINK&&LINK.menu; var t=m&&m[w]?Date.parse(m[w]):0; return t||0; }
+   Даты приходят из платформы (hz_menu_link.menu = {3,4,5: ISO}). Отдельный файл — по датам MENU_DEF. */
+var MENU_DEF={3:'2026-11-13T12:00:00+03:00',4:'2026-11-20T12:00:00+03:00',5:'2026-11-27T12:00:00+03:00'};  /* если конструктор открыт не из кабинета — закрыт по этим датам */
+function menuAt(w){ var m=(LINK&&LINK.menu)||MENU_DEF; var t=m&&m[w]?Date.parse(m[w]):0; return t||0; }
 function menuWhen(ms){ var d=new Date(ms+3*36e5), M=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
   var hm=('0'+d.getUTCHours()).slice(-2)+':'+('0'+d.getUTCMinutes()).slice(-2); return d.getUTCDate()+' '+M[d.getUTCMonth()]+(hm!=='00:00'?' в '+hm:''); }
 function menuLockTxt(w){ var t=menuAt(w); return t&&Date.now()<t?menuWhen(t):''; }
