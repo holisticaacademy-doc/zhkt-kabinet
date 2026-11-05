@@ -1663,6 +1663,9 @@ body.fv-on{overflow:hidden}
 .emo-g button{font-size:22px;line-height:1;padding:6px 0;border:0;background:none;border-radius:8px;cursor:pointer}
 .emo-g button:hover{background:#e6f4ee}
 .ci.late{border-left:4px solid #9e007e}
+.tup{margin-top:10px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.tup-chat{display:flex;flex-direction:column;gap:6px;width:100%}
+.tup-i{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:12px;background:#fff}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -4798,6 +4801,9 @@ const Demo = (() => {
       return { students: db.students.map(s=>{ const r=Object.assign({},s); r['Пароль задан']=s._pw?'да':'нет'; r.state=parse(s['Прогресс']); r.ov=parse(s['Правки материалов']); r.access=accessOf(s); delete r._pw; delete r['Прогресс']; delete r['Правки материалов']; return r; }),
         raffle:Object.entries(db.raffle||{}).map(([e,r])=>({'Дата':r.at,'Email':e,'Имя':r.name||'','Протокол':r.protocol||'','Что прислали':r.kind,'Файлов':r.files,'Папка':'','Видео (ссылка)':r.video||'','Отзыв':r.review||'','Статус':r.status||RZ_ST.wait,'Комментарий куратора':r.comment||'','Проверил':r.by||'','Дата проверки':r.rat||''})),
         quizzes:db.quizzes, events:db.events, feedback:db.feedback||[], paid:db.paid, lessons:db.lessons, messages:db.messages, ai:db.ai, aiKey:false, settings:db.settings }; },
+    adminTongue({token,email,photo,fileId}){ adminAuth(token); const q=load().quizzes[email]; if(!q) throw new Error('Сначала нужна анкета');
+      let d=photo; if(fileId){ const f=(load().cfiles||{})[fileId]; if(!f||!/^data:image\//.test(f.data||'')) throw new Error('Это не фото'); d=f.data; }
+      if(!/^data:image\//.test(d||'')) throw new Error('Можно загрузить только фото'); q.photo=true; q.tongueLater=false; load().photos[email]=d; log(email,'photo','куратор'); return {}; },
     photo({token,email}){ adminAuth(token); return {data:load().photos[email]||''}; },
     raffleFile({token,tag,file}){ const st=auth(token); demoRaffleOpen(st); const db=load(); db.rfiles=db.rfiles||{}; (db.rfiles[st['Email']]=db.rfiles[st['Email']]||[]).push({tag,name:file.name}); return {id:'f'+Date.now()}; },
     raffleSend({token,kind,review,video}){ const st=auth(token); demoRaffleOpen(st); const had=(load().raffle||{})[st['Email']];
@@ -7516,7 +7522,20 @@ const Adm = (() => {
   }
   function photoBox(c){
     return formBox(c) + (c.photo ? `<div id="photo-box"><div class="photo-ph"><span>Загружаем фото…</span></div></div>`
-      : `<div class="photo-ph miss"><span><b>Фото языка ещё не загружено</b><br><small>${W(c).N} видит карточку загрузки в кабинете</small></span></div>`);
+      : `<div class="photo-ph miss"><span><b>Фото языка ещё не загружено</b><br><small>${W(c).N} видит карточку загрузки в кабинете</small></span></div>`) + tongueUp(c);
+  }
+  // загрузка фото языка куратором: со своего устройства или из фото, присланных клиентом в чат
+  function tongueUp(c){
+    const imgs = chatOf(c).filter(m => m.from !== 'cu').flatMap(m => (m.files || []).filter(f => /^image\//.test(f.type || '') || /\.(jpe?g|png|heic|webp)$/i.test(f.name || '')).map(f => ({ f, at:m.at }))).reverse().slice(0, 6);
+    return `<div class="tup">${AV.tbusy ? `<span class="small muted">Загружаем фото…</span>` : `<input type="file" id="adm-tongue" class="vh" accept="image/*"><label for="adm-tongue" class="btn ghost sm">${c.photo ? 'Заменить фото языка' : 'Загрузить фото языка'}</label>`}
+      ${imgs.length && !AV.tbusy ? `<div class="tup-chat"><span class="small muted">Или выберите из фото, присланных в чат:</span>${imgs.map(x => `<span class="tup-i"><button type="button" class="btn lnk" data-a="cfOpen" data-id="${esc(x.f.id)}" data-name="${esc(x.f.name || 'фото')}" data-email="${esc(c.email)}">📷 ${esc(x.f.name || 'фото')}</button><span class="small muted">${esc(fmtDT(x.at))}</span><button type="button" class="btn sm" data-a="tongueFromChat" data-id="${esc(x.f.id)}">Это фото языка</button></span>`).join('')}</div>` : ''}</div>`;
+  }
+  async function tongueSet(c, args){
+    AV.tbusy = 1; render(true);
+    try { await api('adminTongue', Object.assign({ token:S.token, email:c.email }, args));
+      delete photos[c.email]; const q = (D.quizzes || {})[c.email]; if (q) { q.photo = q.photo || 'manual'; q.tongueLater = false; }
+      AV.tbusy = 0; C = build(D); render(true); loadPhoto(); toast('Фото языка добавлено — ИИ перепроверит анкету'); bgLoad(); }
+    catch (e) { AV.tbusy = 0; render(true); if (e.message === 'AUTH') return logout(); toast(e.message || 'Не получилось загрузить фото'); }
   }
   // ── Оценки обучения ──
   const fbAll = () => C.filter(c => c.assigned).flatMap(c => c.fb.map(f => Object.assign({ c }, f)));
@@ -7973,6 +7992,7 @@ const Adm = (() => {
         await api('reply', { token:S.token, email:c.email, lessonId:'', text, files }); AV.cf = []; AV.cdraft = ''; chatPos.stick = true; }, 'Сообщение отправлено').then(() => { b.disabled = false; }); }
     if (a === 'acfDel') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; (AV.cf || []).splice(+b.dataset.i, 1); return render(true); }
     if (a === 'cfOpen') return openChatFile(b);
+    if (a === 'tongueFromChat' && c) { if (!confirm('Сделать это фото фото языка? Если фото уже было, оно заменится.')) return; return tongueSet(c, { fileId:b.dataset.id }); }
     if (a === 'addMat') { AV.pk = AV.tab || 'lessons'; AV.pq = ''; return openDr(picker()); }
     if (a === 'add') { const id = b.dataset.id, ov = { add:(c.ov.add || []).slice(), rm:(c.ov.rm || []).filter(x => x !== id) };
       if (!autoL(c, catOf(id)).includes(id) && !ov.add.includes(id)) ov.add.push(id);
@@ -8013,6 +8033,7 @@ const Adm = (() => {
     if (e.target.id === 'gc-photo') return gcPhotoPick(e.target, AV.t || 'slow', () => render(true));
     if (e.target.id === 'adm-chat-file') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; AV.cf = AV.cf || []; return readChatFiles(e.target, AV.cf).then(() => render(true)); }
     if (e.target.id === 'curF') { CF.cur = e.target.value || 'all'; LS.set('hz_curf', CF.cur); return render(true); }
+    if (e.target.id === 'adm-tongue' && AV.s === 'client') { const c = C.find(x => x.email === AV.id), f = e.target.files && e.target.files[0]; e.target.value = ''; if (!c || !f) return; if (!/^image\//.test(f.type || '') && !/\.heic$/i.test(f.name)) return toast('Нужна картинка: JPG, PNG или HEIC'); return gcShrink(f).then(d => tongueSet(c, { photo:d })).catch(err => toast(err.message || err)); }
     if (e.target.id === 'mkF') { CF.mk = e.target.value || 'all'; return render(true); }
     if (e.target.id === 'curSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); const v = e.target.value;
       return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : `${W(c).N} ${W(c).ok}`, () => { rowOf(c.email)['Закреплён за'] = v; }); }
