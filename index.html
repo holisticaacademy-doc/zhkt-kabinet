@@ -1692,6 +1692,9 @@ body.fv-on{overflow:hidden}
 .mds:not(.on){color:transparent;background:rgba(128,128,128,.5);text-shadow:none}
 .mds:not(.on) *{color:transparent}
 
+/* многострочные поля — без «таблетки» */
+textarea.inp,.emo-w>textarea{border-radius:16px}
+
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
 .side .role b{display:block;font-size:13px;margin-bottom:2px}
@@ -4805,8 +4808,11 @@ const Demo = (() => {
       db.paid.forEach(p=>{ const st=find(p.email); if(!st){ db.students.push({'Email':p.email,'Имя':p.name,'Роль':'ученик','Статус':STS.none,'Тариф':p.tariff===TARIFF_IND?TARIFF_IND:'Общий'}); log(p.email,'added_from_getcourse',p.tariff||''); res.added++; }
         else if(p.tariff===TARIFF_IND && st['Тариф']!==TARIFF_IND){ st['Тариф']=TARIFF_IND; log(p.email,'tariff',TARIFF_IND+' (из «Оплатили»)'); res.upgraded++; } });
       db.students.forEach(st=>{ const c=demoAutoCur(st); if(c) res.assigned.push({email:st['Email'],cur:c}); }); return res; },
-    gchatSchedule({token,types,text,at,pin,photo}){ const me=adminAuth(token); types=(types||[]).filter(t=>PNAME[t]); if(!types.length) throw new Error('Выберите хотя бы один чат');
-      text=String(text||'').trim(); if(text.length>6000) throw new Error('Сообщение слишком длинное: '+text.length+' символов, можно до 6000. Разделите его на две части.'); if(!text&&!photo) throw new Error('Напишите сообщение'); const t=Date.parse(at); if(!t) throw new Error('Укажите дату и время отправки'); if(t<Date.now()-60000) throw new Error('Это время уже прошло');
+    gchatSchedule({token,types,text,at,pin,photo,id,keepPhoto}){ const me=adminAuth(token); types=(types||[]).filter(t=>PNAME[t]); if(!types.length) throw new Error('Выберите хотя бы один чат');
+      text=String(text||'').trim(); if(text.length>6000) throw new Error('Сообщение слишком длинное: '+text.length+' символов, можно до 6000. Разделите его на две части.');
+      if(id){ const g=gcDb(), x=(g.sch||[]).find(y=>y.id===id); if(!x||x.status!=='ждёт') throw new Error('Сообщение уже отправлено или отменено'); const t=Date.parse(at); if(!t) throw new Error('Укажите дату и время отправки');
+        let ph=keepPhoto?x.photo:''; if(photo){ ph='p'+Math.random().toString(36).slice(2); g.photos[ph]={type:types[0],data:photo}; } if(!text&&!ph) throw new Error('Напишите сообщение'); Object.assign(x,{text,at:new Date(t).toISOString(),types,pin:!!pin,photo:ph}); save(); return {list:gcSchOut()}; }
+      if(!text&&!photo) throw new Error('Напишите сообщение'); const t=Date.parse(at); if(!t) throw new Error('Укажите дату и время отправки'); if(t<Date.now()-60000) throw new Error('Это время уже прошло');
       const g=gcDb(); g.sch=g.sch||[]; let ph=''; if(photo){ ph='p'+Math.random().toString(36).slice(2); g.photos[ph]={type:types[0],data:photo}; }
       g.sch.push({id:'s'+Math.random().toString(36).slice(2),at:new Date(t).toISOString(),email:me['Email'],by:me['Имя']||'Куратор',types,text,photo:ph,pin:!!pin,status:'ждёт',sent:''}); save(); return {list:gcSchOut()}; },
     gchatScheduled({token}){ adminAuth(token); gcDue(); return {list:gcSchOut()}; },
@@ -7532,7 +7538,7 @@ const Adm = (() => {
   }
   // ── Отложенные сообщения в чаты протоколов (время — московское) ──
   let SCH = null, schBusy = false;
-  const SD = { text:'', at:'', types:null, pin:false, photo:null, open:false };
+  const SD = { text:'', at:'', types:null, pin:false, photo:null, open:false, edit:'', keep:false };
   const mskInput = ms => new Date(ms + 3 * 36e5).toISOString().slice(0, 16);
   const mskTxt = iso => new Date(iso).toLocaleString('ru-RU', { day:'numeric', month:'long', hour:'2-digit', minute:'2-digit', timeZone:'Europe/Moscow' });
   function schLoad(force){ if ((SCH && !force) || schBusy) return; schBusy = true;
@@ -7546,19 +7552,19 @@ const Adm = (() => {
     const wait = (SCH || []).filter(x => x.status === 'ждёт'), done = (SCH || []).filter(x => x.status !== 'ждёт').reverse().slice(0, 8);
     const chips = l => l.map(x => `<span class="chip">${esc(TYPES[x] ? TYPES[x].short : x)}</span>`).join(' ');
     const item = (x, act) => `<div class="sch-i${act ? '' : ' done'}"><div class="sch-h"><b>${mskTxt(x.at)}</b> ${chips(x.types)}${x.pin ? ' <span class="chip m">📌 закрепить</span>' : ''}${x.photo ? ' <span class="chip">фото</span>' : ''}<span class="small muted">${esc(x.by || '')}${act ? '' : ' · ' + esc(x.status)}</span></div>
-      <div class="sch-x">${esc(x.text) || '<span class="muted">Только фото</span>'}</div>
-      ${act ? `<div class="row" style="gap:8px;margin-top:8px"><button class="btn sm ghost" data-a="schNow" data-id="${esc(x.id)}">Отправить сейчас</button><button class="btn sm ghost" data-a="schDel" data-id="${esc(x.id)}">Отменить</button></div>` : ''}</div>`;
+      <div class="sch-x">${x.text ? linkify(x.text) : '<span class="muted">Только фото</span>'}</div>
+      ${act ? `<div class="row" style="gap:8px;margin-top:8px"><button class="btn sm" data-a="schEdit" data-id="${esc(x.id)}">Изменить</button><button class="btn sm ghost" data-a="schNow" data-id="${esc(x.id)}">Отправить сейчас</button><button class="btn sm ghost" data-a="schDel" data-id="${esc(x.id)}">Отменить</button></div>` : ''}</div>`;
     return `<div class="panel sch" style="margin-top:16px"><div class="head" style="margin-bottom:8px"><h2 style="margin:0"><span>Отложенные сообщения</span></h2>
-      <button class="btn sm ${SD.open ? 'ghost' : ''}" data-a="schOpen">${SD.open ? 'Скрыть форму' : '+ Запланировать сообщение'}</button></div>
+      <button class="btn sm ${SD.open ? 'ghost' : ''}" data-a="schOpen">${SD.open ? (SD.edit ? 'Отменить правку' : 'Скрыть форму') : '+ Запланировать сообщение'}</button></div>
       <p class="small muted" style="margin:0 0 12px">Как в Telegram: напишите заранее — платформа сама отправит сообщение в выбранные чаты в нужное время. Время московское.</p>
-      ${SD.open ? `<div class="sch-f">
+      ${SD.open ? `<div class="sch-f" id="schForm">${SD.edit ? '<p class="small" style="margin:0"><b>Правка запланированного сообщения</b></p>' : ''}
         <textarea class="inp" id="schText" maxlength="6000" rows="4" placeholder="Текст сообщения">${esc(SD.text)}</textarea>
         <div class="sch-row"><label class="small muted">Когда отправить (МСК)<input class="inp" type="datetime-local" id="schAt" value="${esc(SD.at)}" min="${mskInput(Date.now())}"></label>
           <div><span class="small muted">В какие чаты</span><div class="sch-t">${Object.keys(PNAME).map(k => `<label><input type="checkbox" value="${k}" ${SD.types.includes(k) ? 'checked' : ''}> ${esc(TYPES[k].short)}</label>`).join('')}<button type="button" class="btn lnk" data-a="schAll">все четыре</button></div></div></div>
         <div class="sch-row2"><label class="small"><input type="checkbox" id="schPin" ${SD.pin ? 'checked' : ''}> Закрепить при отправке (заменит текущий закреп)</label>
-          <span><input type="file" accept="image/*" id="sch-photo" class="vh"><label for="sch-photo" class="btn ghost sm">${SD.photo ? 'Заменить фото' : 'Прикрепить фото'}</label>${SD.photo ? ` <button type="button" class="btn lnk" data-a="schPhotoX">убрать фото</button>` : ''}</span></div>
+          <span><input type="file" accept="image/*" id="sch-photo" class="vh"><label for="sch-photo" class="btn ghost sm">${SD.photo || SD.keep ? 'Заменить фото' : 'Прикрепить фото'}</label>${SD.photo || SD.keep ? ` <button type="button" class="btn lnk" data-a="schPhotoX">убрать фото</button>` : ''}${SD.keep && !SD.photo ? ' <span class="small muted">· фото остаётся прежним</span>' : ''}</span></div>
         ${SD.photo ? `<img class="sch-pp" src="${SD.photo}" alt="">` : ''}
-        <div><button class="btn mag" data-a="schSave">Запланировать</button></div></div>` : ''}
+        <div><button class="btn mag" data-a="schSave">${SD.edit ? 'Сохранить изменения' : 'Запланировать'}</button></div></div>` : ''}
       ${!SCH ? '<p class="small muted">Загружаем…</p>' : wait.length ? `<h3 class="sch-l">Ждут отправки · ${wait.length}</h3>${wait.map(x => item(x, true)).join('')}` : '<p class="small" style="margin:0">Запланированных сообщений нет.</p>'}
       ${done.length ? `<details style="margin-top:12px"><summary class="small" style="font-weight:700;cursor:pointer">Отправленные и отменённые за неделю</summary>${done.map(x => item(x, false)).join('')}</details>` : ''}</div>`;
   }
@@ -7970,16 +7976,20 @@ const Adm = (() => {
       api('formFile', { token:S.token, email:c.email, id }).then(r => { b.disabled = false; b.textContent = t0; if (r.data) FV_CACHE[key] = r; done(r); })
         .catch(err => { b.disabled = false; b.textContent = t0; toast(err.message); }); return; }
     if (a === 'photoView' && c) { const d = photos[c.email]; if (d) fvOpen(d, 'Фото языка - ' + (c.name || c.email) + '.' + ((d.match(/^data:image\/(\w+)/) || [])[1] || 'jpg').replace('jpeg', 'jpg'), b); return; }
-    if (a === 'schOpen') { schKeep(); SD.open = !SD.open; return render(true); }
+    if (a === 'schOpen') { schKeep(); if (SD.open && SD.edit) Object.assign(SD, { edit:'', keep:false, text:'', photo:null, pin:false }); SD.open = !SD.open; return render(true); }
     if (a === 'schAll') { schKeep(); SD.types = Object.keys(PNAME); return render(true); }
-    if (a === 'schPhotoX') { schKeep(); SD.photo = null; return render(true); }
+    if (a === 'schPhotoX') { schKeep(); SD.photo = null; SD.keep = false; return render(true); }
     if (a === 'schSave') { schKeep(); const at = Date.parse(SD.at + ':00+03:00');
-      if (!SD.text.trim() && !SD.photo) return toast('Напишите сообщение'); if (!at) return toast('Укажите дату и время'); if (at < Date.now() - 60000) return toast('Это время уже прошло');
+      if (!SD.text.trim() && !SD.photo && !SD.keep) return toast('Напишите сообщение'); if (!at) return toast('Укажите дату и время'); if (at < Date.now() - 60000) return toast('Это время уже прошло');
       if (!SD.types.length) return toast('Выберите хотя бы один чат');
       b.disabled = true; b.textContent = 'Сохраняем…';
-      return api('gchatSchedule', { token:S.token, types:SD.types, text:SD.text, at:new Date(at).toISOString(), pin:SD.pin, photo:SD.photo || '' })
-        .then(r => { SCH = r.list; Object.assign(SD, { text:'', pin:false, photo:null, open:false }); gcKeep(); render(true); toast('Запланировано на ' + mskTxt(new Date(at).toISOString()) + ' по Москве'); })
-        .catch(e => { b.disabled = false; b.textContent = 'Запланировать'; toast(e.message); }); }
+      const ed = SD.edit;
+      return api('gchatSchedule', { token:S.token, id:ed || '', keepPhoto:SD.keep, types:SD.types, text:SD.text, at:new Date(at).toISOString(), pin:SD.pin, photo:SD.photo || '' })
+        .then(r => { SCH = r.list; Object.assign(SD, { text:'', pin:false, photo:null, open:false, edit:'', keep:false }); gcKeep(); render(true); toast((ed ? 'Изменено · отправится ' : 'Запланировано на ') + mskTxt(new Date(at).toISOString()) + ' по Москве'); })
+        .catch(e => { b.disabled = false; b.textContent = ed ? 'Сохранить изменения' : 'Запланировать'; toast(e.message); }); }
+    if (a === 'schEdit') { const x = (SCH || []).find(y => y.id === b.dataset.id); if (!x) return;
+      Object.assign(SD, { open:true, edit:x.id, text:x.text, at:mskInput(Date.parse(x.at)), types:x.types.slice(), pin:!!x.pin, photo:null, keep:!!x.photo }); gcKeep(); render(true);
+      setTimeout(() => { const f = $('#schForm'); if (f) f.scrollIntoView({ behavior:'smooth', block:'center' }); const ta = $('#schText'); if (ta) ta.focus(); }, 50); return; }
     if (a === 'schDel' || a === 'schNow') { if (!confirm(a === 'schDel' ? 'Отменить это сообщение?' : 'Отправить это сообщение прямо сейчас?')) return; schKeep(); b.disabled = true;
       return api('gchatScheduleAct', { token:S.token, id:b.dataset.id, act: a === 'schDel' ? 'cancel' : 'now' })
         .then(async r => { SCH = r.list; if (a === 'schNow') { Object.keys(PNAME).forEach(k => { GC.v[k] = ''; }); await gcLoad(AV.t || 'slow', true); } gcKeep(); render(true); toast(a === 'schDel' ? 'Сообщение отменено' : 'Сообщение отправлено'); })
