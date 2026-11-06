@@ -4985,7 +4985,7 @@ function logout(){
 }
 let saveT = null;
 function save(){
-  if (U.preview) return;
+  if (U.preview || accessClosed()) return;   // доступ закрыт — сервер отметки не принимает, не сыплем ошибками
   clearTimeout(saveT);
   saveT = setTimeout(() => { saveT = null; api('saveState', { token:S.token, state:U.st }).catch(() => toast('Не получилось сохранить отметку. Проверьте интернет.')); }, 700);
 }
@@ -5110,13 +5110,22 @@ async function openChatFile(b){
 }
 const chatFilesOn = () => !!S.user && S.user.tariff === TARIFF_IND;
 function bubbles(list, mine){
-  return list.map(m => { const own = m.from === mine && mine === 'cl' && m.id && !U.preview, ed = own && U.edit === m.id;
+  return list.map(m => { const own = m.from === mine && mine === 'cl' && m.id && !U.preview && !accessClosed(), ed = own && U.edit === m.id;
     return `<div class="bub ${m.from === mine ? 'me' : 'them'}">${ed ? `<div class="ed-box"><textarea class="inp" id="myEdIn" maxlength="20000">${esc(m.text)}</textarea><div class="ed-b"><button type="button" class="btn sm" data-a="myEdSave" data-id="${esc(m.id)}">Сохранить</button><button type="button" class="btn sm ghost" data-a="myEdX">Отмена</button></div></div>` : m.text ? linkify(m.text) : ''}${fileChips(m.files)}<small>${m.from === 'cu' ? esc(m.who || 'Куратор') : 'Вы'} · ${fmtDT(m.at)}${m.edited ? ' · изменено' : ''}${own && !ed ? ` · <button type="button" class="ed-l" data-a="myEdit" data-id="${esc(m.id)}">изменить</button>` : ''}</small></div>`; }).join('');
 }
 let pollT = null;
+// где обновлять сообщения: чат, урок; на экранах до назначения протокола — если есть чат (счётчик новых в карточке)
+// черновики сообщений переживают перерисовку страницы
+document.addEventListener('input', e => { const t = e.target; if (!t || t.id !== 'msgIn' || !U) return; if (V.s === 'item' && V.id) (U.ldraft = U.ldraft || {})[V.id] = t.value; else if (V.s === 'chat') U.cdraft = t.value; });
+const POLL_VIEWS = () => ['chat', 'item'].concat(S.user && chatVisible() ? ['welcome', 'wait', 'closed'] : []);
 function startPoll(){ stopPoll(); if (U.preview || MODE === 'demo') return; pollT = setInterval(async () => {
-  if (!['chat','item'].includes(V.s)) return stopPoll();
-  try { const r = await api('messages', { token:S.token }); if (JSON.stringify(r.messages) !== JSON.stringify(U.msgs)) { U.msgs = r.messages; const ta = $('#msgIn'); const keep = ta ? ta.value : ''; keepY(render); if ($('#msgIn')) $('#msgIn').value = keep; } } catch (e) {}
+  if (!POLL_VIEWS().includes(V.s)) return stopPoll();
+  try { const r = await api('messages', { token:S.token });
+    // перерисовываем, только если изменилось то, что на экране: на уроке — вопросы к этому уроку, иначе — чат (иначе сбивается видео и ввод)
+    const rel = V.s === 'item' ? (m => m.lessonId === V.id) : (m => !m.lessonId), sig = l => JSON.stringify(l.filter(rel));
+    const changed = sig(r.messages || []) !== sig(U.msgs || []); U.msgs = r.messages || [];
+    if (changed) { const ta = $('#msgIn'), ed = $('#myEdIn'); const keep = ta ? ta.value : null, keepEd = ed ? ed.value : null; keepY(render);
+      if (keep !== null && $('#msgIn')) $('#msgIn').value = keep; if (keepEd !== null && $('#myEdIn')) $('#myEdIn').value = keepEd; } } catch (e) {}
 }, 20000); }
 function stopPoll(){ if (pollT) { clearInterval(pollT); pollT = null; } }
 async function sendMsg(lessonId){
@@ -5127,19 +5136,21 @@ async function sendMsg(lessonId){
   try {
     const files = pend.length ? await uploadChatFiles(pend, '', (i, n) => { btn.textContent = 'Загружаем файл ' + i + ' из ' + n + '…'; }) : [];
     const r = await api('sendMessage', { token:S.token, text, files, lessonId: lessonId || '', lessonTitle: lessonId ? byId(lessonId).t : '' });
-    U.msgs = r.messages; U.cf = []; U.cdraft = ''; ta.value = ''; keepY(render); toast('Отправлено'); }
+    U.msgs = r.messages; U.cf = []; U.cdraft = ''; if (lessonId && U.ldraft) delete U.ldraft[lessonId]; ta.value = ''; keepY(render); toast('Отправлено'); }
   catch (e) { btn.disabled = false; btn.textContent = 'Отправить'; toast(e.message); }
 }
 function chatView(){
   const list = chatMsgsU();
   if (!U.preview) { U.st.seenChat = Date.now(); save(); }
+  const ro = accessClosed();   // доступ закрыт: переписку видно, написать нельзя
   return `<h1 style="margin-top:22px">Чат с куратором</h1>${S.user.curName ? `<p style="margin:-4px 0 8px"><b>Ваш куратор — ${esc(S.user.curName)}</b></p>` : ''}
-  <p class="muted">${S.user.tariff === TARIFF_IND ? 'Пишите куратору в любое время: он ответит здесь же, обычно в течение дня.' : 'Куратор написал вам — ответьте здесь.'}</p>
-  <div class="chat">${bubbles(list, 'cl') || '<p class="muted small">Сообщений пока нет. Напишите куратору — он ответит здесь.</p>'}</div>
-  <textarea class="inp" id="msgIn" maxlength="20000" placeholder="Ваше сообщение" style="margin-top:12px;min-height:90px">${esc(U.cdraft || '')}</textarea>
+  ${ro ? `<div class="card" style="margin:8px 0 12px"><p style="margin:0"><b>Доступ к программе закрыт — переписка сохранена и доступна для чтения.</b> Написать куратору можно будет после продления доступа.</p></div>` : ''}
+  <p class="muted"${ro ? ' hidden' : ''}>${S.user.tariff === TARIFF_IND ? 'Пишите куратору в любое время: он ответит здесь же, обычно в течение дня.' : 'Куратор написал вам — ответьте здесь.'}</p>
+  <div class="chat">${bubbles(list, 'cl') || `<p class="muted small">${ro ? 'Сообщений нет.' : 'Сообщений пока нет. Напишите куратору — он ответит здесь.'}</p>`}</div>
+  ${ro ? `<button class="btn ghost full" data-a="home" style="margin-top:12px">Назад</button>` : `<textarea class="inp" id="msgIn" maxlength="20000" placeholder="Ваше сообщение" style="margin-top:12px;min-height:90px">${esc(U.cdraft || '')}</textarea>
   ${chatFilesOn() && !U.preview ? `<div class="cattach"><input type="file" multiple id="chat-file" class="vh" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf,.odt,.heic"><label for="chat-file" class="btn ghost sm">${I.clip.replace('<svg', '<svg width="16" height="16"')} Прикрепить файл</label>
     <span class="small muted">Анализы, фото, документы — до ${CF_MAX} файлов, до ${CF_MB} МБ каждый</span></div>${cfPending(U.cf || [], 'cfDel')}` : ''}
-  <button class="btn full" data-a="send" style="margin-top:10px">Отправить</button>`;
+  <button class="btn full" data-a="send" style="margin-top:10px">Отправить</button>`}`;
 }
 // ═══ Чаты протоколов: общий чат участниц одного типа пищеварения прямо в платформе ═══
 // Сообщения подтягиваются раз в 15 секунд, пока чат открыт. Фото, ответы, реакции, закреп и модерация куратора.
@@ -5221,7 +5232,7 @@ function gcMsg(m, d, staff){
 }
 function gcBody(t, staff){
   const d = GC.data[t];
-  if (!d) return `<p class="muted">${GC.err ? esc(GC.err) : 'Загружаем сообщения…'}</p>`;
+  if (!d) { if (GC.err) GC.errT = 1; return GC.err ? `<p class="muted">${esc(GC.err)}</p><button type="button" class="btn ghost sm" data-a="gcRetry">Повторить</button>` : `<p class="muted">Загружаем сообщения…</p>`; }
   const list = d.list.map(m => gcMsg(m, d, staff)).join('') || `<p class="muted small gc-empty">Сообщений пока нет. Начните разговор — поздоровайтесь и расскажите, с чего начинаете программу.</p>`;
   const pin = d.pin ? `<button type="button" class="gc-pin" data-a="gcJump" data-id="${esc(d.pin.id)}"><span class="gc-pin-i" aria-hidden="true">📌</span><span><small>Закреплено · ${esc(d.pin.name)}</small><b>${esc(plainMd(d.pin.text) || 'Фото')}</b></span></button>` : '';
   const rp = GC.reply && GC.reply.t === t ? `<div class="gc-rp"><span><small>Ответ ${esc(GC.reply.name)}</small><b>${esc(GC.reply.text || 'Фото')}</b></span><button type="button" class="fx" data-a="gcReplyX" aria-label="Отменить ответ">✕</button></div>` : '';
@@ -5237,7 +5248,7 @@ function gchatView(){
   const ts = gcTypes(), t = ts.includes(V.t) ? V.t : ts[0];
   if (!t) return `<h1 style="margin-top:22px">Чат протокола</h1><p class="muted">Чат откроется, когда куратор назначит протокол.</p>`;
   V.t = t;
-  if (!GC.data[t] && !GC.loading) { GC.loading = 1; gcLoad(t, true).then(() => { GC.loading = 0; if (V.s === 'gchat') { gcKeep(); keepY(render); } }); }
+  if (!GC.data[t] && !GC.loading && !GC.errT) { GC.loading = 1; gcLoad(t, true).then(() => { GC.loading = 0; if (V.s === 'gchat') { gcKeep(); keepY(render); } }); }
   if (GC.data[t] && !U.preview) LS.set(gcSeenKey(t), Date.now());
   gcAfter();
   return `<h1 style="margin-top:22px">Чат протокола «${esc(PNAME[t])}»</h1>
@@ -5262,6 +5273,7 @@ function gcClick(a, b, t, staff, rerender){
   const run = async (action, params, msg) => { gcKeep(); try { const r = await api(action, Object.assign({ token:S.token, type:t }, params)); if (r && r.list) { GC.data[t] = r; GC.v[t] = r.v; } else await gcLoad(t, true); if (msg) toast(msg); } catch (e) { toast(e.message); } rerender(); };
   const find = id => d && (d.list.find(m => m.id === id) || (d.pin && d.pin.id === id ? d.pin : null));
   if (a === 'gcSend') { gcSend(t, staff, rerender); return true; }
+  if (a === 'gcRetry') { GC.err = ''; GC.errT = 0; rerender(); return true; }
   if (a === 'gcReply') { const m = find(b.dataset.id); if (!m) return true; gcKeep(); GC.reply = { t, id:m.id, name:m.name, text:(m.text || '').slice(0, 120) }; rerender(); setTimeout(() => { const ta = document.getElementById('gcIn'); if (ta) ta.focus(); }, 0); return true; }
   if (a === 'gcEdit') { gcKeep(); GC.edit = b.dataset.id; rerender(); setTimeout(() => { const ta = document.getElementById('gcEdIn'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 0); return true; }
   if (a === 'gcEdX') { gcKeep(); GC.edit = null; rerender(); return true; }
@@ -5386,7 +5398,7 @@ function calEvents(){
   calEvents.c = { n: RENDER_N, e: ev };
   return ev;
 }
-function calOpen(e){ return U.preview || CFG.OPEN_ALL_WEEKS || Date.now() >= e.at; }
+function calOpen(e){ if ((e.kind === 'lesson' || e.kind === 'menu') && e.id && byId(e.id)) return lessonOpen(byId(e.id)); return U.preview || CFG.OPEN_ALL_WEEKS || Date.now() >= e.at; }
 function calRow(e){
   const op = calOpen(e), done = e.id && U.st.done[e.id], tm = e.kind === 'lesson' ? '' : hmOf(e.at);
   const ic = done ? I.check : op ? '' : I.lock;
@@ -5473,6 +5485,7 @@ function closedView(){
   <div class="card"><p><b>Продление — ещё ${extTxt()}.</b> После оплаты кабинет откроется сам, как только оплата появится в системе. Если в течение суток он всё ещё закрыт, напишите в службу заботы.</p></div>
   <div class="opts">${url ? `<a class="btn full" href="${esc(url)}" target="_blank" rel="noopener">Продлить доступ на ${extTxt()}</a>` : ''}${supportLink()}</div>
   <button class="btn ghost full" data-a="reload" style="margin-top:10px">Я оплатила — проверить доступ</button>
+  ${chatVisible() ? `<div style="margin-top:16px">${curCard()}</div>` : ''}
   ${foot()}`;
 }
 const dayStat = day => dayStatT(TRK(), TYPE(), day);
@@ -5767,12 +5780,13 @@ function welcome(){
     <p>Ответьте на вопросы о самочувствии и питании. По ответам куратор подберёт ваш протокол, а в кабинете откроются уроки, практики, меню, специи и фитосоставы.</p>
     <p style="margin:0">Займёт около 15 минут. Ответы сохраняются по ходу — можно сделать перерыв и вернуться.</p>
   </div>
-  <div class="card"><p><b>Важно.</b> Анкета заполняется один раз. Если позже захотите пройти её заново, напишите куратору.</p></div>
+  <div class="card"><p><b>Важно.</b> Анкета заполняется один раз. Если позже захотите пройти её заново, напишите ${isInd() ? 'куратору в чат' : 'в службу заботы'}.</p></div>
   <button class="btn mag full" data-a="startQuiz">${LS.get(draftKey(), null) ? 'Продолжить анкету' : 'Заполнить анкету'}</button>
   <div style="margin-top:16px">${curCard()}</div>
   <div style="margin-top:16px">${webinarCard()}</div>
   ${preBlock()}
   ${a2hsCard()}
+  <div style="margin-top:12px">${supportBtn()}</div>
   ${foot()}`;
 }
 function wait(){
@@ -5788,6 +5802,7 @@ function wait(){
   ${webinarCard()}
   <div class="card"><p>Спасибо, что ответили открыто и внимательно — именно это помогает подобрать программу точно под вас.</p></div>
   <button class="btn ghost full" data-a="reload">Проверить, назначен ли протокол</button>
+  <div style="margin-top:10px">${supportBtn()}</div>
   ${preBlock()}
   ${a2hsCard()}
   ${foot()}`;
@@ -5896,7 +5911,7 @@ function catList(){
   let html;
   if (k === 'lessons') {
     const weeks = [...new Set(items.map(l => l.w))].sort((a,b) => a - b);
-    html = weeks.map(w => `<div class="wk">${WEEKNAME[w]}${weekOpen(w) ? '' : ` · откроется ${whenTxt(openAt(w))}`}</div><div class="list">${items.filter(l => l.w === w).map(l => lessonOpen(l) ? li(l) : liLock(l)).join('')}</div>`).join('');
+    html = weeks.map(w => `<div class="wk">${WEEKNAME[w]}${weekOpen(w) || items.filter(l => l.w === w).some(lessonOpen) ? '' : ` · откроется ${whenTxt(openAt(w))}`}</div><div class="list">${items.filter(l => l.w === w).map(l => lessonOpen(l) ? li(l) : liLock(l)).join('')}</div>`).join('');
   } else html = `<div class="list">${items.map(li).join('')}</div>`;
   const p = progress(k);
   const intro = {
@@ -5939,6 +5954,7 @@ function lessonNav(x){
 }
 const vpTxt = id => { const v = (U.st.vp || {})[id]; return v && !v[3] && v[0] > 15 ? 'Продолжить с ' + mmss(v[0]) : 'Смотреть урок'; };
 function item(){
+  if (!byId(V.id)) return `<h1 style="margin-top:22px">Материал не найден</h1><div class="card"><p style="margin:0">Похоже, урок переименовали или убрали из программы. Вернитесь на главную — все актуальные уроки там.</p></div><button class="btn full" data-a="home" style="margin-top:12px">На главную</button>`;
   const x = byId(V.id), k = catOf(x.id), d = U.st.done[x.id];
   if (!catOpen(k)) return catLockHtml(CATS.find(c => c.k === k));
   const doneLbl = { lessons:['Отметить как просмотренный','Урок просмотрен'], practices:['Делаю эту практику','Практика в работе'],
@@ -5972,7 +5988,7 @@ function item(){
     ${lessonNav(x)}
     <h2><span>Вопрос куратору</span></h2>
     ${lessonMsgs(x.id).length ? `<div class="chat">${bubbles(lessonMsgs(x.id), 'cl')}</div>` : `<p class="muted small">Если по уроку возник вопрос — напишите. Куратор ответит здесь, под уроком.</p>`}
-    <textarea class="inp" id="msgIn" maxlength="20000" placeholder="Ваш вопрос по уроку" style="margin-top:10px;min-height:80px"></textarea>
+    <textarea class="inp" id="msgIn" maxlength="20000" placeholder="Ваш вопрос по уроку" style="margin-top:10px;min-height:80px">${esc((U.ldraft || {})[x.id] || '')}</textarea>
     <button class="btn ghost full" data-a="send" data-id="${x.id}" style="margin-top:10px">Отправить вопрос</button>`;
   }
   if (k === 'practices') return `<div class="meta" style="margin-top:22px"><span class="chip">${esc(x.d)}</span></div><h1>${esc(x.t)}</h1>
@@ -6272,8 +6288,8 @@ function curCard(){
   if (U.preview || !chatVisible()) return '';
   const n = chatUnread();
   return `<div class="card cucard"><span class="ic">${I.chat}</span><div><b>${S.user.curName ? 'Ваш куратор — ' + esc(S.user.curName) : 'Чат с куратором'}</b>
-    <p class="small" style="margin:2px 0 10px">${isInd() ? 'Можно написать уже сейчас, не дожидаясь протокола: задать вопрос, прислать фото или анализы.' : 'Куратор написал вам сообщение — откройте чат, чтобы прочитать и ответить.'}</p>
-    <button class="btn mag" data-a="chat">Открыть чат${n ? ' · ' + n + ' нов.' : ''}</button></div></div>`;
+    <p class="small" style="margin:2px 0 10px">${accessClosed() ? 'Вся переписка сохранена — её можно перечитать. Написать куратору можно после продления доступа.' : isInd() ? 'Можно написать уже сейчас, не дожидаясь протокола: задать вопрос, прислать фото или анализы.' : 'Куратор написал вам сообщение — откройте чат, чтобы прочитать и ответить.'}</p>
+    <button class="btn mag" data-a="chat">${accessClosed() ? 'Открыть переписку' : 'Открыть чат'}${n ? ' · ' + n + ' нов.' : ''}</button></div></div>`;
 }
 function formBlock(ctx){
   const err = V.ferr ? `<div class="errt" role="alert">${esc(V.ferr)}</div>` : '';
@@ -6442,7 +6458,7 @@ function navHtml(){
   const r = RES(), sv = savedList(), c = lastLesson();
   const ls = r.lessons.map(byId), weeks = [...new Set(ls.map(l => l.w))].sort((a, b) => a - b);
   const wk = weeks.map(w => { const key = 'w' + w, on = NAV.sec[key] != null ? NAV.sec[key] : (w === curWeek() || (w === 0 && preStart())), items = ls.filter(l => l.w === w), dn = items.filter(l => U.st.done[l.id]).length;
-    return `<div class="sn-wk${on ? ' on' : ''}"><button class="sn-wh" data-a="navSec" data-k="${key}" data-def="${on ? 1 : 0}" aria-expanded="${on}"><span>${esc(WEEKNAME[w])}</span>${weekOpen(w) ? `<span class="sn-c">${dn}/${items.length}</span>` : `<span class="sn-lk" title="Откроется ${whenTxt(openAt(w))}">${I.lock}</span>`}<span class="sn-ch">${I.chev}</span></button>
+    return `<div class="sn-wk${on ? ' on' : ''}"><button class="sn-wh" data-a="navSec" data-k="${key}" data-def="${on ? 1 : 0}" aria-expanded="${on}"><span>${esc(WEEKNAME[w])}</span>${weekOpen(w) || items.some(lessonOpen) ? `<span class="sn-c">${dn}/${items.length}</span>` : `<span class="sn-lk" title="Откроется ${whenTxt(openAt(w))}">${I.lock}</span>`}<span class="sn-ch">${I.chev}</span></button>
       ${on ? `<div class="sn-wb">${weekOpen(w) || items.some(lessonOpen) ? '' : `<div class="sn-note">Откроется ${whenTxt(openAt(w))}</div>`}${items.map(l => navItem(l, 'lessons')).join('')}</div>` : ''}</div>`; }).join('');
   const menuLock = !U.preview && !CFG.OPEN_ALL_WEEKS && Date.now() < (new Date(menuSched()[3]).getTime() || 0) ? 'Откроется ' + whenTxt(new Date(SCHED().menu[3]).getTime()) : '';
   const gts = gcTypes();
@@ -6515,7 +6531,7 @@ function unmountVideo(){ if (!KP) return; const p = KP; KP = null; KPid = ''; tr
 function mountVideo(){
   const el = $('#kp');
   if (!el) { unmountVideo(); return; }
-  if (KP && KPid === el.dataset.id) return;
+  if (KP && KPid === el.dataset.id && el.querySelector('iframe')) return;   // после перерисовки страницы плеер создаём заново (позиция сохраняется)
   unmountVideo();
   const id = el.dataset.id, url = el.dataset.url, emb = el.dataset.emb;
   const fallback = () => { if (el.isConnected && !el.querySelector('iframe')) el.innerHTML = `<iframe src="${esc(emb)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen title="Видео урока"></iframe>`; };
@@ -6908,10 +6924,10 @@ function mdlClick(b, a){
 document.addEventListener('keydown', e => { if (MDL.k && e.key === 'Escape') mdlClick(document.body, MDL.k === 'trk' ? 'mdlSkip' : 'mdlX'); });
 function render(){
   const titles = { a2hs:'Значок на экране', profile:'Профиль', fb:'Оценка обучения', fbok:'Спасибо', chat:'Чат', gchat:'Чат протокола', quiz:'Анкета', progress:'Прогресс', check:'Замер', tracker:'Трекер', login:'Вход', menu:'Меню', redflag:'Анкета' };
-  if (accessClosed() && !['login','calc','fail'].includes(V.s)) V = { s:'closed' };
+  if (accessClosed() && !['login','calc','fail'].includes(V.s) && !(V.s === 'chat' && chatVisible())) V = { s:'closed' };
   const map = { a2hs:a2hsView, profile:profView, closed:closedView, login:vLogin, welcome, quiz:quizStep, redflag, calc, wait, result, dash, cat:catList, item, progress:prog, check, tracker, menu:menuView, fail, chat:chatView, gchat:gchatView, fb:fbView, fbok:fbOkView };
   if (V.s === 'item' && !U.preview && lessonMsgs(V.id).some(m => m.from === 'cu')) { U.st.seenL = U.st.seenL || {}; const last = Math.max(...lessonMsgs(V.id).map(tsOf)); if (last > (U.st.seenL[V.id] || 0)) { U.st.seenL[V.id] = last; save(); } }
-  if (['chat','item'].includes(V.s)) { if (!pollT) startPoll(); } else stopPoll();
+  if (POLL_VIEWS().includes(V.s)) { if (!pollT) startPoll(); } else stopPoll();
   if (S.user && S.user.status === STS.ok && !isStaff(S.user)) gcBg();
   if (V.s === 'gchat' && !U.preview) { if (!gcPollT) gcPoll(true, () => V.t, () => keepY(render)); } else if (gcPollT && !($('#A') && !$('#A').hidden)) gcPoll(false);
   RENDER_N++;
@@ -7035,7 +7051,7 @@ function studentClick(e, b, a){
     if (!text && !(m && (m.files || []).length)) return toast('Сообщение не может быть пустым');
     if (m) { m.text = text; m.edited = new Date().toISOString(); } U.edit = null; keepY(render);
     api('editMyMessage', { token:S.token, id, text }).then(r => { if (r && r.messages) { U.msgs = r.messages; keepY(render); } toast('Сообщение изменено'); }).catch(e => { toast(e.message); }); return; }
-  if (a === 'gchat') { e.preventDefault(); const t = b.dataset.t || V.t; if (V.s === 'gchat') { gcKeep(); GC.reply = null; V.t = t; GC.stick = true; GC.enter = true; return render(); } GC.stick = true; GC.enter = true; return go('gchat', { t }); }
+  if (a === 'gchat') { e.preventDefault(); GC.errT = 0; GC.err = ''; const t = b.dataset.t || V.t; if (V.s === 'gchat') { gcKeep(); GC.reply = null; V.t = t; GC.stick = true; GC.enter = true; return render(); } GC.stick = true; GC.enter = true; return go('gchat', { t }); }
   if (/^gc[A-Z]/.test(a)) return gcClick(a, b, V.t, false, () => keepY(render));
   if (a === 'cfOpen') return openChatFile(b);
   if (a === 'cfDel') { const ta = $('#msgIn'); U.cdraft = ta ? ta.value : ''; (U.cf || []).splice(+b.dataset.i, 1); return keepY(render); }
@@ -7083,8 +7099,8 @@ const Adm = (() => {
   async function act(fn, msg, patch){
     actGen++; actPend++;
     if (patch) { try { patch(); C = build(D); render(true); } catch (e) {} if (msg) toast(msg); }
-    try { await fn(); actPend--; if (!patch) { if (msg) toast(msg); } bgLoad(); }
-    catch (e) { actPend--; if (e.message === 'AUTH') return logout(); toast(e.message); try { await load(); render(true); } catch (x) {} }
+    try { await fn(); actPend--; if (!patch) { if (msg) toast(msg); } bgLoad(); return true; }
+    catch (e) { actPend--; if (e.message === 'AUTH') { logout(); return false; } toast(e.message); try { await load(); render(true); } catch (x) {} return false; }
   }
   const nowISO = () => new Date().toISOString();
   const addMsg = (email, lessonId, text, files) => { D.messages = D.messages || []; D.messages.push({ at:nowISO(), email, lessonId:lessonId || '', lesson: lessonId ? (byId(lessonId) || { t:'' }).t : '', from:'cu', who:S.user.name || S.user.email, text, files:files || [] }); };
@@ -7092,7 +7108,7 @@ const Adm = (() => {
   function build(d){
     const map = {}, evs = {};
     (d.students || []).forEach(s => { map[String(s['Email']).trim().toLowerCase()] = { row:s }; });
-    (d.paid || []).forEach(p => { const e = String(p.email || '').trim().toLowerCase(); if (e && !map[e]) map[e] = { paidOnly:true, name:p.name, tariff:p.tariff }; });
+    (d.paid || []).forEach(p => { const e = String(p.email || '').trim().toLowerCase(); if (e && !map[e]) map[e] = { paidOnly:true, name:p.name, tariff:p.tariff, rec:!!p.rec }; });
     (d.events || []).forEach(x => { const e = String(x['Email']).toLowerCase(); (evs[e] = evs[e] || []).push(x); });
     const msgs = {}; (d.messages || []).forEach(m => { (msgs[m.email] = msgs[m.email] || []).push(m); });
     const fbs = {}; (d.feedback || []).forEach(f => { const e = String(f.email || '').toLowerCase(); (fbs[e] = fbs[e] || []).push(f); });
@@ -7145,6 +7161,7 @@ const Adm = (() => {
   const chatClients = () => C.filter(c => !c.paidOnly && (c.tariff === TARIFF_IND || chatOf(c).length));
   function lessonPct(c){ const ls = eff(c, 'lessons'); return ls.length ? Math.round(ls.filter(id => c.state.done[id]).length/ls.length*100) : 0; }
   const wkOpenC = (c, w) => CFG.OPEN_ALL_WEEKS || Date.now() >= openAt(w, D && D.settings);
+  const lsOpenC = (c, l) => CFG.OPEN_ALL_WEEKS || earlyLesson(l, c.early || {}) || Date.now() >= lessonOpenAt(l, D && D.settings);
   const curWeekC = c => trkWeekOf(Math.min(c.day, CAL.programDays)) || (c.day < trkSpan(2).a ? 2 : 5);
   const weekTrack = (c, w) => c.assigned && c.day ? weekStatT(c.state.track, c.type, c.day, w) : null;
   const lastTxt = n => n === null ? 'не заходил(а)' : n === 0 ? 'сегодня' : n === 1 ? 'вчера' : `${n} ${plural(n, ['день','дня','дней'])} назад`;
@@ -7224,7 +7241,11 @@ const Adm = (() => {
     if (ch0 && chatPos.id === AV.id) { chatPos.top = ch0.scrollTop; chatPos.stick = ch0.scrollHeight - ch0.scrollTop - ch0.clientHeight < 60; }
     if (chatPos.id !== AV.id) chatPos = { id: AV.id || '', top:0, stick:true };
     side();
+    // недописанный текст в полях переживает перерисовку (фоновая загрузка, действия в соседних блоках)
+    const kept = {}; document.querySelectorAll('#adm textarea[data-keep]').forEach(t => { kept[t.dataset.keep] = t.value; });
+    Object.assign(kept, AV.restore || {}); AV.restore = null;
     $('#adm').innerHTML = ({ over, clients, client, catalog, comments, chats, gchats, rtime, ratings, raffle, reviews })[AV.s]();
+    document.querySelectorAll('#adm textarea[data-keep]').forEach(t => { const v = kept[t.dataset.keep]; if (v != null && v !== t.value) t.value = v; });
     const ch1 = document.querySelector('#chat .chat');
     if (ch1) ch1.scrollTop = chatPos.stick ? ch1.scrollHeight : chatPos.top;
     if (AV.s === 'gchats') { if (!gcPollT) gcPoll(true, () => AV.t || 'slow', () => { schKeep(); render(true); }); } else if (gcPollT) gcPoll(false);
@@ -7265,7 +7286,7 @@ const Adm = (() => {
     const symStat = SYM.map(s => ({ t:s.t, p:pctOf(withSc.filter(c => c.quiz.scores[s.k] >= 4).length, withSc.length), avg:withSc.length ? (withSc.reduce((a, c) => a + (c.quiz.scores[s.k] || 0), 0)/withSc.length).toFixed(1) : '0' })).sort((a, b) => b.p - a.p);
     const red = filled.filter(needDoc), idle = asg.filter(c => c.last !== null && c.last >= 5).sort((a, b) => b.last - a.last);
     const trk = TRK_WEEKS.map(w => { const v = asg.map(c => weekTrack(c, w)).filter(Boolean); return v.length ? Math.round(v.reduce((a, s) => a + s.p, 0)/v.length) : null; });
-    const withCheck = asg.filter(c => c.state.checks.length && c.quiz.scores);
+    const withCheck = asg.filter(c => c.state.checks.length && c.quiz && c.quiz.scores);
     const impr = pctOf(withCheck.filter(c => { const sum = o => Object.values(o).reduce((x, y) => x + y, 0); return sum(c.state.checks[c.state.checks.length-1].scores) < sum(c.quiz.scores); }).length, withCheck.length);
     const withAuto = asg.filter(c => c.autoKey), match = withAuto.filter(c => c.autoKey === c.type).length;
     const lp = AV.lp || 'slow';
@@ -7359,7 +7380,7 @@ const Adm = (() => {
     return `<div class="panel mkp"><h2><span>Отметки куратора</span><span class="small muted">видно только сотрудникам · можно выбрать несколько</span></h2>
       <div class="mkb">${marksFor(c).map(m => `<button class="mkt ${c.marks.includes(m.t) ? 'on' : ''}" data-a="mark" data-v="${esc(m.t)}">${c.marks.includes(m.t) ? '✓ ' : ''}${esc(m.t)}</button>`).join('')}</div>
       ${noFormInd(c) ? `<p class="small" style="margin:10px 0 0"><span class="mark">Нет опросника:</span> ${W(c).N} на индивидуальном тарифе ещё не прикрепил${W(c).l === 'ла' ? 'а' : ''} опросник.</p>` : ''}
-      <textarea id="note" placeholder="Примечание для себя и коллег: что ждём, о чём договорились" style="margin-top:12px">${esc(AV.ndraft != null ? AV.ndraft : c.note)}</textarea>
+      <textarea id="note" data-keep="note:${esc(c.email)}" placeholder="Примечание для себя и коллег: что ждём, о чём договорились" style="margin-top:12px">${esc(AV.ndraft != null ? AV.ndraft : c.note)}</textarea>
       <div style="margin-top:8px"><button class="btn sm" data-a="saveNote">Сохранить примечание</button></div></div>`;
   }
 
@@ -7572,7 +7593,7 @@ const Adm = (() => {
   }
   function gchats(){
     const t = AV.t || 'slow'; AV.t = t;
-    if (!GC.data[t] && !GC.loading) { GC.loading = 1; gcLoad(t, true).then(() => { GC.loading = 0; if (AV.s === 'gchats') { gcKeep(); render(true); } }); }
+    if (!GC.data[t] && !GC.loading && !GC.errT) { GC.loading = 1; gcLoad(t, true).then(() => { GC.loading = 0; if (AV.s === 'gchats') { gcKeep(); render(true); } }); }
     const d = GC.data[t]; gcAfter();
     const bans = d && d.bans && d.bans.length ? `<details class="fold" style="margin-top:16px"><summary><b>Запрещено писать: ${d.bans.length}</b></summary>
       <div class="xr-l">${d.bans.map(x => `<div class="xr"><span><b>${esc(x.name || x.email)}</b> <span class="small muted">${esc(x.email)}</span></span><button class="btn sm ghost" data-a="gcBan" data-email="${esc(x.email)}" data-on="0">Снять запрет</button></div>`).join('')}</div></details>` : '';
@@ -7755,7 +7776,7 @@ const Adm = (() => {
       <select id="proto" class="sel">${Object.keys(TYPES).map(k => `<option value="${k}" ${k === selType(c) ? 'selected' : ''}>${PNAME[k]}</option>`).join('')}</select>
       <p class="small muted" style="margin:6px 0 0">${assigned ? 'При смене протокола уроки, специи и фитосоставы сменятся на материалы нового протокола. Отметки о пройденном сохранятся.' : 'Автоподбор подсказывает протокол по анкете. Итоговое решение — за куратором.'}</p>`;
     const recs = `<label class="small muted" for="recs" style="display:block;margin:0 0 6px">Индивидуальные рекомендации — ${W(c).n} видит их на главной странице программы</label>
-      <textarea id="recs" placeholder="Например: первую неделю уменьшите количество специй вдвое; начните с практики дыхания">${esc(c.recs)}</textarea>`;
+      <textarea id="recs" data-keep="recs:${esc(c.email)}" placeholder="Например: первую неделю уменьшите количество специй вдвое; начните с практики дыхания">${esc(c.recs)}</textarea>`;
     if (assigned) return `<div class="panel" style="margin-bottom:16px"><h2><span>Протокол и рекомендации</span></h2>
       <div class="grid g2"><div>${sel}<p class="small" style="margin:12px 0 0">Назначено ${c.confirmedAt ? fmt(c.confirmedAt) : '—'}${c.curator ? ' · ' + esc(c.curator) : ''}.</p>${c.gcGroup ? `<p class="small ${/^ошибка/.test(c.gcGroup) ? '' : 'muted'}" style="margin:4px 0 0${/^ошибка/.test(c.gcGroup) ? ';color:var(--mag)' : ''}">GetCourse: ${/^ошибка/.test(c.gcGroup) ? 'не удалось добавить в группу — ' + esc(c.gcGroup.replace(/^ошибка · /, '')) + '. Повторим автоматически.' : 'в группе «' + esc(c.gcGroup) + '»'}</p>` : ''}</div>
       <div>${recs}<div style="margin-top:8px"><button class="btn sm" data-a="saveRecs">Сохранить рекомендации</button></div></div></div>
@@ -7808,7 +7829,7 @@ const Adm = (() => {
     const l = byId(t.lessonId), last = t.list[t.list.length-1];
     return `<div class="cmt"><div class="cmt-h"><b>${esc(l ? l.t : t.list[0].lesson)}</b><span class="small muted">${showClient ? `<button class="btn lnk" data-a="open" data-id="${esc(t.c.email)}" style="padding:0">${esc(t.c.name)}</button> · ` : ''}${fmtDT(last.at)}</span></div>
     ${t.list.map(x => x.from === 'cu' ? `<div class="cmt-r"><b>${esc(x.who || 'Куратор')}:</b> ${AV.edit === x.id ? msgEditor(x, t.c) : linkify(x.text)}${x.edited ? ' <span class="small muted">· изменено</span>' : ''}${canEdit(x) && AV.edit !== x.id ? ` <button type="button" class="ed-l" data-a="msgEdit" data-id="${esc(x.id)}">изменить</button>` : ''}${canDel(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(t.c.email)}">удалить</button>` : ''}</div>` : `<p style="margin:6px 0 0;white-space:pre-wrap">${linkify(x.text)}${canDel(x) ? ` <button type="button" class="ed-l small muted" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(t.c.email)}">удалить</button>` : ''}</p>`).join('')}
-    <textarea class="cmIn" placeholder="Ответ появится под уроком у ученицы" style="margin-top:8px;min-height:60px"></textarea>
+    <textarea class="cmIn" data-keep="cm:${esc(t.c.email)}|${esc(t.lessonId)}" placeholder="Ответ появится под уроком у ученицы" style="margin-top:8px;min-height:60px"></textarea>
     <div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap"><button class="btn sm" data-a="cmReply" data-email="${esc(t.c.email)}" data-lid="${t.lessonId}">${last.from === 'cl' && !last.read ? 'Ответить' : 'Дописать'}</button>
     ${last.from === 'cl' && !last.read ? `<button class="btn sm ghost" data-a="msgRead" data-email="${esc(t.c.email)}" data-lid="${t.lessonId}" title="Ответ не нужен — убрать из «Без ответа»">✓ Прочитано</button>` : last.from === 'cl' ? '<span class="small muted" style="align-self:center">✓ прочитано, ответ не нужен</span>' : ''}</div></div>`;
   }
@@ -7843,7 +7864,7 @@ const Adm = (() => {
       <div class="row" style="flex-wrap:wrap;gap:8px;margin:10px 0">${r.folder ? `<a class="btn sm" href="${esc(r.folder)}" target="_blank" rel="noopener">Папка с файлами</a>` : '<span class="small muted">В демо файлы не сохраняются</span>'}${r.video ? `<a class="btn sm" href="${esc(r.video)}" target="_blank" rel="noopener">Видеоотзыв</a>` : '<span class="chip m">нет видео</span>'}</div>
       ${r.review ? `<p class="small" style="white-space:pre-wrap;margin:0 0 10px">${esc(r.review)}</p>` : ''}
       ${r.by ? `<p class="small muted" style="margin:0 0 8px">Проверил(а): ${esc(r.by)}${r.rat ? ' · ' + dt(r.rat) : ''}</p>` : ''}
-      <textarea class="inp" id="rzc-${i}" data-em="${esc(r.email)}" placeholder="Комментарий для ученицы — обязателен, если возвращаете на доработку" style="min-height:60px;width:100%">${esc(r.comment)}</textarea>
+      <textarea class="inp" id="rzc-${i}" data-em="${esc(r.email)}" data-keep="rz:${esc(r.email)}" maxlength="1000" placeholder="Комментарий для ученицы — обязателен, если возвращаете на доработку" style="min-height:60px;width:100%">${esc(r.comment)}</textarea>
       <div class="row" style="gap:8px;margin-top:8px">${r.status !== RZ_ST.ok ? `<button class="btn sm" data-a="rzOk" data-i="${i}">Принять</button>` : ''}${r.status !== RZ_ST.fix ? `<button class="btn sm ghost" data-a="rzFix" data-i="${i}">Вернуть на доработку</button>` : ''}${r.status !== RZ_ST.wait ? `<button class="btn sm ghost" data-a="rzWait" data-i="${i}">Снова на проверку</button>` : ''}</div>
     </div>`).join('') : `<div class="panel"><p style="margin:0">${f === 'wait' ? 'Новых работ на проверке нет.' : 'Здесь пока пусто.'}</p></div>`}`;
   }
@@ -7899,7 +7920,7 @@ const Adm = (() => {
     const opened = ls.filter(l => c.state.lx[l.id]).length, done = ls.filter(l => c.state.done[l.id]).length;
     return fold('act', 'Уроки: заходы и отметки', `открыто ${opened} из ${ls.length} · отмечено ${done}`, `
     <div class="tw" style="border:none"><table class="t la"><thead><tr><th>Урок</th><th>Заходов</th><th>Последний заход</th><th>Отмечен просмотренным</th></tr></thead><tbody>
-    ${ls.map(l => { const x = c.state.lx[l.id], lock = !wkOpenC(c, l.w);
+    ${ls.map(l => { const x = c.state.lx[l.id], lock = !lsOpenC(c, l);
       return `<tr><td><b>${esc(l.t)}</b><span class="sub">${WEEKSHORT[l.w]} · ${esc(l.d)}</span></td>
       <td>${lock ? `<span class="muted">откроется</span>` : x ? x.open : `<span class="muted">не открывал(а)</span>`}</td>
       <td>${x && x.last ? fmtDT(x.last) : '—'}</td><td>${c.state.done[l.id] ? '✓' : '—'}</td></tr>`; }).join('')}
@@ -8011,7 +8032,7 @@ const Adm = (() => {
     if (a === 'rvOk' || a === 'rvNo') return act(() => api('reviewAccept', { token:S.token, email:b.dataset.em, ok: a === 'rvOk' }), a === 'rvOk' ? `Отзыв принят — гайд открыт ${Wem(b.dataset.em).d}` : 'Принятие отменено');
     if (a === 'rzOk' || a === 'rzFix' || a === 'rzWait') { const t = document.getElementById('rzc-' + b.dataset.i);
       return act(() => api('raffleReview', { token:S.token, email:t.dataset.em, status: a === 'rzOk' ? 'ok' : a === 'rzFix' ? 'fix' : 'wait', comment:t.value }), a === 'rzOk' ? 'Работа принята' : a === 'rzFix' ? 'Работа возвращена на доработку' : 'Статус сброшен'); }
-    if (a === 'navq') { CF.st = b.dataset.st; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
+    if (a === 'navq') { CF.st = b.dataset.st; CF.type = 'all'; CF.mk = 'all'; CF.q = ''; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
     if (a === 'lp') { AV.lp = b.dataset.v; return render(true); }
     if (a === 'open') { closeDr(); AV = { s:'client', id:b.dataset.id, tab:'lessons' }; render(); return window.scrollTo(0,0); }
     if (a === 'cf') { CF[b.dataset.k] = b.dataset.v; return render(true); }
@@ -8034,7 +8055,8 @@ const Adm = (() => {
     if (a === 'msgEdSave') { const text = ($('#msgEdIn').value || '').trim(), id = b.dataset.id, em = b.dataset.email; AV.edit = null;
       return act(() => api('editMessage', { token:S.token, email:em, id, text }), `Сообщение изменено — ${Wem(em).n} увидит исправленный текст`, () => { const m = (D.messages || []).find(x => x.id === id && x.email === em); if (m) { m.text = text; m.edited = new Date().toISOString(); } }); }
     if (a === 'cmReply') { const box = b.closest('.cmt'), inp = box && box.querySelector('.cmIn'), text = ((inp && inp.value) || '').trim(); if (!text) return toast('Напишите ответ'); if (text.length > 20000) return toast('Ответ слишком длинный: ' + text.length + ' символов, можно до 20 000.');
-      const lid = b.dataset.lid, em = b.dataset.email; return act(() => api('reply', { token:S.token, email:em, lessonId:lid, lessonTitle:(byId(lid) || {t:''}).t, text }), `Ответ отправлен — ${Wem(em).n} увидит его под уроком`, () => addMsg(em, lid, text)); }
+      const lid = b.dataset.lid, em = b.dataset.email, key = 'cm:' + em + '|' + lid; if (inp) inp.value = '';
+      return act(() => api('reply', { token:S.token, email:em, lessonId:lid, lessonTitle:(byId(lid) || {t:''}).t, text }).catch(e => { AV.restore = { [key]: text }; throw e; }), `Ответ отправлен — ${Wem(em).n} увидит его под уроком`, () => addMsg(em, lid, text)); }
     if (a === 'pk') { AV.pk = b.dataset.k; return openDr(picker()); }
     if (a === 'pp') { AV.pp = b.dataset.v; const sc = $('#drp').scrollTop; openDr(picker()); return; }
     if (a === 'assign') { const cc = C.find(x => x.email === b.dataset.cid), id = b.dataset.id; if (!cc) return;
@@ -8044,7 +8066,7 @@ const Adm = (() => {
     if (a === 'trkw') { AV.tw = +b.dataset.w; return openDr(trackerView(b.dataset.t)); }
     if (a === 'close') return closeDr();
     if (a === 'syncPaid') { b.disabled = true; b.textContent = 'Подтягиваем…'; let r = {};
-      return act(async () => { r = await api('syncPaid', { token:S.token }); }).then(() => { const n = (r.assigned || []).length;
+      return act(async () => { r = await api('syncPaid', { token:S.token }); }).then(ok => { b.disabled = false; b.textContent = 'Подтянуть оплаты'; if (!ok) return; const n = (r.assigned || []).length;
         toast((r.miss && r.miss.length ? `Не нашла в листе «Ученики»: ${r.miss.join(', ')}. ` : '') + (r.added || r.upgraded || n ? `Новых: ${r.added || 0} · стали индивидуальными: ${r.upgraded || 0} · закреплено за кураторами: ${n}` : 'Всё уже актуально')); }); }
     if (a === 'addOpen') return openDr(addForm());
     if (a === 'addSave') {
@@ -8056,7 +8078,7 @@ const Adm = (() => {
     if (a === 'refresh') return open();
     if (a === 'logout') return logout();
     if (a === 'demoResetA') { Demo.reset(); toast('Демо-данные сброшены'); return logout(); }
-    if (a === 'preview') { U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
+    if (a === 'preview') { U.prec = false; U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (a === 'asStudent' && c) { U.prec = !!c.rec; U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (!c) return;
     if (a === 'assignMe') return act(() => api('assignCurator', { token:S.token, email:c.email, curator:meEmail() }), `${W(c).N} ${W(c).zk} за вами`, () => { rowOf(c.email)['Закреплён за'] = meEmail(); });
@@ -8065,7 +8087,7 @@ const Adm = (() => {
       if (!text && !pend.length) return toast('Напишите сообщение');
       if (text.length > 20000) return toast('Сообщение слишком длинное: ' + text.length + ' символов, можно до 20 000. Разделите его на две части.');
       if (!pend.length) { const ta = $('#chatIn'); AV.cdraft = ''; if (ta) ta.value = '';
-        chatPos.stick = true; return act(() => api('reply', { token:S.token, email:c.email, lessonId:'', text, files:[] }), '', () => { chatPos.stick = true; addMsg(c.email, '', text); }); }
+        chatPos.stick = true; return act(() => api('reply', { token:S.token, email:c.email, lessonId:'', text, files:[] }).catch(e => { AV.cdraft = text; throw e; }), '', () => { chatPos.stick = true; addMsg(c.email, '', text); }); }
       b.disabled = true;
       return act(async () => { const files = pend.length ? await uploadChatFiles(pend, c.email, (i, n) => { b.textContent = 'Загружаем ' + i + ' из ' + n + '…'; }) : [];
         await api('reply', { token:S.token, email:c.email, lessonId:'', text, files }); AV.cf = []; AV.cdraft = ''; chatPos.stick = true; }, 'Сообщение отправлено').then(() => { b.disabled = false; }); }
@@ -8121,7 +8143,7 @@ const Adm = (() => {
     if (e.target.id === 'mkF') { CF.mk = e.target.value || 'all'; return render(true); }
     if (e.target.id === 'curSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); const v = e.target.value;
       return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : `${W(c).N} ${W(c).ok}`, () => { rowOf(c.email)['Закреплён за'] = v; }); }
-    if (e.target.id === 'tariff' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); let r = {}; const tv = e.target.value; return act(async () => { r = await api('setTariff', { token:S.token, email:c.email, tariff:tv }); }, '', () => { rowOf(c.email)['Тариф'] = tv; }).then(() => toast(r && r.cur ? 'Тариф сохранён · закреплена за ' + curName(r.cur) : 'Тариф сохранён')); }
+    if (e.target.id === 'tariff' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); let r = {}; const tv = e.target.value; return act(async () => { r = await api('setTariff', { token:S.token, email:c.email, tariff:tv }); }, '', () => { rowOf(c.email)['Тариф'] = tv; }).then(ok => { if (!ok) return; if (r && r.cur) rowOf(c.email)['Закреплён за'] = r.cur; toast(r && r.cur ? 'Тариф сохранён · закреплена за ' + curName(r.cur) : 'Тариф сохранён'); }); }
     if (e.target.id !== 'proto' || AV.s !== 'client') return;
     const c = C.find(x => x.email === AV.id); if (!c || !c.assigned) return;
     const k = e.target.value;
