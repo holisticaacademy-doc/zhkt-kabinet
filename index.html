@@ -4726,6 +4726,7 @@ const Demo = (() => {
     login({email,password}){ const st=studentOrPaid(email); if(!st) throw new Error(NOT_PAID); if(!st._pw) throw new Error('Пароль ещё не задан');
       if(st._pw!==hash(st['Email']+password)) throw new Error('Неверный пароль'); return {token:session(st)}; },
     me({token}){ const st=auth(token); const q=load().quizzes[st['Email']]||null, u=pub(st), cu=find(st['Закреплён за']); if(cu) u.curName=cu['Имя']||''; if(q) u.hasForm=indFiles(q).some(f=>f.kind==='form');
+      const fam=(load().family||{})[st['Email']]; if(fam&&!q&&!isStaff({role:st['Роль']})&&(!st['Статус']||st['Статус']===STS.none)) u.family={date:fam.date, photo:!!fam.photo};
       const closed=u.access.closed&&!isStaff({role:st['Роль']});
       const lk=closed?{}:Object.assign({},load().lessons); if(!isStaff({role:st['Роль']})&&!(u.raffle&&u.raffle.status===RZ_ST.ok)) delete lk[RZ_GIFT];
       const fr=(load().feedback||[]).find(f=>f.email===st['Email'].toLowerCase()&&f.key==='final'); u.reviewOk=!!(fr&&fr.rv===RV_OK); if(!isStaff({role:st['Роль']})&&!u.reviewOk) delete lk[RV_GIFT];
@@ -4824,7 +4825,11 @@ const Demo = (() => {
     aiResolve({token,email,res}){ adminAuth(token); const st=find(email); st['Решение по ИИ']=res==='switch'?'сменить на ИИ':'оставить анкету'; log(email,'ai_resolved',st['Решение по ИИ']); return {}; },
     aiRun({token,email}){ adminAuth(token); const q=load().quizzes[email]; if(!q) throw new Error('Анкеты нет');
       load().ai[email]={status:'готово',protocol:q.auto.name,confidence:'средняя',rationale:'Демо: ответы анкеты согласуются с автоподбором. В рабочей версии здесь будет разбор Claude по всем ответам и фото языка.',symptoms:[],quote:q.free||'',exclude:[],red:q.redFlags||[],tongue:'',note:'',at:now()}; log(email,'ai_done'); return {}; },
-    submitQuiz({token,quiz,photo,form}){ const st=auth(token); if(st['Статус']&&st['Статус']!==STS.none) throw new Error('Анкета уже отправлена'); const prev=load().quizzes[st['Email']];
+    familyGet({token}){ const st=auth(token); if(st['Статус']&&st['Статус']!==STS.none) throw new Error('Анкета уже отправлена'); const f=(load().family||{})[st['Email']]; if(!f) throw new Error('Анкета не найдена'); return {quiz:JSON.parse(JSON.stringify(f.a)), date:f.date, photo:!!f.photo}; },
+    familyImport({token,consent,consentVersion}){ const st=auth(token); if(!consent) throw new Error('Отметьте согласие на обработку данных'); const f=(load().family||{})[st['Email']]; if(!f) throw new Error('Анкета не найдена');
+      const a=JSON.parse(JSON.stringify(f.a)); a.family={date:f.date}; a.consent={version:consentVersion||'',at:now()}; return this.submitQuiz({token,quiz:a,photo:f.photo||'',form:null}); },
+    submitQuiz({token,quiz,photo,form,fromFamily}){ const st=auth(token); if(st['Статус']&&st['Статус']!==STS.none) throw new Error('Анкета уже отправлена'); const prev=load().quizzes[st['Email']];
+      if(fromFamily){ const f=(load().family||{})[st['Email']]; if(f){ quiz.family={date:f.date}; if(!photo&&f.photo){ photo=f.photo; quiz.tongueLater=false; } } }
       const res=autoProtocol(Q,quiz.answers||{},quiz.diagnoses||[],quiz.redFlags||[]); quiz.auto=res; quiz.date=now(); quiz.photo=!!photo; if(form){ quiz.form={name:form.name}; load().forms=load().forms||{}; load().forms[st['Email']]=form; }
       if(prev){ if(!photo&&prev.photo){ quiz.photo=true; quiz.tongueLater=false; } if(prev.files||prev.form){ quiz.files=indFiles(prev); quiz.form=prev.form||null; } quiz.edited=now(); }
       load().quizzes[st['Email']]=quiz; if(photo) load().photos[st['Email']]=photo; load().ai[st['Email']]={status:'ждёт'};
@@ -5777,17 +5782,42 @@ function welcome(){
   return `${reopened() ? reoNote() : ''}<div class="top">
     <div class="sub">Формула здоровья ЖКТ</div>
     <h1>${reopened() ? 'Проверьте и исправьте анкету' : (n ? esc(n) + ', соберём' : 'Соберём') + ' программу под вас'}</h1>
-    <p>Ответьте на вопросы о самочувствии и питании. По ответам куратор подберёт ваш протокол, а в кабинете откроются уроки, практики, меню, специи и фитосоставы.</p>
-    <p style="margin:0">Займёт около 15 минут. Ответы сохраняются по ходу — можно сделать перерыв и вернуться.</p>
+    ${S.user.family && !reopened() && !U.preview ? `<p style="margin:0">По вашей анкете куратор подберёт протокол, а в кабинете откроются уроки, практики, меню, специи и фитосоставы.</p>` : `<p>Ответьте на вопросы о самочувствии и питании. По ответам куратор подберёт ваш протокол, а в кабинете откроются уроки, практики, меню, специи и фитосоставы.</p>
+    <p style="margin:0">Займёт около 15 минут. Ответы сохраняются по ходу — можно сделать перерыв и вернуться.</p>`}
   </div>
+  ${famCard()}
   <div class="card"><p><b>Важно.</b> Анкета заполняется один раз. Если позже захотите пройти её заново, напишите ${isInd() ? 'куратору в чат' : 'в службу заботы'}.</p></div>
-  <button class="btn mag full" data-a="startQuiz">${LS.get(draftKey(), null) ? 'Продолжить анкету' : 'Заполнить анкету'}</button>
+  <button class="btn ${S.user.family && !reopened() ? 'ghost' : 'mag'} full" data-a="startQuiz">${LS.get(draftKey(), null) ? 'Продолжить анкету' : S.user.family && !reopened() ? 'Заполнить анкету заново' : 'Заполнить анкету'}</button>
   <div style="margin-top:16px">${curCard()}</div>
   <div style="margin-top:16px">${webinarCard()}</div>
   ${preBlock()}
   ${a2hsCard()}
   <div style="margin-top:12px">${supportBtn()}</div>
   ${foot()}`;
+}
+// Анкета из «Анкеты для близких»: человек уже заполнял её по приглашению — второй раз не заставляем
+function famCard(){
+  const f = S.user.family; if (!f || reopened() || U.preview) return '';
+  return `<div class="upcard" style="margin-bottom:14px"><h3 style="margin-top:0;color:var(--mag)">Ваша анкета уже у нас</h3>
+    <p>Вы заполняли анкету${f.date ? ' ' + fmt(f.date, {day:'numeric', month:'long', year:'numeric'}) : ''} по приглашению близкого человека. Заполнять заново не нужно — отправьте её куратору одной кнопкой${f.photo ? ', фото языка тоже возьмём оттуда' : ''}.</p>
+    <p class="small muted">Если с тех пор самочувствие заметно изменилось — откройте ответы, поправьте и отправьте.</p>
+    <label class="small" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0"><input type="checkbox" id="famConsent"${V.famC ? ' checked' : ''} style="margin-top:3px"><span>Я даю согласие на обработку моих персональных данных, включая сведения о состоянии здоровья, для подбора программы и рекомендаций в соответствии с <a href="${esc(CFG.POLICY_URL)}" target="_blank" rel="noopener" class="lnk">Политикой обработки персональных данных</a></span></label>
+    ${V.famErr ? `<div class="errt" role="alert">${esc(V.famErr)}</div>` : ''}
+    <button class="btn mag full" data-a="famSend"${V.famC ? '' : ' disabled'}>Отправить анкету куратору</button>
+    <button class="btn ghost full" data-a="famEdit" style="margin-top:8px">Проверить и поправить ответы</button></div>`;
+}
+async function famSend(){
+  if (!V.famC) return;
+  V = { s:'calc', msg:'Отправляем анкету куратору…' }; render();
+  try { await api('familyImport', { token:S.token, consent:true, consentVersion:CONSENT_VERSION }); LS.del(draftKey()); await loadMe(); route(); toast('Анкета отправлена куратору'); }
+  catch (e) { if (e.message === 'AUTH') return logout(); V = { s:'welcome', famErr:'Не получилось отправить: ' + e.message }; render(); }
+}
+async function famEdit(){
+  V = { s:'calc', msg:'Открываем ваши ответы…' }; render();
+  try { const r = await api('familyGet', { token:S.token });
+    QD = Object.assign(newQ(), qdFrom(r.quiz || {}), { reo:false, consent:false, hadPhoto:!!r.photo, hadForm:false, fam:true });
+    go('quiz', { step:1 }); }
+  catch (e) { if (e.message === 'AUTH') return logout(); V = { s:'welcome', famErr:e.message }; render(); }
 }
 function wait(){
   const ph = S.user.hasPhoto;
@@ -6222,7 +6252,7 @@ async function finishQuiz(){
   const payload = quizPayload(QD);
   hist = []; V = { s:'calc', msg:'Отправляем ответы…' }; render();
   try {
-    await api('submitQuiz', { token:S.token, quiz:payload, photo:QD.tongue || '', form:null });
+    await api('submitQuiz', { token:S.token, quiz:payload, photo:QD.tongue || '', form:null, fromFamily:!!QD.fam });
     const up = isInd() && QD.files ? [].concat(QD.files.form.map(f => ['form', f]), QD.files.tests.map(f => ['tests', f])) : [], bad = [];
     for (let i = 0; i < up.length; i++) { V.msg = `Загружаем файлы для куратора: ${i + 1} из ${up.length}…`; render();
       try { await api('uploadForm', { token:S.token, kind:up[i][0], file:up[i][1] }); } catch (e) { bad.push(up[i][1].name); } }
@@ -6398,6 +6428,7 @@ document.addEventListener('change', async e => {
   if (t.id === 'chat-file') { const ta = $('#msgIn'); U.cdraft = ta ? ta.value : ''; U.cf = U.cf || []; await readChatFiles(t, U.cf); return keepY(render); }
   if (t.id === 'rz-before' || t.id === 'rz-after') return rzAdd(t, t.id === 'rz-after' ? 'после' : 'до');
   if (t.id === 'rzConsent') { RZ().consent = t.checked; return; }
+  if (t.id === 'famConsent') { V.famC = t.checked; const bt = document.querySelector('[data-a="famSend"]'); if (bt) bt.disabled = !t.checked; return; }
   if (t.classList && t.classList.contains('ind-in')) return indAdd(t);
   if (t.id === 'form-file') {
     const ctx = t.dataset.ctx; V.ferr = ''; V.fbusy = true; keepY(render);
@@ -7007,6 +7038,8 @@ function studentClick(e, b, a){
     return finishQuiz();
   }
   if (a === 'ackRed') { QD.redAck = true; return finishQuiz(); }
+  if (a === 'famSend') return famSend();
+  if (a === 'famEdit') return famEdit();
   if (a === 'toDash') { U.st.seen = 1; save(); return home(); }
   if (a === 'xseen' || (a === 'ptype' && b.dataset.seen)) { const k = 'hz_xseen_' + ((S.user && S.user.email) || ''), l = LS.get(k, []); if (!l.includes(b.dataset.seen)) l.push(b.dataset.seen); LS.set(k, l); if (a === 'xseen') return render(); }
   if (a === 'ptype') { const t = b.dataset.t; if (t === TYPE()) return; U.at = t === MAINT() ? '' : t; LS.set(atKey(), U.at);
@@ -7809,7 +7842,7 @@ const Adm = (() => {
       rows.push(`<div class="as"><div class="ah">${STEP_NAMES[bl.n-1]}</div>${rr.join('')}</div>`); });
     rows.push(`<div class="as"><div class="ah">Лекарства и цели</div>${r('Лекарства', a.meds || 'нет')}${r('Цели', a.goals || '—')}</div>`);
     rows.push(`<div class="as"><div class="ah">Не переносит</div>${r('Продукты', (a.excluded || []).join(', ') || '—')}${a.productsOther ? r('Другое', a.productsOther) : ''}</div>`);
-    rows.push(`<div class="as"><div class="ah">Что ещё важно знать</div>${r('Свободное поле', a.free || '—')}${r('Фото языка', a.photo ? 'загружено' : 'нет')}${a.consent ? r('Согласие на обработку данных', 'дано ' + fmt(a.consent.at)) : ''}</div>`);
+    rows.push(`<div class="as"><div class="ah">Что ещё важно знать</div>${r('Свободное поле', a.free || '—')}${r('Фото языка', a.photo ? 'загружено' : 'нет')}${a.family ? r('Откуда анкета', 'из «Анкеты для близких» от ' + fmt(a.family.date, {day:'numeric', month:'long', year:'numeric'})) : ''}${a.consent ? r('Согласие на обработку данных', 'дано ' + fmt(a.consent.at)) : ''}</div>`);
     return fold('ans', 'Ответы анкеты', c.filledAt ? 'заполнена ' + fmt(c.filledAt) : '', `<div class="ans">${rows.join('')}</div>`);
   }
   function chatPanel(c){
