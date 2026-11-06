@@ -4678,7 +4678,7 @@ const Demo = (() => {
     if (r.to && Date.now() > Date.parse(r.to) + 60000 && !(ex && ex.status === RZ_ST.fix && (!r.at || Date.now() < Date.parse(r.at)))) throw new Error('Приём работ завершён'); };
   // чаты протоколов: кто куда допущен, как подписаны участницы
   // индивидуальный тариф → самый свободный куратор
-  function demoAutoCur(st){ if(st['Тариф']!==TARIFF_IND || isStaff({role:st['Роль']}) || st['Закреплён за']) return '';
+  function demoAutoCur(st){ if(!/индивид/i.test(st['Тариф']||'') || isStaff({role:st['Роль']}) || st['Закреплён за']) return '';
     const sts=load().students, staff=sts.filter(s=>isStaff({role:s['Роль']})); let curs=staff.filter(s=>/куратор/.test(s['Роль'])).map(s=>s['Email']); if(!curs.length) curs=staff.map(s=>s['Email']); if(!curs.length) return '';
     const n=e=>sts.filter(s=>s['Тариф']===TARIFF_IND && !isStaff({role:s['Роль']}) && s['Закреплён за']===e).length; const cur=curs.sort((a,b)=>n(a)-n(b))[0];
     st['Закреплён за']=cur; log(st['Email'],'curator','авто: индивидуальный тариф → '+cur); save(); return cur; }
@@ -4769,7 +4769,7 @@ const Demo = (() => {
       st['Чат: запрет']=on?now():''; log(st['Email'],on?'gchat_ban':'gchat_unban',''); Object.keys(PNAME).forEach(gcBump); return gcOut(me,type,null,gcCtx(me,type)); },
     gchatPhoto({token,id}){ const me=auth(token), p=gcDb().photos[id]; if(!p) throw new Error('Фото не найдено'); gcCtx(me,p.type); return {data:p.data}; },
     chatUpload({token,email,name,data}){ const me=auth(token), staff=isStaff({role:me['Роль']}), st=staff&&email?find(email):me; if(!st) throw new Error('Ученица не найдена');
-      if(st['Тариф']!==TARIFF_IND) throw new Error('Файлы в чате — на индивидуальном тарифе'); if(!staff) openOnly(st);
+      if(!/индивид/i.test(st['Тариф']||'')) throw new Error('Файлы в чате — на индивидуальном тарифе'); if(!staff) openOnly(st);
       const m=String(data||'').match(/^data:([^;]*);base64,(.*)$/); if(!m) throw new Error('Не получилось прочитать файл');
       const size=Math.round(m[2].length*0.75); if(size>3e6) throw new Error('В демо-режиме — файлы до 3 МБ');
       const id='f'+Math.random().toString(36).slice(2); load().cfiles=load().cfiles||{}; load().cfiles[id]={email:st['Email'],name:String(name||'файл').slice(0,120),type:m[1],size,data};
@@ -4779,7 +4779,7 @@ const Demo = (() => {
     sendMessage({token,text,lessonId,files}){ const st=auth(token); openOnly(st); text=String(text||'').trim();
       const fs=lessonId?[]:(files||[]).filter(f=>f&&(load().cfiles||{})[f.id]&&load().cfiles[f.id].email===st['Email']).slice(0,5);
       if(!text&&!fs.length) throw new Error('Напишите сообщение');
-      if(!lessonId && st['Тариф']!==TARIFF_IND && !msgsOf(st['Email']).some(m=>!m.lessonId)) throw new Error('Чат с куратором доступен на индивидуальном тарифе');
+      if(!lessonId && !/индивид/i.test(st['Тариф']||'') && !msgsOf(st['Email']).some(m=>!m.lessonId)) throw new Error('Чат с куратором доступен на индивидуальном тарифе');
       addMsg(st['Email'],lessonId,'cl','',text,fs); return {messages:msgsOf(st['Email'])}; },
     reply({token,email,lessonId,text,files}){ const a=adminAuth(token); text=String(text||'').trim();
       const fs=lessonId?[]:(files||[]).filter(f=>f&&(load().cfiles||{})[f.id]&&load().cfiles[f.id].email===email).slice(0,5);
@@ -4806,7 +4806,7 @@ const Demo = (() => {
     setTariff({token,email,tariff}){ adminAuth(token); const st=find(email); st['Тариф']=tariff===TARIFF_IND?TARIFF_IND:'Общий'; log(email,'tariff',st['Тариф']); return {cur: st['Тариф']===TARIFF_IND ? demoAutoCur(st) : ''}; },
     syncPaid({token}){ adminAuth(token); const db=load(), res={added:0,upgraded:0,assigned:[]};
       db.paid.forEach(p=>{ const st=find(p.email); if(!st){ db.students.push({'Email':p.email,'Имя':p.name,'Роль':'ученик','Статус':STS.none,'Тариф':p.tariff===TARIFF_IND?TARIFF_IND:'Общий'}); log(p.email,'added_from_getcourse',p.tariff||''); res.added++; }
-        else if(p.tariff===TARIFF_IND && st['Тариф']!==TARIFF_IND){ st['Тариф']=TARIFF_IND; log(p.email,'tariff',TARIFF_IND+' (из «Оплатили»)'); res.upgraded++; } });
+        else if(p.tariff===TARIFF_IND && !/индивид/i.test(st['Тариф']||'')){ st['Тариф']=TARIFF_IND; log(p.email,'tariff',TARIFF_IND+' (из «Оплатили»)'); res.upgraded++; } });
       db.students.forEach(st=>{ const c=demoAutoCur(st); if(c) res.assigned.push({email:st['Email'],cur:c}); }); return res; },
     gchatSchedule({token,types,text,at,pin,photo,id,keepPhoto}){ const me=adminAuth(token); types=(types||[]).filter(t=>PNAME[t]); if(!types.length) throw new Error('Выберите хотя бы один чат');
       text=String(text||'').trim(); if(text.length>6000) throw new Error('Сообщение слишком длинное: '+text.length+' символов, можно до 6000. Разделите его на две части.');
@@ -4911,7 +4911,7 @@ function normState(s){ s = s && typeof s === 'object' ? s : {}; const f = freshS
 
 async function loadMe(){
   const r = await api('me', { token: S.token });
-  S.user = r.user; S.set = r.settings || {}; U.quiz = r.quiz || null; U.st = normState(r.state); U.links = r.lessons || {}; U.msgs = r.messages || []; U.fb = r.feedback || {}; _RK = '';
+  S.user = r.user; if (S.user && /индивид/i.test(S.user.tariff || '')) S.user.tariff = TARIFF_IND; S.set = r.settings || {}; U.quiz = r.quiz || null; U.st = normState(r.state); U.links = r.lessons || {}; U.msgs = r.messages || []; U.fb = r.feedback || {}; _RK = '';
   U.at = LS.get(atKey(), '') || '';
 }
 async function boot(){
@@ -7109,7 +7109,7 @@ const Adm = (() => {
         confirmedAt:s['Дата подтверждения'] || '', filledAt:s['Дата анкеты'] || '', protoName:s['Протокол итог'] || '',
         red:filled ? (q.redFlags || []) : [], photo:!!(filled && q.photo), state:normState(s.state), start,
         day:assigned && start ? dayNum(new Date(start).getTime()) : 0, events:evs[e] || [], paidOnly:!!x.paidOnly,
-        tariff:s['Тариф'] || x.tariff || 'Общий', rec:isRecFmt(s['Формат']) || (!s['Email'] && !!x.rec), ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
+        tariff:(t => /индивид/i.test(t) ? TARIFF_IND : t)(String(s['Тариф'] || x.tariff || 'Общий')), rec:isRecFmt(s['Формат']) || (!s['Email'] && !!x.rec), ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
         msgs:(msgs[e] || []).slice().sort((a, b) => tsOf(a) - tsOf(b)), fb:(fbs[e] || []).slice().sort((a, b) => FB_KEYS.indexOf(a.key) - FB_KEYS.indexOf(b.key)),
         lost:!q && !!status && status !== STS.none, early:(() => { try { return JSON.parse(s['Досрочно'] || 'null'); } catch (e) { return null; } })(), cur:String(s['Закреплён за'] || '').trim().toLowerCase(), reo:!!(q && q.reopened && status === STS.none), gcGroup:String(s['GetCourse группа'] || ''), access:s.access || null, extra:assigned ? extraList(s['Доп. протоколы'], type) : [] };
     }).sort((a, b) => (b.lastAt || '').localeCompare(a.lastAt || ''));
