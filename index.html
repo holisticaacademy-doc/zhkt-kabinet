@@ -513,6 +513,18 @@ body.fv-on{overflow:hidden}
 .emo-g button{font-size:22px;line-height:1;padding:6px 0;border:0;background:none;border-radius:8px;cursor:pointer}
 .emo-g button:hover{background:#e6f4ee}
 
+.clink{color:inherit;text-decoration:underline;text-underline-offset:2px;word-break:break-all}
+.bub.me .clink,.bub.cu .clink{color:inherit}
+/* разметка сообщений */
+.emo-w>textarea{padding-bottom:42px}
+.fmt-b{position:absolute;left:8px;bottom:8px;display:flex;gap:2px}
+.fmt-x{width:28px;height:28px;border:0;border-radius:8px;background:transparent;cursor:pointer;font:inherit;font-size:14px;color:#173f35;opacity:.7}
+.fmt-x:hover{opacity:1;background:rgba(23,63,53,.08)}
+.mdc{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;background:rgba(23,63,53,.08);padding:1px 4px;border-radius:4px}
+.mds{border-radius:4px;cursor:pointer;transition:all .15s}
+.mds:not(.on){color:transparent;background:rgba(128,128,128,.5);text-shadow:none}
+.mds:not(.on) *{color:transparent}
+
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
 .dtop .dt-b .cal{margin-top:16px}
@@ -1667,6 +1679,18 @@ body.fv-on{overflow:hidden}
 .tup-chat{display:flex;flex-direction:column;gap:6px;width:100%}
 .tup-i{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:12px;background:#fff}
 .chip.rec{background:#fdf3ea;border-color:#f0d9c2;color:#8a4b12}
+
+.clink{color:inherit;text-decoration:underline;text-underline-offset:2px;word-break:break-all}
+.bub.me .clink,.bub.cu .clink{color:inherit}
+/* разметка сообщений */
+.emo-w>textarea{padding-bottom:42px}
+.fmt-b{position:absolute;left:8px;bottom:8px;display:flex;gap:2px}
+.fmt-x{width:28px;height:28px;border:0;border-radius:8px;background:transparent;cursor:pointer;font:inherit;font-size:14px;color:#173f35;opacity:.7}
+.fmt-x:hover{opacity:1;background:rgba(23,63,53,.08)}
+.mdc{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;background:rgba(23,63,53,.08);padding:1px 4px;border-radius:4px}
+.mds{border-radius:4px;cursor:pointer;transition:all .15s}
+.mds:not(.on){color:transparent;background:rgba(128,128,128,.5);text-shadow:none}
+.mds:not(.on) *{color:transparent}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -5058,6 +5082,17 @@ document.addEventListener('click', e => { const b = e.target.closest && e.target
   const a = b.dataset.fv; if (a === 'x') return fvClose(); if (a === 'dl') return fvDownload(); if (a === 'tab') window.open(FV.url, '_blank'); }, true);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('fv')) { e.stopPropagation(); fvClose(); } }, true);
 const FV_CACHE = {};
+// Сообщения: кликабельные ссылки и разметка как в Telegram — **жирный**, __курсив__, ++подчёркнутый++, ~~зачёркнутый~~, `моноширинный`, ||скрытый||
+const MD = [[/`([^`\n]+?)`/g, '<code class="mdc">$1</code>'], [/\*\*(?=\S)([\s\S]+?)\*\*/g, '<b>$1</b>'], [/__(?=\S)([\s\S]+?)__/g, '<i>$1</i>'],
+  [/\+\+(?=\S)([\s\S]+?)\+\+/g, '<u>$1</u>'], [/~~(?=\S)([\s\S]+?)~~/g, '<s>$1</s>'], [/\|\|(?=\S)([\s\S]+?)\|\|/g, '<span class="mds" title="Нажмите, чтобы показать">$1</span>']];
+function linkify(t){
+  const urls = [];
+  let h = esc(t).replace(/\b(https?:\/\/|www\.)[^\s<]+/gi, u => { const m = u.match(/^(.*?)((?:[.,;:!?»)\]]|&quot;|&#39;)*)$/), url = m[1], tail = m[2];
+    if (!url) return u; const href = /^www\./i.test(url) ? 'https://' + url : url; urls.push(`<a class="clink" href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`); return '\u0001' + (urls.length - 1) + '\u0002' + tail; });
+  MD.forEach(([re, to]) => { h = h.replace(re, to); });
+  return h.replace(/\u0001(\d+)\u0002/g, (x, k) => urls[+k]);
+}
+const plainMd = t => String(t || '').replace(/\*\*|__|\+\+|~~|\|\||`/g, '');
 async function openChatFile(b){
   const id = b.dataset.id, name = b.dataset.name;
   if (FV_CACHE[id]) return fvOpen(FV_CACHE[id].data, FV_CACHE[id].name, b);
@@ -5070,7 +5105,7 @@ async function openChatFile(b){
 const chatFilesOn = () => !!S.user && S.user.tariff === TARIFF_IND;
 function bubbles(list, mine){
   return list.map(m => { const own = m.from === mine && mine === 'cl' && m.id && !U.preview, ed = own && U.edit === m.id;
-    return `<div class="bub ${m.from === mine ? 'me' : 'them'}">${ed ? `<div class="ed-box"><textarea class="inp" id="myEdIn" maxlength="20000">${esc(m.text)}</textarea><div class="ed-b"><button type="button" class="btn sm" data-a="myEdSave" data-id="${esc(m.id)}">Сохранить</button><button type="button" class="btn sm ghost" data-a="myEdX">Отмена</button></div></div>` : m.text ? esc(m.text) : ''}${fileChips(m.files)}<small>${m.from === 'cu' ? esc(m.who || 'Куратор') : 'Вы'} · ${fmtDT(m.at)}${m.edited ? ' · изменено' : ''}${own && !ed ? ` · <button type="button" class="ed-l" data-a="myEdit" data-id="${esc(m.id)}">изменить</button>` : ''}</small></div>`; }).join('');
+    return `<div class="bub ${m.from === mine ? 'me' : 'them'}">${ed ? `<div class="ed-box"><textarea class="inp" id="myEdIn" maxlength="20000">${esc(m.text)}</textarea><div class="ed-b"><button type="button" class="btn sm" data-a="myEdSave" data-id="${esc(m.id)}">Сохранить</button><button type="button" class="btn sm ghost" data-a="myEdX">Отмена</button></div></div>` : m.text ? linkify(m.text) : ''}${fileChips(m.files)}<small>${m.from === 'cu' ? esc(m.who || 'Куратор') : 'Вы'} · ${fmtDT(m.at)}${m.edited ? ' · изменено' : ''}${own && !ed ? ` · <button type="button" class="ed-l" data-a="myEdit" data-id="${esc(m.id)}">изменить</button>` : ''}</small></div>`; }).join('');
 }
 let pollT = null;
 function startPoll(){ stopPoll(); if (U.preview || MODE === 'demo') return; pollT = setInterval(async () => {
@@ -5163,7 +5198,7 @@ function gcShrink(file){ return new Promise((res, rej) => {
   img.src = url; }); }
 function gcMsg(m, d, staff){
   const mine = m.aid === d.me;
-  const re = m.re ? `<button type="button" class="gc-re" data-a="gcJump" data-id="${esc(m.re.id)}"><b>${esc(m.re.name)}</b><span>${esc(m.re.text || (m.re.photo ? 'Фото' : 'Сообщение удалено'))}</span></button>` : '';
+  const re = m.re ? `<button type="button" class="gc-re" data-a="gcJump" data-id="${esc(m.re.id)}"><b>${esc(m.re.name)}</b><span>${esc(plainMd(m.re.text) || (m.re.photo ? 'Фото' : 'Сообщение удалено'))}</span></button>` : '';
   const ph = m.photo ? `<button type="button" class="gc-ph" data-a="gcPhoto" data-id="${esc(m.photo)}">${GC.photos[m.photo] ? `<img src="${GC.photos[m.photo]}" alt="Фото">` : '<span>Загружаем фото…</span>'}</button>` : '';
   const rx = GC_RX.map(e => { const l = (m.rx && m.rx[e]) || [], on = l.includes(d.me);
     return `<button type="button" class="gc-rx${on ? ' on' : ''}${l.length ? ' has' : ''}" data-a="gcRx" data-id="${esc(m.id)}" data-e="${e}" aria-pressed="${on}" aria-label="Реакция ${e}">${e}${l.length ? `<small>${l.length}</small>` : ''}</button>`; }).join('');
@@ -5175,14 +5210,14 @@ function gcMsg(m, d, staff){
     acts.push(ban ? `<button type="button" class="gc-a" data-a="gcBan" data-email="${esc(m.email)}" data-on="0">Разрешить писать</button>` : `<button type="button" class="gc-a warn" data-a="gcBan" data-email="${esc(m.email)}" data-name="${esc(m.name)}" data-on="1">Запретить писать</button>`); }
   return `<div class="gc-m${mine ? ' me' : ''}${m.cu ? ' cu' : ''}" id="gcm-${esc(m.id)}">
     <div class="gc-h"><b>${esc(m.name)}</b>${m.cu ? '<span class="gc-badge">Куратор</span>' : ''}${staff && m.email ? `<span class="gc-mail">${esc(m.email)}</span>` : ''}<span class="gc-t">${fmtDT(m.at)}${m.ed ? ' · изменено' : ''}</span></div>
-    ${re}${GC.edit === m.id ? `<div class="gc-ed"><textarea class="inp" id="gcEdIn" maxlength="6000" rows="3">${esc(m.text)}</textarea><div class="gc-ed-b"><button type="button" class="btn sm" data-a="gcEdSave" data-id="${esc(m.id)}">Сохранить</button><button type="button" class="btn sm ghost" data-a="gcEdX">Отмена</button></div></div>` : m.text ? `<div class="gc-x">${esc(m.text)}</div>` : ''}${ph}
+    ${re}${GC.edit === m.id ? `<div class="gc-ed"><textarea class="inp" id="gcEdIn" maxlength="6000" rows="3">${esc(m.text)}</textarea><div class="gc-ed-b"><button type="button" class="btn sm" data-a="gcEdSave" data-id="${esc(m.id)}">Сохранить</button><button type="button" class="btn sm ghost" data-a="gcEdX">Отмена</button></div></div>` : m.text ? `<div class="gc-x">${linkify(m.text)}</div>` : ''}${ph}
     <div class="gc-f"><span class="gc-rxs">${rx}</span><span class="gc-as">${acts.join('')}</span></div></div>`;
 }
 function gcBody(t, staff){
   const d = GC.data[t];
   if (!d) return `<p class="muted">${GC.err ? esc(GC.err) : 'Загружаем сообщения…'}</p>`;
   const list = d.list.map(m => gcMsg(m, d, staff)).join('') || `<p class="muted small gc-empty">Сообщений пока нет. Начните разговор — поздоровайтесь и расскажите, с чего начинаете программу.</p>`;
-  const pin = d.pin ? `<button type="button" class="gc-pin" data-a="gcJump" data-id="${esc(d.pin.id)}"><span class="gc-pin-i" aria-hidden="true">📌</span><span><small>Закреплено · ${esc(d.pin.name)}</small><b>${esc(d.pin.text || 'Фото')}</b></span></button>` : '';
+  const pin = d.pin ? `<button type="button" class="gc-pin" data-a="gcJump" data-id="${esc(d.pin.id)}"><span class="gc-pin-i" aria-hidden="true">📌</span><span><small>Закреплено · ${esc(d.pin.name)}</small><b>${esc(plainMd(d.pin.text) || 'Фото')}</b></span></button>` : '';
   const rp = GC.reply && GC.reply.t === t ? `<div class="gc-rp"><span><small>Ответ ${esc(GC.reply.name)}</small><b>${esc(GC.reply.text || 'Фото')}</b></span><button type="button" class="fx" data-a="gcReplyX" aria-label="Отменить ответ">✕</button></div>` : '';
   const pp = GC.photo && GC.photo.t === t ? `<div class="gc-pp"><img src="${GC.photo.data}" alt=""><button type="button" class="fx" data-a="gcPhotoX" aria-label="Убрать фото">✕</button></div>` : '';
   const form = d.banned && !staff ? `<div class="card alt" style="margin-top:12px"><p style="margin:0">Куратор ограничил отправку сообщений в чат. Если это ошибка, напишите в техподдержку.</p></div>`
@@ -7751,7 +7786,7 @@ const Adm = (() => {
   function chatPanel(c){
     const m = chatOf(c), ind = c.tariff === TARIFF_IND;
     return `<div class="panel" id="chat" style="margin-top:16px"><h2><span>Чат с ${W(c).i}</span> <span class="chip ${ind ? 'm' : 'g'}" style="vertical-align:middle">${ind ? 'индивидуальный тариф' : 'общий тариф'}</span></h2>
-    ${m.length ? `<div class="chat">${m.map(x => `<div class="bub ${x.from}">${AV.edit === x.id ? msgEditor(x, c) : (x.text ? esc(x.text) : '')}${fileChips(x.files, c.email)}<small>${x.from === 'cu' ? esc(x.who || 'Куратор') : esc(c.name.split(' ')[0])} · ${fmtDT(x.at)}${x.edited ? ' · изменено' : ''}${canEdit(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgEdit" data-id="${esc(x.id)}">изменить</button>` : ''}${canDel(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(c.email)}">удалить</button>` : ''}</small></div>`).join('')}</div>`
+    ${m.length ? `<div class="chat">${m.map(x => `<div class="bub ${x.from}">${AV.edit === x.id ? msgEditor(x, c) : (x.text ? linkify(x.text) : '')}${fileChips(x.files, c.email)}<small>${x.from === 'cu' ? esc(x.who || 'Куратор') : esc(c.name.split(' ')[0])} · ${fmtDT(x.at)}${x.edited ? ' · изменено' : ''}${canEdit(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgEdit" data-id="${esc(x.id)}">изменить</button>` : ''}${canDel(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(c.email)}">удалить</button>` : ''}</small></div>`).join('')}</div>`
       : `<p class="small muted">${ind ? 'Сообщений пока нет.' : `На общем тарифе чат появится у ${W(c).g}, когда вы напишете первое сообщение.`}</p>`}
     <textarea id="chatIn" placeholder="Сообщение ученице" style="margin-top:10px;min-height:70px">${esc(AV.cdraft || '')}</textarea>
     ${ind ? `<div class="cattach"><input type="file" multiple id="adm-chat-file" class="vh" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf,.odt,.heic"><label for="adm-chat-file" class="btn sm ghost">${I.clip.replace('<svg', '<svg width="15" height="15"')} Прикрепить файл</label><span class="small muted">до ${CF_MAX} файлов, до ${CF_MB} МБ каждый</span></div>${cfPending(AV.cf || [], 'acfDel')}` : ''}
@@ -7764,7 +7799,7 @@ const Adm = (() => {
   function commentItem(t, showClient){
     const l = byId(t.lessonId), last = t.list[t.list.length-1];
     return `<div class="cmt"><div class="cmt-h"><b>${esc(l ? l.t : t.list[0].lesson)}</b><span class="small muted">${showClient ? `<button class="btn lnk" data-a="open" data-id="${esc(t.c.email)}" style="padding:0">${esc(t.c.name)}</button> · ` : ''}${fmtDT(last.at)}</span></div>
-    ${t.list.map(x => x.from === 'cu' ? `<div class="cmt-r"><b>${esc(x.who || 'Куратор')}:</b> ${AV.edit === x.id ? msgEditor(x, t.c) : esc(x.text)}${x.edited ? ' <span class="small muted">· изменено</span>' : ''}${canEdit(x) && AV.edit !== x.id ? ` <button type="button" class="ed-l" data-a="msgEdit" data-id="${esc(x.id)}">изменить</button>` : ''}${canDel(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(t.c.email)}">удалить</button>` : ''}</div>` : `<p style="margin:6px 0 0;white-space:pre-wrap">${esc(x.text)}${canDel(x) ? ` <button type="button" class="ed-l small muted" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(t.c.email)}">удалить</button>` : ''}</p>`).join('')}
+    ${t.list.map(x => x.from === 'cu' ? `<div class="cmt-r"><b>${esc(x.who || 'Куратор')}:</b> ${AV.edit === x.id ? msgEditor(x, t.c) : linkify(x.text)}${x.edited ? ' <span class="small muted">· изменено</span>' : ''}${canEdit(x) && AV.edit !== x.id ? ` <button type="button" class="ed-l" data-a="msgEdit" data-id="${esc(x.id)}">изменить</button>` : ''}${canDel(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(t.c.email)}">удалить</button>` : ''}</div>` : `<p style="margin:6px 0 0;white-space:pre-wrap">${linkify(x.text)}${canDel(x) ? ` <button type="button" class="ed-l small muted" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(t.c.email)}">удалить</button>` : ''}</p>`).join('')}
     <textarea class="cmIn" placeholder="Ответ появится под уроком у ученицы" style="margin-top:8px;min-height:60px"></textarea>
     <div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap"><button class="btn sm" data-a="cmReply" data-email="${esc(t.c.email)}" data-lid="${t.lessonId}">${last.from === 'cl' && !last.read ? 'Ответить' : 'Дописать'}</button>
     ${last.from === 'cl' && !last.read ? `<button class="btn sm ghost" data-a="msgRead" data-email="${esc(t.c.email)}" data-lid="${t.lessonId}" title="Ответ не нужен — убрать из «Без ответа»">✓ Прочитано</button>` : last.from === 'cl' ? '<span class="small muted" style="align-self:center">✓ прочитано, ответ не нужен</span>' : ''}</div></div>`;
@@ -7825,7 +7860,7 @@ const Adm = (() => {
     <div class="tools">${curSeg()}<span class="seg">${sb('wait', 'Дольше ждут ответа')}${sb('new', 'Новые сверху')}</span>
       <span class="small muted">ждут ответа: <b>${nWait}</b>${nLate ? ` · <b style="color:#9e007e">${nLate}</b> дольше ${rtSet().sla / 36e5} ч` : ''}</span></div>
     <div class="cat">${list.map(c => { const m = chatOf(c), l = m[m.length-1], u = unreadOf(c), w = waitSince(c), late = w && now - w > sla;
-      return `<button class="ci ${late ? 'late' : ''}" data-a="openChat" data-id="${esc(c.email)}"><span><b>${esc(c.name)}</b> ${c.rec ? '<span class="chip rec">в записи</span> ' : ''}${c.tariff === TARIFF_IND ? '<span class="chip m">инд.</span>' : ''} ${curChip(c)}<span class="tg"><span class="small muted">${l ? (l.from === 'cu' ? 'Вы: ' : '') + esc((l.text || ((l.files || []).length ? '📎 ' + l.files.map(f => f.name).join(', ') : '')).slice(0, 90)) + ((l.text || '').length > 90 ? '…' : '') : 'Сообщений пока нет'}</span></span></span><span class="cnt">${w ? `<span class="chip ${late ? 'r' : 'm'}" title="Ждёт ответа с ${esc(fmtDT(new Date(w).toISOString()))}">ждёт ${waitTxt(now - w)}</span> ` : ''}${u ? `<span class="chip ${w ? 'g' : 'r'}">${u} нов.</span>` : ''}${l ? `<br>${fmtDT(l.at)}` : ''}</span></button>`; }).join('') || '<p class="muted">Чатов пока нет. Индивидуальный тариф отмечается в карточке ученицы.</p>'}</div>`;
+      return `<button class="ci ${late ? 'late' : ''}" data-a="openChat" data-id="${esc(c.email)}"><span><b>${esc(c.name)}</b> ${c.rec ? '<span class="chip rec">в записи</span> ' : ''}${c.tariff === TARIFF_IND ? '<span class="chip m">инд.</span>' : ''} ${curChip(c)}<span class="tg"><span class="small muted">${l ? (l.from === 'cu' ? 'Вы: ' : '') + esc((plainMd(l.text) || ((l.files || []).length ? '📎 ' + l.files.map(f => f.name).join(', ') : '')).slice(0, 90)) + ((l.text || '').length > 90 ? '…' : '') : 'Сообщений пока нет'}</span></span></span><span class="cnt">${w ? `<span class="chip ${late ? 'r' : 'm'}" title="Ждёт ответа с ${esc(fmtDT(new Date(w).toISOString()))}">ждёт ${waitTxt(now - w)}</span> ` : ''}${u ? `<span class="chip ${w ? 'g' : 'r'}">${u} нов.</span>` : ''}${l ? `<br>${fmtDT(l.at)}` : ''}</span></button>`; }).join('') || '<p class="muted">Чатов пока нет. Индивидуальный тариф отмечается в карточке ученицы.</p>'}</div>`;
   }
   function picker(){
     const c = C.find(x => x.email === AV.id), k = AV.pk || AV.tab || 'lessons', q = (AV.pq || '').toLowerCase();
@@ -8129,7 +8164,21 @@ const EMO = (() => {
       b.addEventListener('mousedown', e => e.preventDefault());
       b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); pop && tgt === t ? close() : open(t, b); });
       w.appendChild(b);
+      const fb = document.createElement('span'); fb.className = 'fmt-b';
+      [['**', 'Ж', 'Жирный (Ctrl+B)', 'font-weight:800'], ['__', 'К', 'Курсив (Ctrl+I)', 'font-style:italic'], ['++', 'Ч', 'Подчёркнутый (Ctrl+U)', 'text-decoration:underline'], ['~~', 'З', 'Зачёркнутый', 'text-decoration:line-through'], ['||', '░', 'Скрытый текст (спойлер)', '']].forEach(([m, l, ti, st]) => {
+        const x = document.createElement('button'); x.type = 'button'; x.className = 'fmt-x'; x.title = ti; x.setAttribute('aria-label', ti); x.innerHTML = `<span style="${st}">${l}</span>`;
+        x.addEventListener('mousedown', e => e.preventDefault()); x.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); wrapSel(t, m); }); fb.appendChild(x); });
+      w.appendChild(fb);
+      t.addEventListener('keydown', e => { if (!(e.ctrlKey || e.metaKey)) return; const k = { b:'**', и:'**', i:'__', ш:'__', u:'++', г:'++' }[e.key.toLowerCase()]; if (k) { e.preventDefault(); wrapSel(t, k); } });
     });
+  }
+  function wrapSel(t, m){
+    const a = t.selectionStart ?? t.value.length, z = t.selectionEnd ?? a, sel = t.value.slice(a, z);
+    let v, p1, p2;
+    if (sel && t.value.slice(a - m.length, a) === m && t.value.slice(z, z + m.length) === m) { v = t.value.slice(0, a - m.length) + sel + t.value.slice(z + m.length); p1 = a - m.length; p2 = z - m.length; }
+    else { const lead = sel.match(/^\s*/)[0], trail = sel.match(/\s*$/)[0], core = sel.trim(); v = t.value.slice(0, a) + lead + m + core + m + trail + t.value.slice(z); p1 = a + lead.length + m.length; p2 = p1 + core.length; }
+    t.value = v; t.focus(); try { t.setSelectionRange(p1, p2); } catch (x) {}
+    t.dispatchEvent(new Event('input', { bubbles:true }));
   }
   function grid(){
     const r = recent(), list = tab < 0 ? r : SETS[tab][1].split(' ');
@@ -8173,6 +8222,7 @@ const EMO = (() => {
   decorate(document);
   return { decorate, close };
 })();
+document.addEventListener('click', e => { const sp = e.target.closest && e.target.closest('.mds'); if (sp) { sp.classList.toggle('on'); e.stopPropagation(); } }, true);
 
 boot();
 
