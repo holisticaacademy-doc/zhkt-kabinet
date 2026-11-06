@@ -4445,6 +4445,7 @@ function applyOv(R, ov){
   return out;
 }
 const TARIFF_IND = 'Индивидуальный';
+const EARLY_NO = ['fin1', 'fin3', 'fin4', 'st1'];   // итоговая анкета, розыгрыш, вебинары — только по расписанию
 const FMT_REC = 'В записи', isRecFmt = v => /запис/i.test(String(v || ''));
 // отметки куратора: k — код, t — как пишется в таблице, s — коротко в списке, only — для какого тарифа
 const MARKS = [
@@ -4641,7 +4642,7 @@ const Demo = (() => {
   const openOnly = st => { if (!isStaff({role:st['Роль']}) && accessOf(st).closed) throw new Error('Доступ к программе закрыт'); };
   const pub = d => ({ access: accessOf(d), rec:isRecFmt(d['Формат']), email:d['Email'], name:d['Имя'], role:d['Роль'], status:d['Статус']||STS.none, autoProtocol:d['Протокол авто']||'', protocol:d['Протокол итог']||'',
     recs:d['Комментарий куратора']||'', confirmedAt:d['Дата подтверждения']||'', filledAt:d['Дата анкеты']||'', hasPhoto:!!(load().quizzes[d['Email']]||{}).photo, hasForm:!!(load().quizzes[d['Email']]||{}).form, raffle:(load().raffle||{})[d['Email']]||null,
-    tariff:d['Тариф']||'Общий', ov:parse(d['Правки материалов']), profile:parse(d['Профиль'])||{}, extra:parse(d['Доп. протоколы'])||[] });
+    tariff:d['Тариф']||'Общий', early:parse(d['Досрочно'])||null, ov:parse(d['Правки материалов']), profile:parse(d['Профиль'])||{}, extra:parse(d['Доп. протоколы'])||[] });
   const msgsOf = e => load().messages.filter(m => m.email === e);
   const addMsg = (email, lessonId, from, who, text, files, by) => { load().messages.push({ id:'m'+Math.random().toString(36).slice(2), by:by||'', at:now(), email, lessonId:lessonId||'', lesson: lessonId ? (byId(lessonId)||{t:''}).t : '', from, who, text, files: files && files.length ? files : undefined }); log(email, from === 'cu' ? (lessonId ? 'reply_comment' : 'reply_chat') : (lessonId ? 'comment' : 'chat'), lessonId ? (byId(lessonId)||{t:''}).t : ''); };
   const parse = s => { try { return s ? JSON.parse(s) : null } catch(e){ return null } };
@@ -4771,6 +4772,9 @@ const Demo = (() => {
       if(status==='fix'&&!cm) throw new Error('Напишите, что нужно доработать — ученица увидит комментарий'); Object.assign(r,{status:status==='ok'?RZ_ST.ok:status==='fix'?RZ_ST.fix:RZ_ST.wait,comment:cm,by:a['Имя']||a['Email'],rat:now()}); log(email,'raffle_review',r.status); return {}; },
     reviewAccept({token,email,ok}){ const a=adminAuth(token), f=(load().feedback||[]).find(x=>x.email===String(email).toLowerCase()&&x.key==='final'); if(!f) throw new Error('Итоговая анкета не найдена');
       Object.assign(f,{rv:ok?RV_OK:'',rvBy:ok?(a['Имя']||a['Email']):'',rvAt:ok?now():''}); log(email,'review_accept',ok?RV_OK:'сброшено'); return {}; },
+    setEarly({token,email,early}){ const me=adminAuth(token); if(!/^(админ|admin|администратор)$/i.test(String(me['Роль']||'').trim())) throw new Error('Открывать досрочно может только администратор'); const st=find(email);
+      const e=early||{}, int=(x,a,b)=>{ x=Math.floor(+x||0); return x>=a&&x<=b?x:0; }, v={wk:int(e.wk,1,5),menu:int(e.menu,3,5),ids:(e.ids||[]).map(String).filter(x=>!EARLY_NO.includes(x)).slice(0,60),by:me['Имя']||me['Email'],at:now()};
+      const empty=!v.wk&&!v.menu&&!v.ids.length; st['Досрочно']=empty?'':JSON.stringify(v); log(email,'early',empty?'по расписанию':'досрочно'); return {early:empty?null:v}; },
     setFormat({token,email,rec}){ adminAuth(token); const st=find(email); st['Формат']=rec?FMT_REC:''; log(email,'format',st['Формат']||'Поток'); return {}; },
     setTariff({token,email,tariff}){ adminAuth(token); const st=find(email); st['Тариф']=tariff===TARIFF_IND?TARIFF_IND:'Общий'; log(email,'tariff',st['Тариф']); return {cur: st['Тариф']===TARIFF_IND ? demoAutoCur(st) : ''}; },
     syncPaid({token}){ adminAuth(token); const db=load(), res={added:0,upgraded:0,assigned:[]};
@@ -5291,14 +5295,19 @@ const openAt = (w, set) => new Date(SCHED(set).weeks[w]).getTime() || 0;
 // Разделы «Специи» и «Фитосоставы» открываются вместе с неделей 1 — после вводного эфира
 const SP_KEYS = ['spices', 'phyto'];
 const catOpenAt = () => openAt(1);
-const catOpen = k => !SP_KEYS.includes(k) || U.preview || CFG.OPEN_ALL_WEEKS || isStaff(S.user) || !catOpenAt() || Date.now() >= catOpenAt();
+const catOpen = k => !SP_KEYS.includes(k) || U.preview || CFG.OPEN_ALL_WEEKS || isStaff(S.user) || (EARLY().wk || 0) >= 1 || !catOpenAt() || Date.now() >= catOpenAt();
 const catLockHtml = c => `<h1 style="margin-top:22px">${c.t}</h1><div class="card"><p style="margin:0">Раздел откроется ${whenTxt(catOpenAt())} по Москве — после вводного вебинара. Здесь будут ${c.k === 'spices' ? 'специи' : 'фитосоставы'} вашего протокола.</p></div>`;
 const menuWeekOf = l => { const m = /меню и сборник рецептов на (\d)/i.exec(l.t); return m ? +m[1] : 0; };
 const lessonOpenAt = (l, set) => { const mw = menuWeekOf(l), m = mw && SCHED(set).menu[mw]; return m ? new Date(m).getTime() : openAt(l.w, set); };
 const whenTxt = ms => { const d = new Date(ms), m = new Date(ms + 3 * 36e5); const hm = String(m.getUTCHours()).padStart(2, '0') + ':' + String(m.getUTCMinutes()).padStart(2, '0');
   return d.toLocaleDateString('ru-RU', { day:'numeric', month:'long', timeZone:'Europe/Moscow' }) + (hm !== '00:00' ? ' в ' + hm : ''); };
-const weekOpen = w => U.preview || CFG.OPEN_ALL_WEEKS || Date.now() >= openAt(w);
-const lessonOpen = l => !giftLocked(l) && (U.preview || CFG.OPEN_ALL_WEEKS || Date.now() >= lessonOpenAt(l));
+// ── досрочное открытие (ставит админ в карточке): уроки до недели N, меню до недели N, отдельные уроки ──
+const EARLY = () => (!U.preview && S.user && S.user.early) || {};
+const earlyLesson = (l, e) => { e = e || EARLY(); if (!l || EARLY_NO.includes(l.id)) return false; if ((e.ids || []).includes(l.id)) return true;
+  const mw = menuWeekOf(l); return mw ? (e.menu || 0) >= mw : (l.w >= 1 && l.w <= 5 && (e.wk || 0) >= l.w); };
+const menuSched = () => { const m = Object.assign({}, SCHED().menu), e = EARLY(); for (const w in m) if ((e.menu || 0) >= +w) m[w] = '2000-01-01T00:00:00+03:00'; return m; };
+const weekOpen = w => U.preview || CFG.OPEN_ALL_WEEKS || (w >= 1 && w <= 5 && (EARLY().wk || 0) >= w) || Date.now() >= openAt(w);
+const lessonOpen = l => !giftLocked(l) && (U.preview || CFG.OPEN_ALL_WEEKS || earlyLesson(l) || Date.now() >= lessonOpenAt(l));
 // ── Вводный вебинар: виден всем, даже до назначения протокола ──
 function webinar(){ const w = Object.assign({}, CFG.WEBINAR, (S.set && S.set.webinar) || {}); Object.keys(w).forEach(k => { if (!w[k]) w[k] = CFG.WEBINAR[k]; }); return w; }
 function finalWebinar(){ const sc = SCHED(); return { at: sc.final, url: sc.finalUrl, title: 'Завершающий вебинар программы', fin: 1 }; }
@@ -5863,7 +5872,7 @@ function catList(){
 function menuLink(){
   // конструктор (рядом, тот же сайт) берёт отсюда адрес сервера, токен и дату старта — для сохранённых дней
   const start = new Date(dayStart(startT())); const iso = start.getFullYear()+'-'+String(start.getMonth()+1).padStart(2,'0')+'-'+String(start.getDate()).padStart(2,'0');
-  const menu = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : SCHED().menu;
+  const menu = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : menuSched();
   LS.set('hz_menu_link', MODE === 'live' && !U.preview ? { api: CFG.API_URL, token: S.token, start: iso, menu } : { start: iso, menu });
 }
 function menuView(){
@@ -6392,7 +6401,7 @@ function navHtml(){
   const wk = weeks.map(w => { const key = 'w' + w, on = NAV.sec[key] != null ? NAV.sec[key] : (w === curWeek() || (w === 0 && preStart())), items = ls.filter(l => l.w === w), dn = items.filter(l => U.st.done[l.id]).length;
     return `<div class="sn-wk${on ? ' on' : ''}"><button class="sn-wh" data-a="navSec" data-k="${key}" data-def="${on ? 1 : 0}" aria-expanded="${on}"><span>${esc(WEEKNAME[w])}</span>${weekOpen(w) ? `<span class="sn-c">${dn}/${items.length}</span>` : `<span class="sn-lk" title="Откроется ${whenTxt(openAt(w))}">${I.lock}</span>`}<span class="sn-ch">${I.chev}</span></button>
       ${on ? `<div class="sn-wb">${weekOpen(w) || items.some(lessonOpen) ? '' : `<div class="sn-note">Откроется ${whenTxt(openAt(w))}</div>`}${items.map(l => navItem(l, 'lessons')).join('')}</div>` : ''}</div>`; }).join('');
-  const menuLock = !U.preview && !CFG.OPEN_ALL_WEEKS && Date.now() < (new Date(SCHED().menu[3]).getTime() || 0) ? 'Откроется ' + whenTxt(new Date(SCHED().menu[3]).getTime()) : '';
+  const menuLock = !U.preview && !CFG.OPEN_ALL_WEEKS && Date.now() < (new Date(menuSched()[3]).getTime() || 0) ? 'Откроется ' + whenTxt(new Date(SCHED().menu[3]).getTime()) : '';
   const gts = gcTypes();
   return `<div class="sn-h"><span class="sn-ttl">Навигация</span><span class="sn-brand">HOLISTICA<i>DOC</i></span>
       <button class="sn-pin" data-a="navPin" title="${NAV.pin ? 'Свернуть панель' : 'Закрепить панель'}" aria-label="${NAV.pin ? 'Свернуть панель' : 'Закрепить панель'}">${I.side}</button>
@@ -7059,7 +7068,7 @@ const Adm = (() => {
         day:assigned && start ? dayNum(new Date(start).getTime()) : 0, events:evs[e] || [], paidOnly:!!x.paidOnly,
         tariff:s['Тариф'] || x.tariff || 'Общий', rec:isRecFmt(s['Формат']) || (!s['Email'] && !!x.rec), ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
         msgs:(msgs[e] || []).slice().sort((a, b) => tsOf(a) - tsOf(b)), fb:(fbs[e] || []).slice().sort((a, b) => FB_KEYS.indexOf(a.key) - FB_KEYS.indexOf(b.key)),
-        lost:!q && !!status && status !== STS.none, cur:String(s['Закреплён за'] || '').trim().toLowerCase(), reo:!!(q && q.reopened && status === STS.none), gcGroup:String(s['GetCourse группа'] || ''), access:s.access || null, extra:assigned ? extraList(s['Доп. протоколы'], type) : [] };
+        lost:!q && !!status && status !== STS.none, early:(() => { try { return JSON.parse(s['Досрочно'] || 'null'); } catch (e) { return null; } })(), cur:String(s['Закреплён за'] || '').trim().toLowerCase(), reo:!!(q && q.reopened && status === STS.none), gcGroup:String(s['GetCourse группа'] || ''), access:s.access || null, extra:assigned ? extraList(s['Доп. протоколы'], type) : [] };
     }).sort((a, b) => (b.lastAt || '').localeCompare(a.lastAt || ''));
   }
   const stageOf = c => c.paidOnly || !c.first ? 0 : !c.filled ? 1 : 3;
@@ -7285,6 +7294,24 @@ const Adm = (() => {
     const n = c.note ? `<span class="sub mknote" title="${esc(c.note)}">${esc(c.note.length > 70 ? c.note.slice(0, 70) + '…' : c.note)}</span>` : '';
     return ch.length || n ? `<span class="mkc">${ch.join('')}</span>${n}` : '<span class="nd muted">—</span>';
   }
+  // ── досрочное открытие (только админ) ──
+  function earlyPanel(c){
+    if (!isAdmRole() || !c.assigned) return '';
+    const e = c.early || {}, sel = (id, cur, opts) => `<select id="${id}" class="sel" style="width:auto;display:inline-block;padding:4px 10px">${opts.map(([v, t]) => `<option value="${v}" ${+cur === v ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
+    const st = D && D.settings, now = Date.now();
+    const ls = eff(c, 'lessons').map(byId).filter(l => l && !EARLY_NO.includes(l.id) && !menuWeekOf(l) && !(e.ids || []).includes(l.id) && now < lessonOpenAt(l, st) && !earlyLesson(l, e)).sort((a, b) => a.w - b.w);
+    const ids = (e.ids || []).map(byId).filter(Boolean);
+    return `<div class="panel mkp"><h2><span>Открыть раньше срока</span><span class="small muted">только для администраторов · розыгрыш, итоговая анкета и вебинары — всегда по расписанию</span></h2>
+      <div class="row2" style="gap:14px;flex-wrap:wrap;align-items:center">
+        <label class="small muted">Уроки: ${sel('earlyWk', e.wk || 0, [[0, 'по расписанию'], [1, 'до недели 1'], [2, 'до недели 2'], [3, 'до недели 3'], [4, 'до недели 4'], [5, 'до недели 5']])}</label>
+        <label class="small muted">Меню и конструктор: ${sel('earlyMenu', e.menu || 0, [[0, 'по расписанию'], [3, 'неделя 3'], [4, 'недели 3–4'], [5, 'недели 3–5']])}</label></div>
+      <div style="margin-top:12px"><span class="small muted">Отдельные уроки:</span>
+        ${ids.length ? `<div class="mkb" style="margin-top:6px">${ids.map(l => `<span class="mkt on">${esc(WEEKSHORT[l.w] || '')} · ${esc(l.t)} <button type="button" class="btn lnk" data-a="earlyRm" data-id="${l.id}" title="Вернуть по расписанию" style="color:#fff;margin-left:4px">×</button></span>`).join('')}</div>` : ' <span class="small muted">нет</span>'}
+        ${ls.length ? `<div class="row2" style="gap:8px;margin-top:8px;flex-wrap:wrap"><select id="earlyPick" class="sel" style="flex:1 1 320px;max-width:560px">${ls.map(l => `<option value="${l.id}">${esc(WEEKSHORT[l.w] || ('Неделя ' + l.w))} · ${esc(l.t)}</option>`).join('')}</select><button class="btn sm" data-a="earlyAdd">Открыть урок</button></div>` : ''}</div>
+      ${e.by ? `<p class="small muted" style="margin:10px 0 0">Изменено: ${esc(e.by)}, ${esc(fmtDT(e.at))}</p>` : ''}</div>`;
+  }
+  function earlySave(c, patch){ const e = Object.assign({ wk:0, menu:0, ids:[] }, c.early || {}, patch);
+    return act(() => api('setEarly', { token:S.token, email:c.email, early:e }), 'Досрочный доступ сохранён', () => { const v = (!e.wk && !e.menu && !(e.ids || []).length) ? '' : JSON.stringify(Object.assign({}, e, { by:S.user.name || S.user.email, at:new Date().toISOString() })); rowOf(c.email)['Досрочно'] = v; }); }
   function marksPanel(c){
     return `<div class="panel mkp"><h2><span>Отметки куратора</span><span class="small muted">видно только сотрудникам · можно выбрать несколько</span></h2>
       <div class="mkb">${marksFor(c).map(m => `<button class="mkt ${c.marks.includes(m.t) ? 'on' : ''}" data-a="mark" data-v="${esc(m.t)}">${c.marks.includes(m.t) ? '✓ ' : ''}${esc(m.t)}</button>`).join('')}</div>
@@ -7319,7 +7346,7 @@ const Adm = (() => {
       ${curSeg()}${mkSel}</div>
     <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th><button class="thsort ${/^st/.test(CF.sort) ? 'on' : ''}" data-a="stsort" data-v="st" title="Сортировка: сначала те, кого нужно забрать в работу → в обратном порядке → по последнему входу">Статус <span>${CF.sort === 'st' ? '↓' : CF.sort === 'st-' ? '↑' : '⇅'}</span></button></th><th><button class="thsort ${/^mk/.test(CF.sort) ? 'on' : ''}" data-a="stsort" data-v="mk" title="Сортировка по отметкам: одинаковые отметки рядом, без отметок — в конце → в обратном порядке (без отметок — сверху) → по последнему входу">Отметки <span>${CF.sort === 'mk' ? '↓' : CF.sort === 'mk-' ? '↑' : '⇅'}</span></button></th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
     ${list.map(c => { const lp = lessonPct(c), wt = c.assigned ? weekTrack(c, curWeekC(c)) : null;
-      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${c.rec ? ` <span class="chip rec" title="Купили запись: программа по расписанию потока, без чата протокола">в записи</span>` : ''}${needDoc(c) ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td><td data-l="Отметки">${marksCell(c)}</td>
+      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${c.early ? ` <span class="chip m" title="Админ открыл часть уроков или меню раньше срока">досрочно</span>` : ''}${c.rec ? ` <span class="chip rec" title="Купили запись: программа по расписанию потока, без чата протокола">в записи</span>` : ''}${needDoc(c) ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td><td data-l="Отметки">${marksCell(c)}</td>
       <td>${c.filled && c.type ? `<span class="chip">${TYPES[c.type].short}</span>${c.assigned ? '' : ' <span class="small muted">авто</span>'}` : `<span class="nd muted">—</span>`}</td>
       <td data-l="Уроки">${c.assigned ? `<span class="mini"><span class="pb"><i style="width:${lp}%"></i></span>${lp}%</span>` : '<span class="nd">—</span>'}</td>
       <td data-l="Трекер">${wt ? `<span class="mini"><span class="pb"><i style="width:${wt.p}%"></i></span>${wt.p}%</span>` : '<span class="nd">—</span>'}</td>
@@ -7342,7 +7369,7 @@ const Adm = (() => {
       ${c.assigned ? `<button class="btn ghost sm" data-a="asStudent">Кабинет ${W(c) === WM ? 'его' : 'её'} глазами</button>` : c.filled ? `<button class="btn ghost sm" disabled title="Пока протокол не назначен, ${W(c) === WM ? 'клиент видит' : 'клиентка видит'} только экран «Анкета на проверке»: фото языка, файлы и чат с куратором (на индивидуальном тарифе). Уроки и меню откроются после назначения протокола.">Кабинет ${W(c) === WM ? 'его' : 'её'} глазами — после назначения</button>` : ''}
       ${isAdmRole() ? `<button class="btn ghost sm" data-a="resetAll" ${c.filled ? '' : 'disabled'}>Открыть анкету для правки</button>` : ''}
       <button class="btn ghost sm" data-a="resetProg" ${c.assigned ? '' : 'disabled'}>Сбросить прогресс</button>
-      <button class="btn ghost sm" data-a="resetPw" ${c.hasPw ? '' : 'disabled'}>Сбросить пароль</button></div></div>${c.paidOnly ? '' : marksPanel(c)}`;
+      <button class="btn ghost sm" data-a="resetPw" ${c.hasPw ? '' : 'disabled'}>Сбросить пароль</button></div></div>${c.paidOnly ? '' : marksPanel(c) + earlyPanel(c)}`;
     if (!c.filled && c.lost) return head + `<div class="alert"><div><b>Анкета отправлена, но ответы не читаются.</b> В листе «Ученики» статус «${esc(c.status)}»${c.filledAt ? `, дата анкеты ${esc(fmtDT(c.filledAt))}` : ''}, а в листе «Анкеты» строки с этим e-mail нет или колонка JSON пустая/повреждена. Откройте лист «Анкеты» и найдите ${esc(c.email)}. Подробная проверка всех учеников — функция <b>checkQuizzes</b> в Apps Script. Текст анкеты сохранился в таблице ИИ-проверки.</div></div>${chatPanel(c)}`;
     if (!c.filled) return head + `<div class="panel"><h2><span>Анкета не заполнена</span></h2><p>${c.paidOnly ? `${W(c).N} ещё не заходил${W(c).l === 'ла' ? 'а' : ''} в кабинет. E-mail есть в выгрузке оплативших из GetCourse — карточка появится в листе «Ученики» при первом входе.` : stageOf(c) === 0 ? `${W(c).N} ещё не заходил${W(c).l === 'ла' ? 'а' : ''} в кабинет.` : `${W(c).N} вош${W(c).l === 'ла' ? 'ла' : 'ёл'} в кабинет${c.first ? ' ' + fmtDT(c.first) : ''}, но анкету ещё не отправил${W(c).l === 'ла' ? 'а' : ''}.`}</p>
       <p class="small muted" style="margin:0">Пароль ${c.hasPw ? 'задан' : 'ещё не задан'}. Доступ: ${accessTxt(c)}.</p></div>${c.paidOnly ? '' : chatPanel(c) + `<div style="margin-top:16px">${histBlock(c)}</div>`}`;
@@ -7997,6 +8024,8 @@ const Adm = (() => {
         await api('reply', { token:S.token, email:c.email, lessonId:'', text, files }); AV.cf = []; AV.cdraft = ''; chatPos.stick = true; }, 'Сообщение отправлено').then(() => { b.disabled = false; }); }
     if (a === 'acfDel') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; (AV.cf || []).splice(+b.dataset.i, 1); return render(true); }
     if (a === 'cfOpen') return openChatFile(b);
+    if (a === 'earlyAdd' && c) { const id = ($('#earlyPick') || {}).value; if (!id) return; return earlySave(c, { ids:((c.early || {}).ids || []).concat(id) }); }
+    if (a === 'earlyRm' && c) return earlySave(c, { ids:((c.early || {}).ids || []).filter(x => x !== b.dataset.id) });
     if (a === 'tongueFromChat' && c) { if (!confirm('Сделать это фото фото языка? Если фото уже было, оно заменится.')) return; return tongueSet(c, { fileId:b.dataset.id }); }
     if (a === 'addMat') { AV.pk = AV.tab || 'lessons'; AV.pq = ''; return openDr(picker()); }
     if (a === 'add') { const id = b.dataset.id, ov = { add:(c.ov.add || []).slice(), rm:(c.ov.rm || []).filter(x => x !== id) };
@@ -8041,6 +8070,7 @@ const Adm = (() => {
     if (e.target.id === 'adm-tongue' && AV.s === 'client') { const c = C.find(x => x.email === AV.id), f = e.target.files && e.target.files[0]; e.target.value = ''; if (!c || !f) return; if (!/^image\//.test(f.type || '') && !/\.heic$/i.test(f.name)) return toast('Нужна картинка: JPG, PNG или HEIC'); return gcShrink(f).then(d => tongueSet(c, { photo:d })).catch(err => toast(err.message || err)); }
     if (e.target.id === 'fmtSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id), rec = e.target.value === 'rec';
       return act(() => api('setFormat', { token:S.token, email:c.email, rec }), rec ? 'Формат: в записи — без чата протокола' : 'Формат: поток', () => { rowOf(c.email)['Формат'] = rec ? FMT_REC : ''; }); }
+    if ((e.target.id === 'earlyWk' || e.target.id === 'earlyMenu') && AV.s === 'client') { const c = C.find(x => x.email === AV.id); return earlySave(c, e.target.id === 'earlyWk' ? { wk:+e.target.value } : { menu:+e.target.value }); }
     if (e.target.id === 'mkF') { CF.mk = e.target.value || 'all'; return render(true); }
     if (e.target.id === 'curSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id); const v = e.target.value;
       return act(() => api('assignCurator', { token:S.token, email:c.email, curator:v }), v ? 'Куратор назначен: ' + curName(v) : `${W(c).N} ${W(c).ok}`, () => { rowOf(c.email)['Закреплён за'] = v; }); }
