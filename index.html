@@ -5769,6 +5769,7 @@ function welcome(){
   </div>
   <div class="card"><p><b>Важно.</b> Анкета заполняется один раз. Если позже захотите пройти её заново, напишите куратору.</p></div>
   <button class="btn mag full" data-a="startQuiz">${LS.get(draftKey(), null) ? 'Продолжить анкету' : 'Заполнить анкету'}</button>
+  <div style="margin-top:16px">${curCard()}</div>
   <div style="margin-top:16px">${webinarCard()}</div>
   ${preBlock()}
   ${a2hsCard()}
@@ -6267,10 +6268,11 @@ async function indDel(b){
 }
 // чат с куратором до назначения протокола (тариф «Индивидуальный»)
 function curCard(){
-  if (!isInd() || U.preview) return '';
+  // показываем и на общем тарифе, если куратор уже написал (иначе сообщение не найти до назначения протокола)
+  if (U.preview || !chatVisible()) return '';
   const n = chatUnread();
   return `<div class="card cucard"><span class="ic">${I.chat}</span><div><b>${S.user.curName ? 'Ваш куратор — ' + esc(S.user.curName) : 'Чат с куратором'}</b>
-    <p class="small" style="margin:2px 0 10px">Можно написать уже сейчас, не дожидаясь протокола: задать вопрос, прислать фото или анализы.</p>
+    <p class="small" style="margin:2px 0 10px">${isInd() ? 'Можно написать уже сейчас, не дожидаясь протокола: задать вопрос, прислать фото или анализы.' : 'Куратор написал вам сообщение — откройте чат, чтобы прочитать и ответить.'}</p>
     <button class="btn mag" data-a="chat">Открыть чат${n ? ' · ' + n + ' нов.' : ''}</button></div></div>`;
 }
 function formBlock(ctx){
