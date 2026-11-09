@@ -525,6 +525,21 @@ body.fv-on{overflow:hidden}
 .mds:not(.on){color:transparent;background:rgba(128,128,128,.5);text-shadow:none}
 .mds:not(.on) *{color:transparent}
 
+/* несколько фото в сообщении чата протокола */
+.gc-phs{display:grid;gap:4px;margin:6px 0 2px;max-width:420px}
+.gc-phs.n2{grid-template-columns:1fr 1fr}.gc-phs.n3{grid-template-columns:1fr 1fr 1fr}
+.gc-phs .gc-ph{margin:0;min-width:0;aspect-ratio:1/1}
+.gc-phs .gc-ph img{width:100%;height:100%;max-height:none;object-fit:cover}
+.gc-pps{flex-wrap:wrap;justify-content:flex-start;gap:8px}
+.gc-pt{position:relative;display:inline-block}
+.gc-pt img{width:72px;height:72px;object-fit:cover;border-radius:8px;display:block}
+.gc-pt .fx{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);font-size:11px;padding:0;display:flex;align-items:center;justify-content:center}
+/* панель форматирования — под полем ввода, а не поверх текста */
+.emo-w>textarea{padding-bottom:12px}
+.fmt-b{position:static;margin-top:4px}
+/* телефон: поле ввода 16px — иначе iPhone увеличивает страницу при вводе и текст уезжает за край */
+@media (max-width:820px){input.inp,textarea.inp,select.inp,.emo-w>textarea,#gcIn,#msgIn{font-size:16px}}
+
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
 .dtop .dt-b .cal{margin-top:16px}
@@ -1694,6 +1709,21 @@ body.fv-on{overflow:hidden}
 
 /* многострочные поля — без «таблетки» */
 textarea.inp,.emo-w>textarea{border-radius:16px}
+
+/* несколько фото в сообщении чата протокола */
+.gc-phs{display:grid;gap:4px;margin:6px 0 2px;max-width:420px}
+.gc-phs.n2{grid-template-columns:1fr 1fr}.gc-phs.n3{grid-template-columns:1fr 1fr 1fr}
+.gc-phs .gc-ph{margin:0;min-width:0;aspect-ratio:1/1}
+.gc-phs .gc-ph img{width:100%;height:100%;max-height:none;object-fit:cover}
+.gc-pps{flex-wrap:wrap;justify-content:flex-start;gap:8px}
+.gc-pt{position:relative;display:inline-block}
+.gc-pt img{width:72px;height:72px;object-fit:cover;border-radius:8px;display:block}
+.gc-pt .fx{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);font-size:11px;padding:0;display:flex;align-items:center;justify-content:center}
+/* панель форматирования — под полем ввода, а не поверх текста */
+.emo-w>textarea{padding-bottom:12px}
+.fmt-b{position:static;margin-top:4px}
+/* телефон: поле ввода 16px — иначе iPhone увеличивает страницу при вводе и текст уезжает за край */
+@media (max-width:820px){input.inp,textarea.inp,select.inp,.emo-w>textarea,#gcIn,#msgIn{font-size:16px}}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -4319,6 +4349,104 @@ ${LT_HEAT_CONTRA}
 });
 LTEXT.mix1_8 = LTEXT.slow1_6;
 
+// Неделя 2 · чувствительное пищеварение: текстовые уроки без видео (по презентациям «Бульоны» и «Ванночки для ног»)
+Object.assign(LTEXT, {
+sens2_9: `
+<p class="lt-lead">Бульоны — продукт-лекарство для чувствительного пищеварения. Прежде чем перейти к полноценному меню, начинаем с простого и глубоко восстанавливающего блюда.</p>
+<h3>Чем полезны</h3>
+<ul>
+<li><b>полноценный белок</b> в форме аминокислот — для восстановления слизистой кишечника, работы печени и нервной системы;</li>
+<li><b>соединительные аминокислоты</b>, из которых формируется коллаген, — для целостности слизистых, суставов и кожи;</li>
+<li><b>полезные жирные кислоты</b> питают и защищают слизистую;</li>
+<li><b>витамины группы B и микроэлементы</b> (железо, цинк, селен, фосфор) поддерживают обмен веществ и нервную систему.</li>
+</ul>
+<p>Бульоны успокаивают слизистую и помогают восстановить кишечный барьер, а специи помогают их хорошо переварить.</p>
+<div class="lt-note"><b>Как пить:</b> 1–2 кружки в день, горячими (комфортной температуры, выше температуры тела). Перед обедом — 1 кружка в течение всей программы; начните уже на этой неделе. Если на обед неудобно — выпейте на перекус в 16:00–17:00. Остатки бульона с кусочками мяса можно съесть на ужин, добавив овощи, отварную крупу или цельнозерновой хлеб.</div>
+
+<h3>Бульон из курицы</h3>
+<p class="muted small">3 порции · 5 минут у плиты · 1,5–3 часа · минимальная острота</p>
+<h4>Понадобится</h4>
+<ul>
+<li>суповая курица (мясо с косточками) — 400–500 г;</li>
+<li>вода — 2 л;</li>
+<li>лук — 1 шт., морковь — 1 шт., зелень для подачи;</li>
+<li>соль и специи: душистый перец — 2 горошины, щепотка цельных зиры и кориандра, щепотка листа пажитника, лавровый лист — 2 шт.</li>
+</ul>
+<h4>Как приготовить</h4>
+<ol class="lt-steps">
+<li>Залейте мясо водой и доведите до кипения. Если уверены в качестве мяса — просто снимите пенку; если нет — слейте первый бульон, промойте мясо и кастрюлю и налейте свежую воду.</li>
+<li>Томите на среднем огне со сдвинутой крышкой до мягкости мяса: фермерский бройлер — около часа, домашняя курица — 1,5–3 часа. Бульон выпарится примерно на треть.</li>
+<li>За 30 минут до готовности положите целиком луковицу и морковь, цельные специи и соль.</li>
+<li>Подавайте с мелко нарезанной зеленью.</li>
+</ol>
+
+<h3>Бульон из говядины или телятины</h3>
+<p class="muted small">3 порции · 5 минут у плиты · 2–3 часа · минимальная острота</p>
+<h4>Понадобится</h4>
+<ul>
+<li>говядина или телятина на кости — позвоночник или хвост, с хрящами и мясом — 500–600 г;</li>
+<li>вода — 2 л;</li>
+<li>лук — 1 шт., морковь — 1 шт., зелень для подачи;</li>
+<li>соль и специи: по щепотке цельных зиры, чёрного тмина и фенхеля, душистый перец — 2 горошины, лавровый лист — 2 шт.</li>
+</ul>
+<h4>Как приготовить</h4>
+<ol class="lt-steps">
+<li>Доведите до кипения так же, как куриный бульон: снимите пенку или слейте первую воду.</li>
+<li>Томите на слабом огне со сдвинутой крышкой 2–3 часа.</li>
+<li>Через 1,5 часа добавьте целиком луковицу, морковь и цельные специи.</li>
+<li>За 10 минут до готовности — лавровый лист и соль.</li>
+</ol>
+
+<h3>Рыбный бульон</h3>
+<p class="muted small">2 порции · 30 минут у плиты · 40 минут · средняя острота</p>
+<h4>Понадобится</h4>
+<ul>
+<li>рыбный суповой набор — голова, хвост, хребет с остатками мяса. Подойдут форель, нерка, кета, кижуч, горбуша, треска; не берите очень жирную рыбу (сёмгу, палтус);</li>
+<li>лук — 1 шт., морковь — 1 шт., маленький пучок укропа;</li>
+<li>сок лимона — 1 ст. л. (если рыба жирновата);</li>
+<li>соль и специи: душистый перец — 2 горошины, маленькая щепотка цельного чёрного тмина, карри для чувствительного пищеварения — на кончике ножа, лавровый лист — 2 шт.</li>
+</ul>
+<h4>Как приготовить</h4>
+<ol class="lt-steps">
+<li>Очистите рыбу от остатков чешуи и залейте водой так, чтобы она чуть покрывала рыбу, — бульон получится густым и наваристым.</li>
+<li>Доведите до кипения, снимите пенку и варите 10 минут.</li>
+<li>Добавьте овощи и цельные специи, варите ещё 15 минут.</li>
+<li>Добавьте лавровый лист, соль, карри и лимонный сок, томите 3–5 минут. При подаче посыпьте укропом.</li>
+</ol>
+`,
+
+sens2_10: `
+<p class="lt-lead">Начинаем работу с ЖКТ с простой и действенной процедуры — ванночки для ног с солью Эпсома (английская соль, соль с магнезией). При чувствительном пищеварении она работает как мягкая регулирующая практика: влияет на ЖКТ через нервную и сосудистую системы.</p>
+<h3>Чем хороши ванночки</h3>
+<ul>
+<li>помогают быстрее заснуть и лучше выспаться — а чем спокойнее нервная система, тем лучше работает ЖКТ;</li>
+<li>включают режим «отдыха и переваривания», снижают уровень стресса, улучшают настроение;</li>
+<li>уменьшают спазмы желчных протоков и кишечника, облегчают вздутие и тяжесть в животе;</li>
+<li>улучшают кровоток в органах брюшной полости — клетки ЖКТ получают больше кислорода и питания.</li>
+</ul>
+<p>Особенно полезны при спастических болях в животе, вздутии, запорах, а также при тревоге, нарушениях сна и фоновом стрессе.</p>
+
+<h3>Как делать</h3>
+<ol class="lt-steps">
+<li>Вечером, незадолго до сна, налейте в тазик горячую воду — она должна согревать, но не обжигать — так, чтобы вода покрывала щиколотки.</li>
+<li>Добавьте горсть соли Эпсома. Если соли нет, можно и без неё.</li>
+<li>Укутайтесь, чтобы сидеть было тепло, и посидите 15–20 минут, подливая горячую воду. Можно пить тёплый напиток, читать или смотреть что-то спокойное.</li>
+</ol>
+<div class="lt-note"><b>Как часто:</b> сначала каждый день, дальше — по расписанию в вашем трекере.</div>
+
+<div class="lt-warn"><div><b>Когда ванночки не делаем</b>
+<ul>
+<li>в дни менструации;</li>
+<li>при простуде с температурой выше 37,5 °C;</li>
+<li>при крупной миоме и эндометриозе с обильными кровотечениями, при любых гинекологических кровотечениях — тепло расширяет сосуды и усиливает кровопотерю;</li>
+<li>при острых и подострых воспалениях органов малого таза;</li>
+<li>в менопаузе, если есть приливы жара;</li>
+<li>при гипертонии.</li>
+</ul>
+<p><b>При беременности</b> можно делать тёплые ванночки — с водой температуры тела или чуть ниже, 2 раза в неделю.</p></div></div>
+`
+});
+
 // ── Краткие конспекты видеоуроков в HTML — из файлов «краткий конспект» (вялое и воспалённое). Полный конспект — PDF в материалах урока.
 var CON_HTML = {
  "infl1_1": "<h4>Главное за 1 минуту<\/h4>\n<div class=\"lt-note\"><p><strong>Воспалительный тип пищеварения<\/strong> — хроническое воспаление слизистой желудка, тонкого или толстого кишечника, иногда стенок жёлчного пузыря и поджелудочной железы. Меняется микробиом: возможны дисбиоз, СИБР, H. pylori.<\/p>\n<p><strong>Типичные диагнозы:<\/strong> гастрит, ГЭРБ, дуоденит, холецистит, хронический панкреатит, колит, язвенный колит, энтерит, дисбиоз, СИБР, хеликобактерная инфекция.<\/p><\/div>\n<h4>Характерные жалобы (достаточно 2–3)<\/h4>\n<ul>\n<li>изжога и жжение от кислого, горького, жгучего, острого (шоколад, кофе, алкоголь, цитрусы, томаты);<\/li>\n<li>боли через 1–1,5 часа после еды, на голодный желудок, ночью с 1:00 до 3:00;<\/li>\n<li>колющие боли справа; опоясывающие боли слева с отдачей в спину;<\/li>\n<li>вздутие на ферментированную пищу и пробиотики;<\/li>\n<li>лучше после обволакивающего: овсянка, льняная каша, пюре, кокосовое молоко;<\/li>\n<li>тошнота без связи с едой; диарея, несформированный стул, слизь в стуле.<\/li>\n<\/ul>\n<div class=\"lt-note\"><strong>Со временем<\/strong> воспаление истощает функции ЖКТ и добавляются признаки вялого и чувствительного типа: тяжесть, вечернее вздутие, отрыжка, изжога на мучное и сладкое, реакция на клетчатку и температуру еды. Протокол учитывает это, но приоритет — работа с воспалением.<\/div>\n<h4>Риски<\/h4>\n<p>Обострение заболеваний; язва желудка и 12-перстной кишки; эрозивный → атрофический гастрит; панкреатит с фиброзом; мальабсорбция; СРК с воспалительным компонентом; повышенная кишечная проницаемость → аллергии, аутоиммунные процессы. <strong>Каскад Корреа:<\/strong> воспаление → кишечная метаплазия → онкология желудка (менее 1 % случаев).<\/p>\n<h4>Какие обследования обсудить с гастроэнтерологом<\/h4>\n<div class=\"lt-tbl\"><table>\n<thead>\n<tr>\n<th><strong>Обследование<\/strong><\/th>\n<th><strong>Что показывает<\/strong><\/th>\n<\/tr>\n<\/thead>\n<tbody>\n<tr>\n<td><strong>УЗИ брюшной полости<\/strong><\/td>\n<td>Печень, жёлчный, поджелудочная; с нагрузкой — сократимость пузыря<\/td>\n<\/tr>\n<tr>\n<td><strong>ФГДС с биопсией<\/strong><\/td>\n<td>Слизистая, воспаление, H. pylori — при болях в желудке, изжоге, ГЭРБ<\/td>\n<\/tr>\n<tr>\n<td><strong>Кал: кальпротектин, скрытая кровь<\/strong><\/td>\n<td>Воспаление во всём кишечнике; дальше по показаниям — колоноскопия<\/td>\n<\/tr>\n<tr>\n<td><strong>СРБ (ультрачувств.), СОЭ<\/strong><\/td>\n<td>Общий уровень воспаления<\/td>\n<\/tr>\n<tr>\n<td><strong>ОАК, ферритин, B12, фолиевая кислота<\/strong><\/td>\n<td>Дефицит железа и кофакторов<\/td>\n<\/tr>\n<tr>\n<td><strong>Общий белок, альбумин<\/strong><\/td>\n<td>Усвоение белка<\/td>\n<\/tr>\n<tr>\n<td><strong>АЛТ, АСТ, билирубин<\/strong><\/td>\n<td>Печень и желчевыводящие пути<\/td>\n<\/tr>\n<tr>\n<td><strong>Амилаза, липаза<\/strong><\/td>\n<td>Острое воспаление поджелудочной, приступы<\/td>\n<\/tr>\n<tr>\n<td><strong>Кал на панкреатическую эластазу<\/strong><\/td>\n<td>Выработка ферментов поджелудочной<\/td>\n<\/tr>\n<tr>\n<td><strong>Водородно-дыхательный тест<\/strong><\/td>\n<td>СИБР, непереносимость лактозы, фруктозы и др. сахаров<\/td>\n<\/tr>\n<\/tbody>\n<\/table><\/div>\n<div class=\"lt-warn\"><div><strong>Важно:<\/strong> точный список анализов назначает и результаты оценивает врач-гастроэнтеролог индивидуально.<\/div><\/div>\n<h4>Цель и план программы (5 недель)<\/h4>\n<p><strong>Цель:<\/strong> снизить воспаление, не допустить его развития и обострений, поддержать пищеварение и всасывание, повысить качество жизни и энергию — мягкими бережными методами.<\/p>\n<ol>\n<li>мягкие сорбенты — подготовка кишечника;<\/li>\n<li>режим дня;<\/li>\n<li>регуляция нервной системы, снижение стресса;<\/li>\n<li>напитки с противовоспалительными травами;<\/li>\n<li>коррекция питания;<\/li>\n<li>меню из легкоусвояемых противовоспалительных блюд;<\/li>\n<li>специи и травы для снятия воспаления и заживления слизистой.<\/li>\n<\/ol>\n<div class=\"lt-ins\"><strong>Задание: посмотрите другие уроки первой недели, проверьте, какие травы и специи есть дома, докупите недостающее. Не торопитесь.<\/strong><\/div>",
@@ -4751,9 +4879,10 @@ const Demo = (() => {
     gchatGet({token,type,v}){ gcDue(); const me=auth(token), x=gcCtx(me,type), list=gcList(type);
       const ver=String(gcDb().ver[type]||0)+(x.staff?'s':'')+(x.banned?'b':''); if(v&&v===ver) return {same:true};
       return gcOut(me,type,ver,x); },
-    gchatSend({token,type,text,photo,replyTo}){ const me=auth(token), x=gcCtx(me,type); if(x.banned) throw new Error('Куратор ограничил отправку сообщений в чат');
-      text=String(text||'').trim(); if(text.length>6000) throw new Error('Сообщение слишком длинное: '+text.length+' символов, можно до 6000. Разделите его на две части.'); if(!text&&!photo) throw new Error('Напишите сообщение');
-      let ph=''; if(photo){ if(!/^data:image\//.test(photo)) throw new Error('Можно прикрепить только фото'); if(photo.length>4e6) throw new Error('Фото слишком большое'); ph='p'+Math.random().toString(36).slice(2); gcDb().photos[ph]={type,data:photo}; }
+    gchatSend({token,type,text,photo,photos,replyTo}){ const me=auth(token), x=gcCtx(me,type); if(x.banned) throw new Error('Куратор ограничил отправку сообщений в чат');
+      text=String(text||'').trim(); if(text.length>6000) throw new Error('Сообщение слишком длинное: '+text.length+' символов, можно до 6000. Разделите его на две части.');
+      const pl=(photos||[]).concat(photo?[photo]:[]).filter(Boolean); if(pl.length>GC_PH_MAX) throw new Error('Можно прикрепить до '+GC_PH_MAX+' фото в одно сообщение'); if(!text&&!pl.length) throw new Error('Напишите сообщение');
+      const ph=pl.map(d=>{ if(!/^data:image\//.test(d)) throw new Error('Можно прикрепить только фото'); if(d.length>4e6) throw new Error('Фото слишком большое'); const id='p'+Math.random().toString(36).slice(2); gcDb().photos[id]={type,data:d}; return id; }).join(',');
       const re=replyTo&&gcList(type).find(m=>m.id===replyTo&&!m.del)?replyTo:'';
       gcList(type).push({id:'g'+Math.random().toString(36).slice(2),at:now(),email:me['Email'],name:gcName(me),cu:x.staff,text,re,photo:ph,rx:{}});
       gcBump(type); log(me['Email'],'gchat_send',PNAME[type]); return gcOut(me,type,null,x); },
@@ -4985,7 +5114,7 @@ function logout(){
   try { sessionStorage.removeItem('hz_adm_view'); sessionStorage.removeItem('hz_adm_y'); sessionStorage.removeItem('hz_u_view'); uDone = false; if (/^#[av]=/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   flushSave(); $('#toast').classList.remove('on'); LS.del(TOKEN_KEY);
   Object.assign(S, { token:null, user:null }); Object.assign(U, { quiz:null, st:null, preview:false }); QD = null;
-  GC.data = {}; GC.v = {}; GC.photos = {}; GC.ph = {}; GC.draft = ''; GC.reply = null; GC.photo = null; if (gcBgT) { clearInterval(gcBgT); gcBgT = null; } gcPoll(false);
+  GC.data = {}; GC.v = {}; GC.photos = {}; GC.ph = {}; GC.draft = ''; GC.reply = null; GC.att = []; if (gcBgT) { clearInterval(gcBgT); gcBgT = null; } gcPoll(false);
   Adm.data = null; useUI('u'); hist = []; V = { s:'login', step:'email' }; render();
 }
 let saveT = null;
@@ -5098,8 +5227,9 @@ const MD = [[/`([^`\n]+?)`/g, '<code class="mdc">$1</code>'], [/\*\*(?=\S)([\s\S
   [/\+\+(?=\S)([\s\S]+?)\+\+/g, '<u>$1</u>'], [/~~(?=\S)([\s\S]+?)~~/g, '<s>$1</s>'], [/\|\|(?=\S)([\s\S]+?)\|\|/g, '<span class="mds" title="Нажмите, чтобы показать">$1</span>']];
 function linkify(t){
   const urls = [];
-  let h = esc(t).replace(/\b(https?:\/\/|www\.)[^\s<]+/gi, u => { const m = u.match(/^(.*?)((?:[.,;:!?»)\]]|&quot;|&#39;)*)$/), url = m[1], tail = m[2];
-    if (!url) return u; const href = /^www\./i.test(url) ? 'https://' + url : url; urls.push(`<a class="clink" href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`); return '\u0001' + (urls.length - 1) + '\u0002' + tail; });
+  // ссылки с http(s)://, с www. и просто адреса вида kurs.holistica.academy/… или t.me/… (почту не трогаем)
+  let h = esc(t).replace(/(^|[^a-z0-9а-яё@.\/_&#-])((?:https?:\/\/|www\.)[^\s<]+|(?:[a-z0-9а-яё-]+\.)+(?:ru|рф|com|academy|io|me|org|net|su|info|pro|online|site|app|by|kz|ua|uz)(?![a-z0-9а-яё@-])(?:\/[^\s<]*)?)/gi, (all, pre, u) => { const m = u.match(/^(.*?)((?:[.,;:!?»)\]]|&quot;|&#39;)*)$/), url = m[1], tail = m[2];
+    if (!url) return all; const href = /^https?:\/\//i.test(url) ? url : 'https://' + url; urls.push(`<a class="clink" href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`); return pre + '\u0001' + (urls.length - 1) + '\u0002' + tail; });
   MD.forEach(([re, to]) => { h = h.replace(re, to); });
   return h.replace(/\u0001(\d+)\u0002/g, (x, k) => urls[+k]);
 }
@@ -5160,7 +5290,7 @@ function chatView(){
 // ═══ Чаты протоколов: общий чат участниц одного типа пищеварения прямо в платформе ═══
 // Сообщения подтягиваются раз в 15 секунд, пока чат открыт. Фото, ответы, реакции, закреп и модерация куратора.
 const GC_RX = ['❤️', '👍', '🙏', '😊'];
-const GC = { data: {}, v: {}, photos: {}, ph: {}, reply: null, photo: null, draft: '', busy: false, stick: true, enter: true, timer: null, err: '' };
+const GC = { data: {}, v: {}, photos: {}, ph: {}, reply: null, att: [], draft: '', busy: false, stick: true, enter: true, timer: null, err: '' };
 // Пол клиента: из анкеты («Мужской»/«Женский»), а пока анкеты нет — по имени (Арсен, Игорь — мужские; Анна, Любовь — женские)
 const M_NAMES_A = /^(илья|никита|кузьма|фома|лука|савва|данила|гаврила|миша|гоша|паша|петя|вася|дима|лёша|леша|серёжа|сережа|витя|коля|толя|вова|костя|стёпа|степа|ваня|федя|юра|слава|тимоша|ilya|nikita|misha|dima|sasha_m)$/;
 const F_NAMES_SOFT = /^(любовь|нинель|эсфирь|руфь|адель|ассоль|изабель|рахиль|юдифь|айгуль|гульнур|динара_)$/;
@@ -5218,10 +5348,14 @@ function gcShrink(file){ return new Promise((res, rej) => {
     URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.82)); };
   img.onerror = () => { URL.revokeObjectURL(url); rej('Не получилось открыть фото. Попробуйте другое.'); };
   img.src = url; }); }
+const GC_PH_MAX = 10;
+const gcPids = v => String(v || '').split(',').filter(Boolean);
+const gcAtt = t => GC.att.filter(x => x.t === t);
 function gcMsg(m, d, staff){
   const mine = m.aid === d.me;
   const re = m.re ? `<button type="button" class="gc-re" data-a="gcJump" data-id="${esc(m.re.id)}"><b>${esc(m.re.name)}</b><span>${esc(plainMd(m.re.text) || (m.re.photo ? 'Фото' : 'Сообщение удалено'))}</span></button>` : '';
-  const ph = m.photo ? `<button type="button" class="gc-ph" data-a="gcPhoto" data-id="${esc(m.photo)}">${GC.photos[m.photo] ? `<img src="${GC.photos[m.photo]}" alt="Фото">` : '<span>Загружаем фото…</span>'}</button>` : '';
+  const pids = gcPids(m.photo), phb = id => `<button type="button" class="gc-ph" data-a="gcPhoto" data-id="${esc(id)}">${GC.photos[id] ? `<img src="${GC.photos[id]}" alt="Фото">` : '<span>Загружаем фото…</span>'}</button>`;
+  const ph = pids.length > 1 ? `<div class="gc-phs n${Math.min(pids.length, 3)}">${pids.map(phb).join('')}</div>` : pids.length ? phb(pids[0]) : '';
   const rx = GC_RX.map(e => { const l = (m.rx && m.rx[e]) || [], on = l.includes(d.me);
     return `<button type="button" class="gc-rx${on ? ' on' : ''}${l.length ? ' has' : ''}" data-a="gcRx" data-id="${esc(m.id)}" data-e="${e}" aria-pressed="${on}" aria-label="Реакция ${e}">${e}${l.length ? `<small>${l.length}</small>` : ''}</button>`; }).join('');
   const acts = [`<button type="button" class="gc-a" data-a="gcReply" data-id="${esc(m.id)}">Ответить</button>`];
@@ -5241,11 +5375,11 @@ function gcBody(t, staff){
   const list = d.list.map(m => gcMsg(m, d, staff)).join('') || `<p class="muted small gc-empty">Сообщений пока нет. Начните разговор — поздоровайтесь и расскажите, с чего начинаете программу.</p>`;
   const pin = d.pin ? `<button type="button" class="gc-pin" data-a="gcJump" data-id="${esc(d.pin.id)}"><span class="gc-pin-i" aria-hidden="true">📌</span><span><small>Закреплено · ${esc(d.pin.name)}</small><b>${esc(plainMd(d.pin.text) || 'Фото')}</b></span></button>` : '';
   const rp = GC.reply && GC.reply.t === t ? `<div class="gc-rp"><span><small>Ответ ${esc(GC.reply.name)}</small><b>${esc(GC.reply.text || 'Фото')}</b></span><button type="button" class="fx" data-a="gcReplyX" aria-label="Отменить ответ">✕</button></div>` : '';
-  const pp = GC.photo && GC.photo.t === t ? `<div class="gc-pp"><img src="${GC.photo.data}" alt=""><button type="button" class="fx" data-a="gcPhotoX" aria-label="Убрать фото">✕</button></div>` : '';
+  const att = gcAtt(t), pp = att.length ? `<div class="gc-pp gc-pps">${att.map((x, i) => `<span class="gc-pt"><img src="${x.data}" alt=""><button type="button" class="fx" data-a="gcPhotoX" data-i="${i}" aria-label="Убрать фото">✕</button></span>`).join('')}${att.length < GC_PH_MAX ? '' : '<small class="muted">не больше ' + GC_PH_MAX + '</small>'}</div>` : '';
   const form = d.banned && !staff ? `<div class="card alt" style="margin-top:12px"><p style="margin:0">Куратор ограничил отправку сообщений в чат. Если это ошибка, напишите в техподдержку.</p></div>`
     : d.closed && !staff ? '' : `<div class="gc-form">${rp}${pp}
       <textarea class="inp" id="gcIn" maxlength="6000" placeholder="${staff ? 'Сообщение от куратора' : 'Ваше сообщение'}" rows="2">${esc(GC.draft)}</textarea>
-      <div class="gc-fb"><input type="file" accept="image/*" id="gc-photo" class="vh"><label for="gc-photo" class="btn ghost sm" title="Прикрепить фото">${I.clip.replace('<svg', '<svg width="16" height="16"')} Фото</label>
+      <div class="gc-fb"><input type="file" accept="image/*" id="gc-photo" class="vh" multiple><label for="gc-photo" class="btn ghost sm" title="Прикрепить фото">${I.clip.replace('<svg', '<svg width="16" height="16"')} Фото</label>
       <button type="button" class="btn sm${staff ? '' : ' mag'}" data-a="gcSend" data-t="${t}" ${GC.busy ? 'disabled' : ''}>${GC.busy ? 'Отправляем…' : 'Отправить'}</button></div></div>`;
   return `${pin}<div class="gc-list" id="gc-list">${list}</div>${form}`;
 }
@@ -5263,12 +5397,12 @@ function gchatView(){
 }
 async function gcSend(t, staff, rerender){
   gcKeep();
-  const text = GC.draft.trim(), photo = GC.photo && GC.photo.t === t ? GC.photo.data : '';
-  if (!text && !photo) return toast('Напишите сообщение');
+  const text = GC.draft.trim(), photos = gcAtt(t).map(x => x.data);
+  if (!text && !photos.length) return toast('Напишите сообщение');
   if (U.preview) return toast('В режиме просмотра отправка недоступна');
   GC.busy = true; rerender();
-  try { const r = await api('gchatSend', { token:S.token, type:t, text, photo, replyTo: GC.reply && GC.reply.t === t ? GC.reply.id : '' });
-    GC.data[t] = r; GC.v[t] = r.v; GC.draft = ''; GC.reply = null; GC.photo = null; GC.stick = true; }
+  try { const r = await api('gchatSend', { token:S.token, type:t, text, photos, replyTo: GC.reply && GC.reply.t === t ? GC.reply.id : '' });
+    GC.data[t] = r; GC.v[t] = r.v; GC.draft = ''; GC.reply = null; GC.att = GC.att.filter(x => x.t !== t); GC.stick = true; }
   catch (e) { toast(e.message); }
   GC.busy = false; rerender();
 }
@@ -5286,7 +5420,7 @@ function gcClick(a, b, t, staff, rerender){
     if (m) { m.text = text; m.ed = true; } GC.edit = null; gcKeep(); rerender();
     api('gchatEdit', { token:S.token, type:t, id:b.dataset.id, text }).then(r => { if (r && r.list) { GC.data[t] = r; GC.v[t] = r.v; } toast('Сообщение изменено'); rerender(); }).catch(err => { toast(err.message); gcLoad(t, true).then(rerender); }); return true; }
   if (a === 'gcReplyX') { gcKeep(); GC.reply = null; rerender(); return true; }
-  if (a === 'gcPhotoX') { gcKeep(); GC.photo = null; rerender(); return true; }
+  if (a === 'gcPhotoX') { gcKeep(); const mine = gcAtt(t), x = mine[+b.dataset.i]; GC.att = GC.att.filter(y => y !== x); rerender(); return true; }
   if (a === 'gcRx') { if (U.preview) { toast('В режиме просмотра недоступно'); return true; }
     const m = find(b.dataset.id), e = b.dataset.e; if (m) { m.rx = m.rx || {}; const l = m.rx[e] = m.rx[e] || [], i = l.indexOf(d.me); if (i > -1) l.splice(i, 1); else l.push(d.me); gcKeep(); rerender(); }
     api('gchatReact', { token:S.token, type:t, id:b.dataset.id, emoji:e }).then(r => { if (r && r.list) { GC.data[t] = r; GC.v[t] = r.v; } }).catch(err => toast(err.message)); return true; }
@@ -5300,9 +5434,11 @@ function gcClick(a, b, t, staff, rerender){
   return false;
 }
 async function gcPhotoPick(input, t, rerender){
-  const f = input.files && input.files[0]; input.value = ''; if (!f) return;
+  const fs = [...(input.files || [])]; input.value = ''; if (!fs.length) return;
   gcKeep();
-  try { GC.photo = { t, data: await gcShrink(f) }; } catch (e) { toast(e); }
+  const room = GC_PH_MAX - gcAtt(t).length;
+  if (fs.length > room) toast(room > 0 ? `В одно сообщение — не больше ${GC_PH_MAX} фото. Добавили первые ${room}.` : `В одно сообщение — не больше ${GC_PH_MAX} фото`);
+  for (const f of fs.slice(0, Math.max(0, room))) { try { GC.att.push({ t, data: await gcShrink(f) }); } catch (e) { toast(e); } }
   rerender();
 }
 let gcPollT = null;
@@ -8053,7 +8189,7 @@ const Adm = (() => {
     if (a === 'rtf') { AV[b.dataset.k] = b.dataset.v; if (b.dataset.k === 'rw') LS.set('hz_rtw', b.dataset.v); return render(true); }
     if (a === 'rtReload') { RTG = null; return open(); }
     if (a === 'rtGo') { closeDr(); GC.stick = true; GC.enter = true; AV = { s:'gchats', t:b.dataset.t }; render(); return window.scrollTo(0,0); }
-    if (a === 'gctab') { schKeep(); gcKeep(); GC.reply = null; GC.photo = null; GC.stick = true; GC.enter = true; AV.t = b.dataset.t; return render(true); }
+    if (a === 'gctab') { schKeep(); gcKeep(); GC.reply = null; GC.stick = true; GC.enter = true; AV.t = b.dataset.t; return render(true); }
     if (/^gc[A-Z]/.test(a)) return gcClick(a, b, AV.t || 'slow', true, () => render(true));
     if (a === 'nav') { closeDr(); AV = { s:b.dataset.s }; if (AV.s === 'rtime') AV.rw = LS.get('hz_rtw', '0'); if (AV.s === 'gchats') { GC.stick = true; GC.enter = true; } if (AV.s === 'clients') CF.st = 'all'; render(); return window.scrollTo(0,0); }
     if (a === 'chsort') { LS.set('hz_chsort', b.dataset.v); return render(true); }
