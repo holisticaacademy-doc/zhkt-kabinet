@@ -8602,12 +8602,49 @@ const Adm = (() => {
       <div class="row" style="gap:8px;margin-top:8px">${r.status !== RZ_ST.ok ? `<button class="btn sm" data-a="rzOk" data-i="${i}">Принять</button>` : ''}${r.status !== RZ_ST.fix ? `<button class="btn sm ghost" data-a="rzFix" data-i="${i}">Вернуть на доработку</button>` : ''}${r.status !== RZ_ST.wait ? `<button class="btn sm ghost" data-a="rzWait" data-i="${i}">Снова на проверку</button>` : ''}</div>
     </div>`).join('') : `<div class="panel"><p style="margin:0">${f === 'wait' ? 'Новых работ на проверке нет.' : 'Здесь пока пусто.'}</p></div>`}`;
   }
+  // Сводка частых вопросов под уроками для публикации в чате протокола: вопрос + ответ куратора, без имён
+  function digPairs(t, w, days){
+    const since = days ? Date.now() - days * 864e5 : 0, by = {};
+    threads().forEach(th => { const l = byId(th.lessonId); if (!l || !lessonPubOk(th.lessonId)) return;
+      if (l.types && l.types.length && !l.types.includes(t)) return;
+      if (w !== 'all' && String(l.w) !== String(w)) return;
+      th.list.forEach((m, i) => { if (m.from === 'cu' || !m.text || tsOf(m) < since) return;
+        const ans = []; for (let j = i + 1; j < th.list.length && th.list[j].from === 'cu'; j++) if (th.list[j].text) ans.push(th.list[j].text);
+        if (!ans.length) return; (by[l.id] = by[l.id] || []).push({ q:m.text, a:ans.join('\n'), at:tsOf(m), pub:!!m.pub }); }); });
+    return Object.entries(by).map(([id, list]) => ({ l:byId(id), list:list.sort((a, b) => b.at - a.at) })).sort((a, b) => b.list.length - a.list.length || a.l.w - b.l.w);
+  }
+  function digText(t, w, days){
+    const cut = (x, n) => { x = String(x).trim(); return x.length > n ? x.slice(0, n - 1).trim() + '…' : x; };
+    const g = digPairs(t, w, days).slice(0, 6); if (!g.length) return '';
+    return `**Частые вопросы по урокам**\nСобрали вопросы, которые вы задавали под уроками, и ответы кураторов. Возможно, у вас был такой же.\n\n` +
+      g.map(x => `**${x.l.t}**${x.l.w ? ' · ' + WEEKSHORT[x.l.w] : ''}\n` + x.list.slice(0, 3).map(p => `__Вопрос:__ ${cut(p.q, 300)}\n__Ответ:__ ${cut(p.a, 600)}`).join('\n\n')).join('\n\n') +
+      `\n\nЕсли остались вопросы — задавайте под уроком, кураторы ответят.`;
+  }
+  function digPanel(){
+    if (!AV.dig) return '';
+    const t = AV.dgt || 'slow', w = AV.dgw || 'all', d = AV.dgd === undefined ? 7 : AV.dgd;
+    if (AV.dgText === undefined) AV.dgText = digText(t, w, d);
+    const n = digPairs(t, w, d).reduce((s, x) => s + x.list.length, 0), len = AV.dgText.length;
+    return `<div class="panel" style="margin-bottom:14px"><h2><span>Сводка для чата протокола</span></h2>
+      <p class="small muted" style="margin-top:-4px">Платформа собирает вопросы под уроками этого протокола, на которые уже ответил куратор, — без имён. Сначала уроки, где вопросов больше. Перед отправкой проверьте текст: уберите личные подробности (диагнозы, анализы) и то, что не стоит публиковать.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin:8px 0">
+        <select class="sel" id="dgT" style="width:auto">${Object.keys(PNAME).map(k => `<option value="${k}"${k === t ? ' selected' : ''}>${PNAME[k]}</option>`).join('')}</select>
+        <select class="sel" id="dgW" style="width:auto"><option value="all"${w === 'all' ? ' selected' : ''}>Все недели</option>${[0,1,2,3,4,5,6].map(i => `<option value="${i}"${String(w) === String(i) ? ' selected' : ''}>${WEEKSHORT[i]}</option>`).join('')}</select>
+        <select class="sel" id="dgD" style="width:auto">${[[7,'За 7 дней'],[14,'За 14 дней'],[30,'За 30 дней'],[0,'За всё время']].map(([v, n]) => `<option value="${v}"${+d === v ? ' selected' : ''}>${n}</option>`).join('')}</select>
+        <span class="small muted" style="align-self:center">вопросов с ответами: ${n}</span>
+      </div>
+      ${AV.dgText ? `<textarea class="inp" id="dgIn" data-keep="dig" style="min-height:260px">${esc(AV.dgText)}</textarea>
+      <p class="small ${len > 6000 ? '' : 'muted'}" style="margin:4px 0 8px${len > 6000 ? ';color:#9e007e' : ''}">${len} из 6000 символов${len > 6000 ? ' — сократите, иначе чат не примет сообщение' : ''}</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm" data-a="digSend">Отправить в чат «${esc(PNAME[t])}»</button><button class="btn sm ghost" data-a="digCopy">Скопировать</button><button class="btn sm ghost" data-a="digReset">Собрать заново</button></div>`
+      : `<p class="muted" style="margin:0">За этот период вопросов с ответами по этому протоколу нет. Выберите другую неделю или период.</p>`}</div>`;
+  }
   function comments(){
     const f = AV.cf || 'open', tf = AV.ctf || 'all';
     const TF = { all: () => true, gen: c => c.tariff !== TARIFF_IND && !c.rec, ind: c => c.tariff === TARIFF_IND, rec: c => !!c.rec };
     const inCur = t => curFilter([t.c]).length > 0 && TF[tf](t.c), all = threads().filter(inCur), list = (f === 'open' ? openThreads().filter(inCur) : all).slice().sort((a, b) => tsOf(b.list[b.list.length-1]) - tsOf(a.list[a.list.length-1]));
-    return `<div class="head"><div><h1>Комментарии под уроками</h1><p class="muted" style="margin:0">Ответ появляется под уроком у ученицы</p></div>
+    return `<div class="head"><div><h1>Комментарии под уроками</h1><p class="muted" style="margin:0">Ответ появляется под уроком у ученицы · <button class="btn lnk" data-a="digOpen" style="padding:0">${AV.dig ? 'Скрыть сводку для чата' : 'Сводка для чата протокола'}</button></p></div>
     <span class="seg"><button class="${f === 'open' ? 'on' : ''}" data-a="cmf" data-v="open">Без ответа · ${openThreads().length}</button><button class="${f === 'all' ? 'on' : ''}" data-a="cmf" data-v="all">Все · ${all.length}</button></span></div>
+    ${digPanel()}
     <div class="tools">${curSeg()}<span class="seg" title="Тариф ученицы">${[['all','Все тарифы'],['gen','Общий'],['ind','Индивидуальный'],['rec','В записи']].map(([k, n]) => `<button class="${tf === k ? 'on' : ''}" data-a="ctf" data-v="${k}">${n} · ${(f === 'open' ? openThreads() : threads()).filter(t => curFilter([t.c]).length > 0 && TF[k](t.c)).length}</button>`).join('')}</span></div>
     ${list.length ? list.map(t => commentItem(t, true)).join('') : `<div class="panel"><p style="margin:0">${f === 'open' ? 'Все комментарии отвечены.' : 'Комментариев пока нет.'}</p></div>`}`;
   }
@@ -8781,6 +8818,13 @@ const Adm = (() => {
     if (a === 'prev') { AV.lastPrev = b.dataset.id; return openDr(preview(b.dataset.id)); }
     if (a === 'cmf') { AV.cf = b.dataset.v; return render(true); }
     if (a === 'ctf') { AV.ctf = b.dataset.v; return render(true); }
+    if (a === 'digOpen') { AV.dig = !AV.dig; AV.dgText = undefined; return render(true); }
+    if (a === 'digReset') { AV.dgText = undefined; return render(true); }
+    if (a === 'digCopy') { const ta = $('#dgIn'); if (ta) { AV.dgText = ta.value; (navigator.clipboard ? navigator.clipboard.writeText(ta.value) : Promise.reject()).then(() => toast('Текст скопирован'), () => { ta.select(); toast('Выделили текст — нажмите Ctrl+C'); }); } return; }
+    if (a === 'digSend') { const ta = $('#dgIn'), text = ta ? ta.value.trim() : '', t = AV.dgt || 'slow'; if (!text) return toast('Текст пустой');
+      if (text.length > 6000) return toast('Сводка длиннее 6000 символов — сократите');
+      if (!confirm(`Отправить сводку в чат «${PNAME[t]}»? Её увидят все участницы протокола.`)) return;
+      AV.dgText = text; return act(() => api('gchatSend', { token:S.token, type:t, text }), 'Сводка отправлена в чат протокола'); }
     if (a === 'toChat') { const el = document.getElementById('chat'); if (el) { el.scrollIntoView({ behavior:'smooth', block:'start' }); setTimeout(() => { const t = $('#chatIn'); if (t) t.focus(); }, 400); } return; }
     if (a === 'openChat') { closeDr(); AV = { s:'client', id:b.dataset.id, tab:'lessons' }; render(); const el = document.getElementById('chat'); if (el) el.scrollIntoView(); return; }
     if (a === 'msgEdit') { AV.edit = b.dataset.id; render(true); const ta = $('#msgEdIn'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } return; }
@@ -8870,9 +8914,11 @@ const Adm = (() => {
     if (a === 'resetPw') { if (!confirm(`Сбросить пароль для ${c.name}? При следующем входе она придумает новый.`)) return;
       return act(() => api('resetPassword', { token:S.token, email:c.email }), 'Пароль сброшен'); }
   }
+  document.addEventListener('input', e => { if (e.target && e.target.id === 'dgIn') AV.dgText = e.target.value; });
   function change(e){
     if (e.target.id === 'sch-photo') { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; schKeep(); return gcShrink(f).then(d => { SD.photo = d; render(true); }).catch(err => toast(err)); }
     if (e.target.id === 'gc-photo') return gcPhotoPick(e.target, AV.t || 'slow', () => render(true));
+    if (['dgT','dgW','dgD'].includes(e.target.id)) { const v = e.target.value; if (e.target.id === 'dgT') AV.dgt = v; else if (e.target.id === 'dgW') AV.dgw = v; else AV.dgd = +v; AV.dgText = undefined; return render(true); }
     if (e.target.id === 'adm-chat-file') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; AV.cf = AV.cf || []; return readChatFiles(e.target, AV.cf).then(() => render(true)); }
     if (e.target.id === 'curF') { CF.cur = e.target.value || 'all'; LS.set('hz_curf', CF.cur); return render(true); }
     if (e.target.id === 'adm-tongue' && AV.s === 'client') { const c = C.find(x => x.email === AV.id), f = e.target.files && e.target.files[0]; e.target.value = ''; if (!c || !f) return; if (!/^image\//.test(f.type || '') && !/\.heic$/i.test(f.name)) return toast('Нужна картинка: JPG, PNG или HEIC'); return gcShrink(f).then(d => tongueSet(c, { photo:d })).catch(err => toast(err.message || err)); }
