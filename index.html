@@ -8225,11 +8225,12 @@ const Adm = (() => {
   const RT_CH = { chat:'Чат с куратором', lesson:'Под уроками', proto:'Чаты протоколов' };
   const rtSet = () => { const st = (D && D.settings) || {}, m = String(st.workHours || '09:00-21:00').match(/(\d{1,2})[:.](\d{2})\D+(\d{1,2})[:.](\d{2})/);
     return { a: m ? +m[1] * 60 + +m[2] : 540, b: m ? +m[3] * 60 + +m[4] : 1260, sla: (+st.slaH || 2) * 36e5 }; };
-  // длительность: круглосуточно или только рабочие часы по Москве (UTC+3)
+  // длительность: круглосуточно или только рабочие часы по Москве (UTC+3), без субботы и воскресенья
   function rtDur(s, e, work){
     if (!work) return Math.max(0, e - s);
     const { a, b } = rtSet(), MSK = 3 * 36e5, D0 = 864e5; let sum = 0;
     for (let d = Math.floor((s + MSK) / D0) * D0 - MSK; d < e; d += D0) {
+      const wd = new Date(d + MSK).getUTCDay(); if (wd === 0 || wd === 6) continue;   // выходные не считаем
       const lo = Math.max(s, d + a * 6e4), hi = Math.min(e, d + b * 6e4); if (hi > lo) sum += hi - lo; }
     return sum;
   }
@@ -8275,7 +8276,7 @@ const Adm = (() => {
     return `<div class="head"><div><h1>Время ответа</h1><p class="muted" style="margin:0">Сколько клиентки ждут ответа куратора: в личном чате, под уроками и в чатах протоколов. Норма — ${slaTxt} (меняется в «Настройках»).</p></div><button class="btn ghost" data-a="rtReload">Обновить</button></div>
     <div class="tools"><span class="seg">${seg('rp','7','7 дней')}${seg('rp','30','30 дней')}${seg('rp','all','Весь поток')}</span>
       <span class="seg">${seg('rc','all','Все чаты')}${seg('rc','chat',RT_CH.chat)}${seg('rc','lesson',RT_CH.lesson)}${seg('rc','proto',RT_CH.proto)}</span>
-      <span class="seg">${seg('rw','0','Круглосуточно')}${seg('rw','1','Рабочее время ' + (D && D.settings && D.settings.workHours || '09:00-21:00'))}</span></div>
+      <span class="seg">${seg('rw','0','Круглосуточно')}${seg('rw','1','Рабочее время ' + (D && D.settings && D.settings.workHours || '09:00-21:00') + ', пн–пт')}</span></div>
     ${!RTG ? '<p class="small muted">Загружаем чаты протоколов…</p>' : ''}
     <div class="rt-ks">${kpi(tot.n, 'ответов за период')}${kpi(tot.n ? rtFmt(tot.med) : '—', 'медиана')}${kpi(tot.n ? rtFmt(tot.avg) : '—', 'среднее')}${kpi(tot.n ? tot.ok + '%' : '—', 'ответов в пределах ' + slaTxt, tot.n && tot.ok < 80)}${kpi(wait.length, 'ждут ответа сейчас' + (late ? ` · ${late} дольше ${slaTxt}` : ''), late)}</div>
     <div class="panel" style="margin-bottom:16px"><h2><span>Ждут ответа сейчас</span></h2>
@@ -8288,7 +8289,7 @@ const Adm = (() => {
       ${Object.keys(RT_CH).map(k => { const l = done.filter(w => w.ch === k); return l.length ? row(RT_CH[k], l) : ''; }).join('')}</tbody></table></div></div>` : ''}
     ${slow.length ? `<div class="panel" style="margin-bottom:16px"><h2><span>Самые долгие ответы за период</span></h2><div class="tw"><table class="t"><thead><tr><th>Клиентка</th><th>Где</th><th>Ответил(а)</th><th>Ждала</th></tr></thead><tbody>
       ${slow.map(w => `<tr><td><b>${esc(w.name)}</b></td><td>${esc(w.where)}</td><td>${esc(w.by)}</td><td><span class="chip ${w.d > sla ? 'r' : ''}">${rtFmt(w.d)}</span><span class="sub" style="display:block">${fmtDT(new Date(w.s).toISOString())}</span></td></tr>`).join('')}</tbody></table></div></div>` : ''}
-    <p class="small muted">Как считаем: ожидание начинается с первого сообщения клиентки после последнего ответа куратора и заканчивается следующим сообщением куратора в этом же чате. В чатах протоколов вопросом считается сообщение со знаком «?» или ответ на сообщение куратора. «Рабочее время» — считаются только часы ${esc(D && D.settings && D.settings.workHours || '09:00-21:00')} по Москве.</p>`;
+    <p class="small muted">Как считаем: ожидание начинается с первого сообщения клиентки после последнего ответа куратора и заканчивается следующим сообщением куратора в этом же чате. В чатах протоколов вопросом считается сообщение со знаком «?» или ответ на сообщение куратора. «Рабочее время» — считаются только часы ${esc(D && D.settings && D.settings.workHours || '09:00-21:00')} по Москве с понедельника по пятницу, суббота и воскресенье не считаются.</p>`;
   }
   // ── Отложенные сообщения в чаты протоколов (время — московское) ──
   let SCH = null, schBusy = false;
