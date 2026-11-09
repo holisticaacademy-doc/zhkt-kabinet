@@ -8605,7 +8605,7 @@ const Adm = (() => {
   // Сводка частых вопросов под уроками для публикации в чате протокола: вопрос + ответ куратора, без имён
   function digPairs(t, w, days){
     const since = days ? Date.now() - days * 864e5 : 0, by = {};
-    threads().forEach(th => { const l = byId(th.lessonId); if (!l || !lessonPubOk(th.lessonId)) return;
+    threads().forEach(th => { const l = byId(th.lessonId); if (!l || !lessonPubOk(th.lessonId) || ['st2','st4','st6'].includes(th.lessonId)) return;   // технические уроки (бот, техвопросы, значок) — не в сводку
       if (l.types && l.types.length && !l.types.includes(t)) return;
       if (w !== 'all' && String(l.w) !== String(w)) return;
       th.list.forEach((m, i) => { if (m.from === 'cu' || !m.text || tsOf(m) < since) return;
@@ -8626,14 +8626,14 @@ const Adm = (() => {
     if (AV.dgText === undefined) AV.dgText = digText(t, w, d);
     const n = digPairs(t, w, d).reduce((s, x) => s + x.list.length, 0), len = AV.dgText.length;
     return `<div class="panel" style="margin-bottom:14px"><h2><span>Сводка для чата протокола</span></h2>
-      <p class="small muted" style="margin-top:-4px">Платформа собирает вопросы под уроками этого протокола, на которые уже ответил куратор, — без имён. Сначала уроки, где вопросов больше. Перед отправкой проверьте текст: уберите личные подробности (диагнозы, анализы) и то, что не стоит публиковать.</p>
+      <p class="small muted" style="margin-top:-4px">Платформа собирает вопросы под уроками этого протокола, на которые уже ответил куратор, — без имён. Сначала уроки, где вопросов больше. Технические уроки (бот, технические вопросы, значок на экране) в сводку не попадают. Перед отправкой проверьте текст: уберите личные подробности (диагнозы, анализы), вопросы про техподдержку, анкету и тариф — всё, что не про содержание уроков.</p>
       <div class="row" style="gap:8px;flex-wrap:wrap;margin:8px 0">
         <select class="sel" id="dgT" style="width:auto">${Object.keys(PNAME).map(k => `<option value="${k}"${k === t ? ' selected' : ''}>${PNAME[k]}</option>`).join('')}</select>
         <select class="sel" id="dgW" style="width:auto"><option value="all"${w === 'all' ? ' selected' : ''}>Все недели</option>${[0,1,2,3,4,5,6].map(i => `<option value="${i}"${String(w) === String(i) ? ' selected' : ''}>${WEEKSHORT[i]}</option>`).join('')}</select>
         <select class="sel" id="dgD" style="width:auto">${[[7,'За 7 дней'],[14,'За 14 дней'],[30,'За 30 дней'],[0,'За всё время']].map(([v, n]) => `<option value="${v}"${+d === v ? ' selected' : ''}>${n}</option>`).join('')}</select>
         <span class="small muted" style="align-self:center">вопросов с ответами: ${n}</span>
       </div>
-      ${AV.dgText ? `<textarea class="inp" id="dgIn" data-keep="dig" style="min-height:260px">${esc(AV.dgText)}</textarea>
+      ${AV.dgText ? `<textarea class="inp" id="dgIn" style="min-height:260px">${esc(AV.dgText)}</textarea>
       <p class="small ${len > 6000 ? '' : 'muted'}" style="margin:4px 0 8px${len > 6000 ? ';color:#9e007e' : ''}">${len} из 6000 символов${len > 6000 ? ' — сократите, иначе чат не примет сообщение' : ''}</p>
       <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm" data-a="digSend">Отправить в чат «${esc(PNAME[t])}»</button><button class="btn sm ghost" data-a="digCopy">Скопировать</button><button class="btn sm ghost" data-a="digReset">Собрать заново</button></div>`
       : `<p class="muted" style="margin:0">За этот период вопросов с ответами по этому протоколу нет. Выберите другую неделю или период.</p>`}</div>`;
