@@ -1707,6 +1707,7 @@ body.fv-on{overflow:hidden}
 .tup{margin-top:10px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .tup-chat{display:flex;flex-direction:column;gap:6px;width:100%}
 .tup-i{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.chip.y{background:#fdf3ea;border-color:#f0d9c2;color:#8a4b12}
 .chip.rec{background:#fdf3ea;border-color:#f0d9c2;color:#8a4b12}
 
 .clink{color:inherit;text-decoration:underline;text-underline-offset:2px;word-break:break-all}
@@ -7904,6 +7905,14 @@ const Adm = (() => {
   // порядок статусов для сортировки: сначала то, что куратору нужно забрать
   // «нужен врач» показываем, пока протокол не назначен: после назначения вопрос считается прояснённым
   const needDoc = c => !!(c.filled && c.red.length && !c.assigned);
+  // ожидание назначения протокола: от сдачи анкеты до подтверждения куратором (норма — 3 рабочих дня)
+  const ASG_NORM = 3;
+  const asgFrom = c => (c.filled && c.filledAt && new Date(c.filledAt).getTime()) || 0;
+  const asgWaitMs = c => !c.assigned && asgFrom(c) ? Math.max(0, Date.now() - asgFrom(c)) : -1;
+  const bizDays = (s, e) => { const { a, b } = rtSet(); return rtDur(s, e, true) / ((b - a) * 6e4); };
+  function asgCell(c){ const ms = asgWaitMs(c); if (ms < 0) return '<span class="nd">—</span>';
+    const bd = bizDays(asgFrom(c), Date.now()), cls = bd >= ASG_NORM ? 'r' : bd >= ASG_NORM - 1 ? 'y' : '';
+    return `<span class="chip ${cls}" title="Анкета сдана ${esc(fmtDT(c.filledAt))}. Рабочих дней: ${bd.toFixed(1).replace('.', ',')} (норма — ${ASG_NORM})">${rtFmt(ms)}</span><span class="sub" style="display:block">с ${esc(fmtDT(c.filledAt))}</span>`; }
   function stRank(c){
     const s = stageOf(c);
     if (!c.paidOnly && closedC(c)) return 12;
@@ -7957,7 +7966,7 @@ const Adm = (() => {
     <button class="nav ${AV.s === 'comments' ? 'on' : ''}" data-a="nav" data-s="comments">${I.cm}Комментарии<span class="n">${openThreads().length}</span></button>
     <button class="nav ${AV.s === 'chats' ? 'on' : ''}" data-a="nav" data-s="chats">${I.chs}Чаты<span class="n">${chatClients().filter(unreadOf).length}</span></button>
     <button class="nav ${AV.s === 'gchats' ? 'on' : ''}" data-a="nav" data-s="gchats">${I.chs}Чаты протоколов</button>
-    ${isAdmRole() ? `<button class="nav ${AV.s === 'rtime' ? 'on' : ''}" data-a="nav" data-s="rtime">${I.over}Время ответа${(() => { rtLoad(); const n = rtOpenLate(); return n ? `<span class="n warn">${n}</span>` : ''; })()}</button>` : ''}
+    ${isAdmRole() ? `<button class="nav ${AV.s === 'rtime' ? 'on' : ''}" data-a="nav" data-s="rtime">${I.over}Аналитика кураторов${(() => { rtLoad(); const n = rtOpenLate(); return n ? `<span class="n warn">${n}</span>` : ''; })()}</button>` : ''}
     <button class="nav ${AV.s === 'raffle' ? 'on' : ''}" data-a="nav" data-s="raffle">${I.ck}Розыгрыш<span class="n">${rzList().filter(r => r.status === RZ_ST.wait).length}</span></button>
     <button class="nav ${AV.s === 'reviews' ? 'on' : ''}" data-a="nav" data-s="reviews">${I.star}Итоговые отзывы<span class="n">${rvList().filter(f => f.rv !== RV_OK).length}</span></button>
     <button class="nav ${AV.s === 'ratings' ? 'on' : ''}" data-a="nav" data-s="ratings">${I.star}Оценки<span class="n">${fbFlagged().length}</span></button>
@@ -8129,7 +8138,9 @@ const Adm = (() => {
     list = curFilter(list);
     if (CF.type !== 'all') list = list.filter(c => c.filled && c.type === CF.type);
     const base = list; list = list.filter(ST[CF.st] || ST.all);
-    if (CF.sort) { const d = CF.sort.endsWith('-') ? -1 : 1, R = CF.sort.startsWith('mk') ? mkRank : stRank;
+    if (/^wt/.test(CF.sort)) { const d = CF.sort === 'wt-' ? -1 : 1;
+      list = list.slice().sort((a, b) => { const x = asgWaitMs(a), y = asgWaitMs(b); if ((x < 0) !== (y < 0)) return x < 0 ? 1 : -1; return d * (y - x) || stRank(a) - stRank(b) || (b.lastAt || '').localeCompare(a.lastAt || ''); }); }
+    else if (CF.sort) { const d = CF.sort.endsWith('-') ? -1 : 1, R = CF.sort.startsWith('mk') ? mkRank : stRank;
       list = list.slice().sort((a, b) => d * (R(a) - R(b)) || stRank(a) - stRank(b) || (b.lastAt || '').localeCompare(a.lastAt || '')); }
     const segN = (v, t) => `<button class="${CF.st === v ? 'on' : ''}" data-a="cf" data-k="st" data-v="${v}">${t} <span class="sn">${base.filter(ST[v]).length}</span></button>`;
     const MK = { none: c => c.filled && !c.paidOnly && !c.marks.length, noform: c => noFormInd(c) };
@@ -8143,13 +8154,13 @@ const Adm = (() => {
       <span class="seg">${segN('all','Все')}${segN('review','Ждут проверки')}${segN('photo','Нет фото языка')}${segN('ai','Расхождение с ИИ')}${segN('ind','Индивидуальный')}${segN('rec','В записи')}${segN('edited','С правками')}${segN('closed','Доступ закрыт')}${segN('ext','Продлили')}${segN('red','Нужен врач')}${segN('idle','Давно не заходят')}${segN('noform','Без анкеты')}${segN('asg','Назначен протокол')}</span>
       <span class="seg">${seg('type','all','Все типы')}${Object.keys(TYPES).map(k => seg('type', k, TYPES[k].short)).join('')}</span>
       ${curSeg()}${mkSel}</div>
-    <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th><button class="thsort ${/^st/.test(CF.sort) ? 'on' : ''}" data-a="stsort" data-v="st" title="Сортировка: сначала те, кого нужно забрать в работу → в обратном порядке → по последнему входу">Статус <span>${CF.sort === 'st' ? '↓' : CF.sort === 'st-' ? '↑' : '⇅'}</span></button></th><th><button class="thsort ${/^mk/.test(CF.sort) ? 'on' : ''}" data-a="stsort" data-v="mk" title="Сортировка по отметкам: одинаковые отметки рядом, без отметок — в конце → в обратном порядке (без отметок — сверху) → по последнему входу">Отметки <span>${CF.sort === 'mk' ? '↓' : CF.sort === 'mk-' ? '↑' : '⇅'}</span></button></th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
+    <div class="tw"><table class="t"><thead><tr><th>Клиент</th><th>Куратор</th><th><button class="thsort ${/^st/.test(CF.sort) ? 'on' : ''}" data-a="stsort" data-v="st" title="Сортировка: сначала те, кого нужно забрать в работу → в обратном порядке → по последнему входу">Статус <span>${CF.sort === 'st' ? '↓' : CF.sort === 'st-' ? '↑' : '⇅'}</span></button></th><th><button class="thsort ${/^wt/.test(CF.sort) ? 'on' : ''}" data-a="stsort" data-v="wt" title="Сколько ждёт назначения протокола с момента сдачи анкеты: сначала те, кто ждёт дольше → в обратном порядке → без сортировки">Ждёт назначения <span>${CF.sort === 'wt' ? '↓' : CF.sort === 'wt-' ? '↑' : '⇅'}</span></button></th><th><button class="thsort ${/^mk/.test(CF.sort) ? 'on' : ''}" data-a="stsort" data-v="mk" title="Сортировка по отметкам: одинаковые отметки рядом, без отметок — в конце → в обратном порядке (без отметок — сверху) → по последнему входу">Отметки <span>${CF.sort === 'mk' ? '↓' : CF.sort === 'mk-' ? '↑' : '⇅'}</span></button></th><th>Тип</th><th>Уроки</th><th>Трекер, тек. неделя</th><th>Последний вход</th><th>Правки</th></tr></thead><tbody>
     ${list.map(c => { const lp = lessonPct(c), wt = c.assigned ? weekTrack(c, curWeekC(c)) : null;
-      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${c.early ? ` <span class="chip m" title="Админ открыл часть уроков или меню раньше срока">досрочно</span>` : ''}${c.rec ? ` <span class="chip rec" title="Купили запись: программа по расписанию потока, без чата протокола">в записи</span>` : ''}${needDoc(c) ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td><td data-l="Отметки">${marksCell(c)}</td>
+      return `<tr data-a="open" data-id="${esc(c.email)}" tabindex="0"><td><b>${esc(c.name)}${c.tariff === TARIFF_IND ? ` <span class="chip m">инд.</span>` : ''}${c.early ? ` <span class="chip m" title="Админ открыл часть уроков или меню раньше срока">досрочно</span>` : ''}${c.rec ? ` <span class="chip rec" title="Купили запись: программа по расписанию потока, без чата протокола">в записи</span>` : ''}${needDoc(c) ? ` <span class="chip r" title="${esc(c.red.join(', '))}">нужен врач</span>` : ''}${unreadOf(c) ? ` <span class="chip r">${unreadOf(c)} нов.</span>` : ''}</b><span class="sub">${esc(c.email)}</span></td><td>${curChip(c)}</td><td>${status(c)}</td><td data-l="Ждёт назначения">${asgCell(c)}</td><td data-l="Отметки">${marksCell(c)}</td>
       <td>${c.filled && c.type ? `<span class="chip">${TYPES[c.type].short}</span>${c.assigned ? '' : ' <span class="small muted">авто</span>'}` : `<span class="nd muted">—</span>`}</td>
       <td data-l="Уроки">${c.assigned ? `<span class="mini"><span class="pb"><i style="width:${lp}%"></i></span>${lp}%</span>` : '<span class="nd">—</span>'}</td>
       <td data-l="Трекер">${wt ? `<span class="mini"><span class="pb"><i style="width:${wt.p}%"></i></span>${wt.p}%</span>` : '<span class="nd">—</span>'}</td>
- <td data-l="Вход">${lastTxt(c.last)}</td><td>${ovCount(c) ? `<span class="chip m">${ovCount(c)}</span>` : ''}</td></tr>`; }).join('') ||  `<tr><td colspan="9" class="muted">Никого не нашлось. Измените фильтры или поиск.</td></tr>`}
+ <td data-l="Вход">${lastTxt(c.last)}</td><td>${ovCount(c) ? `<span class="chip m">${ovCount(c)}</span>` : ''}</td></tr>`; }).join('') ||  `<tr><td colspan="10" class="muted">Никого не нашлось. Измените фильтры или поиск.</td></tr>`}
     </tbody></table></div>`;
   }
 
@@ -8277,12 +8288,13 @@ const Adm = (() => {
     const late = wait.filter(w => Date.now() - w.s > sla).length;
     const go = w => w.ch === 'proto' ? `<button class="btn sm ghost" data-a="rtGo" data-t="${w.t}">Открыть чат</button>` : w.ch === 'chat' ? `<button class="btn sm ghost" data-a="openChat" data-id="${esc(w.email)}">Открыть чат</button>` : `<button class="btn sm ghost" data-a="nav" data-s="comments">К комментариям</button>`;
     const slow = done.map(w => Object.assign({ d: rtDur(w.s, w.e, work) }, w)).sort((x, y) => y.d - x.d).slice(0, 10);
-    return `<div class="head"><div><h1>Время ответа</h1><p class="muted" style="margin:0">Сколько клиентки ждут ответа куратора: в личном чате, под уроками и в чатах протоколов. Норма — ${slaTxt} (меняется в «Настройках»).</p></div><button class="btn ghost" data-a="rtReload">Обновить</button></div>
+    return `<div class="head"><div><h1>Аналитика работы кураторов</h1><p class="muted" style="margin:0">Как быстро кураторы назначают протокол после анкеты и сколько клиентки ждут ответа: в личном чате, под уроками и в чатах протоколов. Норма ответа — ${slaTxt} (меняется в «Настройках»), норма назначения — ${ASG_NORM} рабочих дня.</p></div><button class="btn ghost" data-a="rtReload">Обновить</button></div>
     <div class="tools"><span class="seg">${seg('rp','7','7 дней')}${seg('rp','30','30 дней')}${seg('rp','all','Весь поток')}</span>
       <span class="seg">${seg('rc','all','Все чаты')}${seg('rc','chat',RT_CH.chat)}${seg('rc','lesson',RT_CH.lesson)}${seg('rc','proto',RT_CH.proto)}</span>
       <span class="seg">${seg('rw','0','Круглосуточно')}${seg('rw','1','Рабочее время ' + (D && D.settings && D.settings.workHours || '09:00-21:00') + ', пн–пт')}</span></div>
     ${!RTG ? '<p class="small muted">Загружаем чаты протоколов…</p>' : ''}
     <div class="rt-ks">${kpi(tot.n, 'ответов за период')}${kpi(tot.n ? rtFmt(tot.med) : '—', 'медиана')}${kpi(tot.n ? rtFmt(tot.avg) : '—', 'среднее')}${kpi(tot.n ? tot.ok + '%' : '—', 'ответов в пределах ' + slaTxt, tot.n && tot.ok < 80)}${kpi(wait.length, 'ждут ответа сейчас' + (late ? ` · ${late} дольше ${slaTxt}` : ''), late)}</div>
+    ${chf === 'all' ? asgPanel(from, work) : ''}
     <div class="panel" style="margin-bottom:16px"><h2><span>Ждут ответа сейчас</span></h2>
       ${wait.length ? `<div class="tw"><table class="t"><thead><tr><th>Клиентка</th><th>Где</th><th>Закреплена за</th><th>Ждёт</th><th></th></tr></thead><tbody>${wait.map(w => { const dd = Date.now() - w.s, wd = rtDur(w.s, Date.now(), work);
         return `<tr><td><b>${esc(w.name)}</b><span class="sub">${esc(w.email)}</span></td><td>${esc(w.where)}</td><td>${w.cur ? esc(curName(w.cur)) : '<span class="muted">—</span>'}</td><td><span class="chip ${dd > sla ? 'r' : ''}">${rtFmt(wd)}</span><span class="sub" style="display:block">с ${fmtDT(new Date(w.s).toISOString())}</span></td><td>${go(w)}</td></tr>`; }).join('')}</tbody></table></div>` : '<p style="margin:0">Все вопросы отвечены.</p>'}</div>
@@ -8294,6 +8306,22 @@ const Adm = (() => {
     ${slow.length ? `<div class="panel" style="margin-bottom:16px"><h2><span>Самые долгие ответы за период</span></h2><div class="tw"><table class="t"><thead><tr><th>Клиентка</th><th>Где</th><th>Ответил(а)</th><th>Ждала</th></tr></thead><tbody>
       ${slow.map(w => `<tr><td><b>${esc(w.name)}</b></td><td>${esc(w.where)}</td><td>${esc(w.by)}</td><td><span class="chip ${w.d > sla ? 'r' : ''}">${rtFmt(w.d)}</span><span class="sub" style="display:block">${fmtDT(new Date(w.s).toISOString())}</span></td></tr>`).join('')}</tbody></table></div></div>` : ''}
     <p class="small muted">Как считаем: ожидание начинается с первого сообщения клиентки после последнего ответа куратора и заканчивается следующим сообщением куратора в этом же чате. В чатах протоколов вопросом считается сообщение со знаком «?» или ответ на сообщение куратора. «Рабочее время» — считаются только часы ${esc(D && D.settings && D.settings.workHours || '09:00-21:00')} по Москве с понедельника по пятницу, суббота и воскресенье не считаются.</p>`;
+  }
+  // назначение протокола: от сдачи анкеты до первого подтверждения; кто подтвердил — колонка «Куратор» в листе «Ученики»
+  function asgPanel(from, work){
+    const done = C.filter(c => c.assigned && c.filledAt && c.confirmedAt).map(c => { const s = new Date(c.filledAt).getTime(), e = new Date(c.confirmedAt).getTime();
+      return { c, s, e, by: c.curator || 'Не указан' }; }).filter(x => x.s && x.e && x.e >= x.s && x.e >= from);
+    const wait = C.filter(c => asgWaitMs(c) >= 0);
+    const late = wait.filter(c => bizDays(asgFrom(c), Date.now()) >= ASG_NORM).length;
+    const st = l => { const d = l.map(x => rtDur(x.s, x.e, work)), bd = l.map(x => bizDays(x.s, x.e));
+      return { n:d.length, med:rtMed(d), avg:d.length ? d.reduce((p, q) => p + q, 0) / d.length : 0, ok:d.length ? Math.round(100 * bd.filter(x => x <= ASG_NORM).length / d.length) : 0, max:d.length ? Math.max(...d) : 0 }; };
+    const row = (name, l) => { const x = st(l); return `<tr><td><b>${esc(name)}</b></td><td>${x.n}</td><td>${rtFmt(x.med)}</td><td>${rtFmt(x.avg)}</td><td><span class="chip ${x.ok >= 80 ? 'g' : x.ok >= 50 ? '' : 'r'}">${x.ok}%</span></td><td>${rtFmt(x.max)}</td></tr>`; };
+    const by = {}; done.forEach(x => { (by[x.by] = by[x.by] || []).push(x); });
+    const oldest = wait.slice().sort((a, b) => asgWaitMs(b) - asgWaitMs(a))[0];
+    return `<div class="panel" style="margin-bottom:16px"><h2><span>Назначение протокола</span></h2>
+      <p class="small muted" style="margin:0 0 10px">От сдачи анкеты до подтверждения протокола куратором. Сейчас ждут назначения: <b>${wait.length}</b>${late ? `, из них <b>${late}</b> — ${ASG_NORM} рабочих дня и дольше` : ''}${oldest ? ` · дольше всех — ${esc(oldest.name)}, ${rtFmt(asgWaitMs(oldest))}` : ''}. ${wait.length ? `<button class="btn lnk small" data-a="navq" data-st="review" style="padding:0">Открыть очередь</button>` : ''}</p>
+      ${done.length ? `<div class="tw"><table class="t"><thead><tr><th>Куратор</th><th>Назначено</th><th>Медиана</th><th>Среднее</th><th>В пределах ${ASG_NORM} раб. дней</th><th>Самое долгое</th></tr></thead><tbody>
+      ${Object.keys(by).sort((x, y) => by[y].length - by[x].length).map(k => row(k, by[k])).join('')}${Object.keys(by).length > 1 ? row('Все кураторы', done) : ''}</tbody></table></div>` : '<p style="margin:0">За этот период протоколы не назначали.</p>'}</div>`;
   }
   // ── Отложенные сообщения в чаты протоколов (время — московское) ──
   let SCH = null, schBusy = false;
@@ -8813,7 +8841,7 @@ const Adm = (() => {
     if (a === 'rvOk' || a === 'rvNo') return act(() => api('reviewAccept', { token:S.token, email:b.dataset.em, ok: a === 'rvOk' }), a === 'rvOk' ? `Отзыв принят — гайд открыт ${Wem(b.dataset.em).d}` : 'Принятие отменено');
     if (a === 'rzOk' || a === 'rzFix' || a === 'rzWait') { const t = document.getElementById('rzc-' + b.dataset.i);
       return act(() => api('raffleReview', { token:S.token, email:t.dataset.em, status: a === 'rzOk' ? 'ok' : a === 'rzFix' ? 'fix' : 'wait', comment:t.value }), a === 'rzOk' ? 'Работа принята' : a === 'rzFix' ? 'Работа возвращена на доработку' : 'Статус сброшен'); }
-    if (a === 'navq') { CF.st = b.dataset.st; CF.type = 'all'; CF.mk = 'all'; CF.q = ''; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
+    if (a === 'navq') { CF.st = b.dataset.st; if (['review','photo','ai','red'].includes(CF.st)) CF.sort = 'wt'; CF.type = 'all'; CF.mk = 'all'; CF.q = ''; AV = { s:'clients' }; render(); return window.scrollTo(0,0); }
     if (a === 'lp') { AV.lp = b.dataset.v; return render(true); }
     if (a === 'open') { closeDr(); AV = { s:'client', id:b.dataset.id, tab:'lessons' }; render(); return window.scrollTo(0,0); }
     if (a === 'cf') { CF[b.dataset.k] = b.dataset.v; return render(true); }
