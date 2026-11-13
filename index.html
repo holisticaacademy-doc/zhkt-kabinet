@@ -578,6 +578,15 @@ body.fv-on{overflow:hidden}
 }
 @media print{.tbar{display:none!important}}
 
+/* продукты «не ем» */
+.exb{background:var(--mint-pale);border:1px solid var(--card-bd,var(--line));border-radius:20px;padding:16px 18px;margin:0 0 14px}
+.exb-h{display:flex;gap:12px;justify-content:space-between;align-items:flex-start}.exb-h p{margin:4px 0 0;font-size:13.5px;color:var(--muted)}
+.exb-t{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.exb-t span{background:var(--card,#fff);border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:12.5px}
+.exb-t.ed{margin:4px 0 8px}.exb-t button{border:1.5px solid var(--line);background:var(--card,#fff);border-radius:999px;padding:5px 11px;font:inherit;font-size:12.5px;cursor:pointer;color:inherit}
+.exb-t button[aria-pressed="true"]{background:var(--e,#173f35);border-color:var(--e,#173f35);color:#fff}
+.exb-g{margin-top:10px}.exb-gn{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:8px 0 2px}.exb-a{display:flex;gap:8px;margin-top:10px}
+@media(max-width:600px){.exb-h{flex-direction:column}}
+
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
 .dtop .dt-b .cal{margin-top:16px}
@@ -5413,7 +5422,7 @@ const Demo = (() => {
   const openOnly = st => { if (!isStaff({role:st['Роль']}) && accessOf(st).closed) throw new Error('Доступ к программе закрыт'); };
   const pub = d => ({ access: accessOf(d), rec:isRecFmt(d['Формат']), email:d['Email'], name:d['Имя'], role:d['Роль'], status:d['Статус']||STS.none, autoProtocol:d['Протокол авто']||'', protocol:d['Протокол итог']||'',
     recs:d['Комментарий куратора']||'', confirmedAt:d['Дата подтверждения']||'', filledAt:d['Дата анкеты']||'', hasPhoto:!!(load().quizzes[d['Email']]||{}).photo, hasForm:!!(load().quizzes[d['Email']]||{}).form, raffle:(load().raffle||{})[d['Email']]||null,
-    tariff:d['Тариф']||'Общий', early:parse(d['Досрочно'])||null, ov:parse(d['Правки материалов']), profile:parse(d['Профиль'])||{}, extra:parse(d['Доп. протоколы'])||[] });
+    tariff:d['Тариф']||'Общий', early:parse(d['Досрочно'])||null, ov:parse(d['Правки материалов']), profile:parse(d['Профиль'])||{}, extra:parse(d['Доп. протоколы'])||[], excl:parse(d['Не ем'])||null });
   const msgsOf = e => load().messages.filter(m => m.email === e);
   const addMsg = (email, lessonId, from, who, text, files, by, pub) => { load().messages.push({ id:'m'+Math.random().toString(36).slice(2), by:by||'', pub:!!pub, at:now(), email, lessonId:lessonId||'', lesson: lessonId ? (byId(lessonId)||{t:''}).t : '', from, who, text, files: files && files.length ? files : undefined }); log(email, from === 'cu' ? (lessonId ? 'reply_comment' : 'reply_chat') : (lessonId ? 'comment' : 'chat'), lessonId ? (byId(lessonId)||{t:''}).t : ''); };
   const parse = s => { try { return s ? JSON.parse(s) : null } catch(e){ return null } };
@@ -5624,6 +5633,8 @@ const Demo = (() => {
     setExtra({token,email,extra}){ const a=adminAuth(token), st=find(email); if(!st) throw new Error('Ученица не найдена');
       const main=PKEY[st['Протокол итог']], clean=(extra||[]).filter(x=>x&&PNAME[x.t]&&x.t!==main).slice(0,3).map(x=>({t:x.t,until:/^\d{4}-\d{2}-\d{2}$/.test(x.until||'')?x.until:'',note:String(x.note||'').slice(0,300),at:x.at||now(),by:x.by||a['Имя']||a['Email']}));
       st['Доп. протоколы']=clean.length?JSON.stringify(clean):''; log(email,'extra_protocol',clean.map(x=>PNAME[x.t]).join(', ')||'закрыты'); return {}; },
+    setExcl({token,email,codes}){ let st; if(email){ adminAuth(token); st=find(email); } else { st=auth(token); } if(!st) throw new Error('Ученица не найдена');
+      const c=[...new Set((codes||[]).map(String).filter(x=>/^[a-z]{2,12}$/.test(x)))].slice(0,60); st['Не ем']=JSON.stringify({codes:c,by:email?'куратор':'ученица',at:new Date().toISOString()}); log(st['Email'],'excl',c.join(', ')||'пусто'); return {}; },
     saveRecs({token,email,recs}){ adminAuth(token); const st=find(email); st['Комментарий куратора']=recs; log(email,'recs'); return {}; },
     setMarks({token,email,marks}){ adminAuth(token); const st=find(email); st['Отметки куратора']=(marks||[]).filter(t=>MARK_T[t]).join('; '); log(email,'marks',st['Отметки куратора']||'сняты'); return {}; },
     saveNote({token,email,note}){ adminAuth(token); const st=find(email); st['Заметка куратора']=note; log(email,'note'); return {}; },
@@ -6734,11 +6745,24 @@ function catList(){
   <div class="pb" style="margin-bottom:16px"><i style="width:${p.p}%"></i></div>
   ${note}${html}`;
 }
+// ── Продукты «не ем»: из анкеты, потом правит ученица или куратор (колонка «Не ем») ──
+function myExcl(){ const x = S.user && S.user.excl; if (x && Array.isArray(x.codes)) return x.codes; return ((U.quiz && U.quiz.excluded) || []).filter(c => EXCLUDABLE.some(p => p.code === c)); }
+function exclName(c){ const p = EXCLUDABLE.find(x => x.code === c); return p ? p.name.split(':')[0] : c; }
+function exclBlock(){
+  if (U.preview) return '';
+  const cur = myExcl(), ed = V.exclEd;
+  let h = `<div class="exb"><div class="exb-h"><div><b>Продукты, которые вы не едите</b><p>${cur.length ? 'Во вкладке «Меню для вас» конструктора они заменены на равноценные из вашего протокола.' : 'Ничего не отмечено. Если какие-то продукты вы не едите или плохо переносите — отметьте их, и мы соберём меню без них.'}</p></div>${ed ? '' : `<button class="btn sm" data-a="exclEdit">Изменить список</button>`}</div>`;
+  if (!ed && cur.length) h += `<div class="exb-t">${cur.map(c => `<span>${esc(exclName(c))}</span>`).join('')}</div>`;
+  if (ed) h += `${EXCL_GROUPS.map((g, gi) => `<div class="exb-g"><div class="exb-gn">${g}</div><div class="exb-t ed">${EXCLUDABLE.filter(p => p.g === gi).map(p => `<button type="button" data-a="exclTog" data-v="${p.code}" aria-pressed="${ed.includes(p.code)}">${esc(p.name)}</button>`).join('')}</div></div>`).join('')}
+    <div class="exb-a"><button class="btn" data-a="exclSave">Сохранить</button><button class="btn ghost" data-a="exclCancel">Отмена</button></div>`;
+  return h + '</div>';
+}
 function menuLink(){
   // конструктор (рядом, тот же сайт) берёт отсюда адрес сервера, токен и дату старта — для сохранённых дней
   const start = new Date(mskDay(startT())); const iso = start.getFullYear()+'-'+String(start.getMonth()+1).padStart(2,'0')+'-'+String(start.getDate()).padStart(2,'0');
   const menu = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : menuSched();
-  LS.set('hz_menu_link', MODE === 'live' && !U.preview ? { api: CFG.API_URL, token: S.token, start: iso, menu } : { start: iso, menu });
+  const excl = U.preview ? [] : myExcl();
+  LS.set('hz_menu_link', MODE === 'live' && !U.preview ? { api: CFG.API_URL, token: S.token, start: iso, menu, excl } : { start: iso, menu, excl });
 }
 // ── Меню недели для печати (меню по дням + рецепты, PDF) — открывается вместе с неделей меню ──
 function menuPrint(){
@@ -6753,6 +6777,7 @@ function menuView(){
   const src = CFG.MENU_URL + '?protocol=' + PCODE[TYPE()] + '#' + PCODE[TYPE()];
   return `${protoSwitch()}<h1 style="margin-top:22px">Меню и рецепты</h1>
   <p class="muted">Собирайте меню на день из рецептов вашего протокола. <a class="lnk" href="${esc(src)}" target="_blank" rel="noopener">Открыть в отдельной вкладке</a></p>
+  ${exclBlock()}
   ${menuPrint()}
   <iframe class="menu-frame" src="${esc(src)}" title="Конструктор меню"></iframe>`;
 }
@@ -7848,6 +7873,12 @@ function studentClick(e, b, a){
   if (a === 'xseen' || (a === 'ptype' && b.dataset.seen)) { const k = 'hz_xseen_' + ((S.user && S.user.email) || ''), l = LS.get(k, []); if (!l.includes(b.dataset.seen)) l.push(b.dataset.seen); LS.set(k, l); if (a === 'xseen') return render(); }
   if (a === 'ptype') { const t = b.dataset.t; if (t === TYPE()) return; U.at = t === MAINT() ? '' : t; LS.set(atKey(), U.at);
     { const x = EXTRA().find(e => e.t === t); if (x) { const k = 'hz_xseen_' + ((S.user && S.user.email) || ''), l = LS.get(k, []), id = x.t + '|' + (x.at || ''); if (!l.includes(id)) { l.push(id); LS.set(k, l); } } } _RK = ''; track('protocol_switch', PNAME[t]); toast('Открыт протокол: ' + PNAME[t]); render(); return window.scrollTo(0, 0); }
+  if (a === 'exclEdit') { V.exclEd = myExcl().slice(); return keepY(render); }
+  if (a === 'exclCancel') { V.exclEd = null; return keepY(render); }
+  if (a === 'exclTog') { const v = b.dataset.v, l = V.exclEd || (V.exclEd = []), i = l.indexOf(v); if (i > -1) l.splice(i, 1); else l.push(v); return keepY(render); }
+  if (a === 'exclSave') { const codes = (V.exclEd || []).slice(); b.disabled = true;
+    return api('setExcl', { token:S.token, codes }).then(() => { S.user.excl = { codes, by:'ученица', at:new Date().toISOString() }; V.exclEd = null; toast(codes.length ? 'Список сохранён — меню во вкладке «Меню для вас» обновлено' : 'Список очищен'); keepY(render); })
+      .catch(e => { b.disabled = false; toast(e.message); }); }
   if (a === 'home') return home();
   if (['calD','calM','calW','calX','calPin','calOpen'].includes(a)) return calClick(b, a);
   if (['navPin','navOpen','navClose','navPeek','navSec'].includes(a)) return navClick(b, a);
@@ -7907,7 +7938,7 @@ function saveDraftSoon(){ clearTimeout(draftT); draftT = setTimeout(saveDraft, 4
 
 // ═══ АДМИНКА ════════════════════════════════════════════════════
 const EVN = { login:'Вход в кабинет', password_set:'Задан пароль', password_reset:'Сброшен пароль', added_from_getcourse:'Карточка создана из выгрузки GetCourse',
-  quiz_submit:'Анкета отправлена', form:'Прикреплён опросник', tests:'Прикреплены анализы', msg_edit:'Куратор изменил сообщение', msg_read:'Отмечено прочитанным без ответа', getcourse_group:'Добавлена в группу GetCourse', msg_delete:'Удалено сообщение', form_del:'Удалён файл опросника или анализов', support:'Открыла техподдержку', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён', extra_protocol:'Доп. протоколы', protocol_switch:'Переключила протокол',
+  quiz_submit:'Анкета отправлена', form:'Прикреплён опросник', tests:'Прикреплены анализы', msg_edit:'Куратор изменил сообщение', msg_read:'Отмечено прочитанным без ответа', getcourse_group:'Добавлена в группу GetCourse', msg_delete:'Удалено сообщение', form_del:'Удалён файл опросника или анализов', support:'Открыла техподдержку', photo:'Загружено фото языка', confirmed:'Назначен протокол', protocol_changed:'Протокол изменён', extra_protocol:'Доп. протоколы', excl:'Список «не ем»', protocol_switch:'Переключила протокол',
   quiz_reset:'Анкета открыта заново', progress_reset:'Прогресс сброшен', open:'Открыт урок', done:'Отмечено выполненным',
   video:'Открыто видео урока', download:'Открыт конспект', menu:'Открыт конструктор меню', webinar:'Перешла на вводный вебинар', feedback:'Заполнена оценка обучения', menu_day:'Сохранён день в конструкторе меню', menu_day_del:'Удалён день из конструктора меню', check:'Замер самочувствия',
   recs:'Обновлены рекомендации', note:'Обновлена заметка куратора', marks:'Отметки куратора', chat:'Сообщение в чат', reply_chat:'Ответ куратора в чате',
@@ -7933,6 +7964,13 @@ const Adm = (() => {
   const typing = () => { const el = document.activeElement; return (el && el.closest && el.closest('#adm') && /^(TEXTAREA|INPUT|SELECT)$/.test(el.tagName) && (el.value || '').trim()) || $('#dr').classList.contains('on'); };
   function bgLoad(){ clearTimeout(bgT); bgT = setTimeout(async () => { if (actPend) return; const g = actGen;
     try { const d = await api('adminData', { token:S.token }); if (g !== actGen || actPend) return; D = d; C = build(D); if (!typing()) render(true); } catch (e) {} }, 400); }
+  function exclCodesOf(c, a){ let x = null; try { x = JSON.parse(rowOf(c.email)['Не ем'] || 'null'); } catch (e) {} return x && Array.isArray(x.codes) ? { codes:x.codes, by:x.by, at:x.at } : { codes:(a && a.excludedCodes) || [], by:'анкета' }; }
+  function exclAdm(c, a){
+    const x = exclCodesOf(c, a), nm = cd => (EXCLUDABLE.find(p => p.code === cd) || { name:cd }).name.split(':')[0];
+    if (AV.exclEd && AV.exclEd.email === c.email) return `${EXCL_GROUPS.map((g, gi) => `<div class="exb-gn">${g}</div><div class="exb-t ed">${EXCLUDABLE.filter(p => p.g === gi).map(p => `<button type="button" data-a="exclTogA" data-v="${p.code}" aria-pressed="${AV.exclEd.codes.includes(p.code)}">${esc(p.name.split(':')[0])}</button>`).join('')}</div>`).join('')}
+      <div class="exb-a"><button class="btn sm" data-a="exclSaveA">Сохранить</button><button class="btn sm ghost" data-a="exclCancelA">Отмена</button></div>`;
+    return `${esc(x.codes.map(nm).join(', ') || 'ничего')}${a && a.productsOther ? '<br><span class="small">Другое из анкеты: ' + esc(a.productsOther) + '</span>' : ''}<br><span class="small muted">${x.by === 'анкета' ? 'из анкеты' : 'изменено: ' + esc(x.by) + (x.at ? ', ' + fmt(x.at) : '')}</span> <button class="lnk" data-a="exclEditA">изменить</button>`;
+  }
   async function act(fn, msg, patch){
     actGen++; actPend++;
     if (patch) { try { patch(); C = build(D); render(true); } catch (e) {} if (msg) toast(msg); }
@@ -8309,7 +8347,7 @@ const Adm = (() => {
         <dt>Доступ</dt><dd>${accessTxt(c)}</dd>
         <dt>Данные</dt><dd>${[p.age && p.age + ' лет', p.height && p.weight && p.height + ' см / ' + p.weight + ' кг', p.bmi && 'ИМТ ' + p.bmi].filter(Boolean).join(' · ') || '—'}</dd>
         <dt>Цели</dt><dd>${esc(a.goals || '—')}</dd>
-        <dt>Не переносит</dt><dd>${esc([].concat(a.excluded || [], a.productsOther ? [a.productsOther] : []).join(', ') || 'ничего')}</dd>
+        <dt>Не ест</dt><dd>${exclAdm(c, a)}</dd>
         <dt>Особенности</dt><dd>${(a.flags || []).map(f => FLAGNAME[f] || f).join(', ') || 'нет'}</dd></dl></div>
       <div class="panel"><h2><span>Жалобы</span></h2>
         <div class="legend"><span>анкета</span>${last ? `<span class="b">замер ${fmt(last.at, {day:'numeric', month:'short'})}</span>` : ''}</div>
@@ -9042,6 +9080,11 @@ const Adm = (() => {
     if (a === 'mark') { const t = b.dataset.v, on = c.marks.includes(t); const nx = on ? c.marks.filter(x => x !== t) : c.marks.concat(t);
       const v = MARKS.filter(m => nx.includes(m.t)).map(m => m.t).join('; '); const nv = $('#note') ? $('#note').value : null;
       return act(() => api('setMarks', { token:S.token, email:c.email, marks:v ? v.split('; ') : [] }), on ? 'Отметка снята' : 'Отметка: ' + t, () => { const r = rowOf(c.email); r['Отметки куратора'] = v; if (nv !== null && nv !== c.note) AV.ndraft = nv; }); }
+    if (a === 'exclEditA' && c) { AV.exclEd = { email:c.email, codes:exclCodesOf(c, c.quiz || null).codes.slice() }; return render(true); }
+    if (a === 'exclCancelA') { AV.exclEd = null; return render(true); }
+    if (a === 'exclTogA' && AV.exclEd) { const l = AV.exclEd.codes, v = b.dataset.v, i = l.indexOf(v); if (i > -1) l.splice(i, 1); else l.push(v); return render(true); }
+    if (a === 'exclSaveA' && c && AV.exclEd) { const codes = AV.exclEd.codes.slice(); AV.exclEd = null;
+      return act(() => api('setExcl', { token:S.token, email:c.email, codes }), 'Список «не ест» сохранён — меню ученицы обновится', () => { rowOf(c.email)['Не ем'] = JSON.stringify({ codes, by:'куратор', at:new Date().toISOString() }); }); }
     if (a === 'saveNote') { const v = $('#note').value; AV.ndraft = null; return act(() => api('saveNote', { token:S.token, email:c.email, note:v }), 'Примечание сохранено', () => { rowOf(c.email)['Заметка куратора'] = v; }); }
     if (a === 'resetAll' && !isAdmRole()) return toast('Открыть анкету для правки может только администратор');
     if (a === 'resetAll') { if (!confirm(`Открыть анкету для правки — ${c.name}? Ответы сохранятся: ${W(c) === WM ? 'он увидит' : 'она увидит'} их и сможет исправить. Протокол, рекомендации и прогресс будут сброшены, протокол нужно будет назначить заново.`)) return;

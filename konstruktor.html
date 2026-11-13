@@ -1,4 +1,16 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+/* меню для вас */
+.xhead{background:var(--mint,#eaf5ee);border:1.5px solid var(--mint-bd,#cfe6d8);border-radius:14px;padding:14px 16px;margin:4px 0 14px}
+.xlead{margin:0 0 8px;font-size:14px;line-height:1.5}.xhint{margin:8px 0 0;font-size:12.5px;color:var(--muted)}
+.xsel{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.xsl{font-size:12.5px;font-weight:700;color:var(--green)}
+.xtag{background:var(--surface);border:1px solid var(--mint-bd,#cfe6d8);border-radius:999px;padding:3px 10px;font-size:12px}
+.xhead .btn{margin-top:10px}.xed{margin:0 0 16px}.xg{margin:0 0 10px}.xgn{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px}
+.xnote{margin:-4px 0 10px 14px;padding:6px 10px;border-left:3px solid var(--green);background:var(--mint,#eaf5ee);border-radius:0 8px 8px 0;font-size:12.5px;color:var(--green)}
+.xnote span{color:var(--muted)}.xnote.warn{border-color:var(--mag);background:var(--mag-soft);color:var(--mag)}
+.xsum{font-size:12.5px;font-weight:500;color:var(--mag)}
+
+.expbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px;font-size:12.5px;font-weight:600;color:var(--muted)}
+</style></head><body>
 <title>Конструктор меню ЖКТ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap">
@@ -402,6 +414,7 @@ function load(){
   return d;
 }
 var S=load();
+try{ var _lk=JSON.parse(localStorage.getItem('hz_menu_link')||'null'); if(_lk&&_lk.excl&&_lk.excl.length&&!S.mineSeen){ S.tab='mine'; S.mineSeen=1; } }catch(e){}
 /* ---- платформа: протокол ученицы приходит из адреса (?protocol=V|I|C|M или #V) ---- */
 var LOCKED=(function(){
   var map={V:'sluggish',I:'inflamed',C:'sensitive',M:'mixed'}, q='';
@@ -517,10 +530,10 @@ function render(){
      '<p class="sub">Меню протокола по дням, все рецепты недель 3–5 и сборка своего дня с расчётом КБЖУ, сахаров, клетчатки и 30 витаминов и минералов. Блюда и продукты можно заменять на равноценные прямо в конструкторе.</p></div>'+
      '<button class="tour-btn" data-tour="1"><i>?</i>Как пользоваться</button>'+'<div class="protos" role="group" aria-label="Протокол">'+PROTOS.map(function(p){ return '<button class="proto" data-proto="'+p[0]+'" aria-pressed="'+(S.proto===p[0])+'">'+p[1]+'</button>'; }).join('')+'</div></header>';
   if(ctorLockAt()){ renderCtorLock(h); return; }
-  h+='<nav class="tabs" role="tablist">'+[['menu','Меню по дням'],['lib','Рецепты'],['build','Собрать свой день'],['week','Мои итоги'],['prof','Мои нормы']].map(function(t){
+  h+='<nav class="tabs" role="tablist">'+[['menu','Меню по дням'],['mine','Меню для вас'],['lib','Рецепты'],['build','Собрать свой день'],['week','Мои итоги'],['prof','Мои нормы']].map(function(t){
      return '<button role="tab" data-tab="'+t[0]+'" aria-selected="'+(S.tab===t[0])+'">'+t[1]+'</button>'; }).join('')+'</nav>';
   h+=tourInvite();
-  if(S.tab==='menu') h+=renderMenu(); else if(S.tab==='lib') h+=renderLib(); else if(S.tab==='build') h+=renderBuild(); else if(S.tab==='week') h+=renderWeek(); else h+=renderProf();
+  if(S.tab==='mine') h+=renderMine(); else if(S.tab==='menu') h+=renderMenu(); else if(S.tab==='lib') h+=renderLib(); else if(S.tab==='build') h+=renderBuild(); else if(S.tab==='week') h+=renderWeek(); else h+=renderProf();
   app.innerHTML=h;
   if(modal) renderModal();
   save();
@@ -539,6 +552,7 @@ function renderMenu(){
     return s+'</div></div>'; }).join('')+'</div>';
   S.day=menuOpenDay(S.day);
   var items=menuItems(S.day), tots=items.map(calcItem), T=sumT(tots);
+  h+=expBar('menu',curWk());
   h+='<div class="dayhead"><div class="daystat num">'+PROTO_FULL[S.proto]+', день '+S.day+': <b>'+fmt(T.kcal)+' ккал</b> · Б '+fmt(T.protein)+' · Ж '+fmt(T.fat)+' · У '+fmt(T.carbs)+' · клетчатка '+fmt(T.fiber,1)+' г</div>'+
      '<button class="btn solid" data-copyday="'+S.day+'">Перенести день в конструктор</button></div>';
   SLOTS.forEach(function(sl){
@@ -559,6 +573,173 @@ function dishCard(it,t,sl){
     '<div class="meta num"><span>'+fmt(t.mass)+' г · '+fmt(t.kcal)+' ккал · Б '+fmt(t.protein,1)+'</span>'+inpChip(inp(t))+(r.generic?'<span class="chip c-gen">на выбор</span>':'')+'<span>'+note+'</span></div></button>'+
     '<button class="btn" data-quick="'+r.id+'" data-slot="'+esc(sl)+'" data-f="'+f+'">В конструктор</button></div>';
 }
+
+/* ==== МЕНЮ ДЛЯ ВАС ==== */
+var EXCL_MAP={"milk": ["yogurt", "quark", "sour_cream"], "cheese": ["adyghe", "goat_cheese"], "butter": ["butter", "ghee"], "egg": ["egg"], "gluten": ["wwbread", "wwflour", "semolina", "bulgur", "couscous", "barley", "tsampa", "soy_sauce"], "oats": ["oats", "oat_milk"], "barley": ["barley", "tsampa"], "buckwheat": ["buckwheat"], "corn": ["cornstarch"], "legumes": ["chickpea", "chickpea_flour", "red_lentil", "green_lentil", "mung", "red_bean", "white_bean", "green_peas", "funchoza", "aquafaba"], "soy": ["tofu", "tofu_soft", "soy_sauce", "miso", "protein_pow"], "nuts": ["almond", "cashew", "pine_nut", "walnut", "pesto"], "sesame": ["sesame", "tahini", "sesame_oil"], "seeds": ["pumpkin_seed"], "fish": ["cod", "coho", "haddock", "pink_salmon", "pollock", "seabass", "trout", "stock_fish"], "seafood": ["shrimp", "squid"], "beef": ["beef_lean", "beef_mince", "beef_ribs", "beef_liver", "beef_tongue", "stock_beef"], "poultry": ["chick_breast", "chick_leg", "chick_mince", "chick_thigh_ns", "chick_heart", "chick_liver", "turkey_breast", "turkey_mince", "turkey_liver", "stock_chicken"], "offal": ["beef_liver", "beef_tongue", "chick_heart", "chick_liver", "turkey_liver"], "tomatoes": ["tomato", "tomato_paste", "sundried"], "pepper": ["bell_pepper"], "eggplant": ["eggplant"], "potato": ["potato"], "onion": ["onion", "leek", "green_onion"], "garlic": ["garlic"], "cabbage": ["cabbage", "napa", "broccoli", "cauliflower", "brussels", "sauerkraut"], "celery": ["celery"], "beet": ["beet"], "mushrooms": ["mushroom", "chanterelle", "porcini_dry"], "citrus": ["orange", "grapefruit", "pomelo", "lemon_juice", "lime_juice", "orange_juice"], "kiwi": ["kiwi", "pineapple"], "apple": ["apple", "applesauce", "pear", "quince"], "stone": ["apricot", "plum", "dried_apricot", "prunes"], "berries": ["berries", "blackcurrant", "cranberry", "raspberry"], "dried": ["dried_apricot", "prunes", "raisins", "jujube"], "avocado": ["avocado"], "coconut": ["coconut_milk", "coco_yogurt"], "ferment": ["sauerkraut", "pickle"], "seaweed": ["nori", "spirulina"], "honey": ["honey"], "cocoa": ["cocoa"], "cilantro": ["cilantro"]}, EXCL_NAME={"milk": "Молоко, йогурт, сметана, творог", "cheese": "Сыры (адыгейский, козий)", "butter": "Сливочное масло и гхи", "egg": "Яйца", "gluten": "Пшеница и глютен: хлеб, мука, манка, булгур, кускус", "oats": "Овёс: хлопья, овсяный кисель, овсяное молоко", "barley": "Ячмень: перловка, цампа", "buckwheat": "Гречка", "corn": "Кукуруза (крахмал)", "legumes": "Бобовые: нут, чечевица, маш, фасоль, горошек", "soy": "Соя: тофу, соевый соус, мисо, соевый протеин", "nuts": "Орехи: миндаль, кешью, кедровые, грецкие", "sesame": "Кунжут и тахини", "seeds": "Тыквенные семечки", "fish": "Рыба", "seafood": "Морепродукты: креветки, кальмар", "beef": "Говядина", "poultry": "Курица и индейка", "offal": "Субпродукты: печень, язык, сердечки", "tomatoes": "Томаты, томатная паста, вяленые томаты", "pepper": "Болгарский перец", "eggplant": "Баклажаны", "potato": "Картофель", "onion": "Лук: репчатый, порей, зелёный", "garlic": "Чеснок", "cabbage": "Капуста: белокочанная, пекинская, брокколи, цветная, брюссельская", "celery": "Сельдерей", "beet": "Свёкла", "mushrooms": "Грибы", "citrus": "Цитрусовые: апельсин, грейпфрут, помело, лимон, лайм", "kiwi": "Киви и ананас", "apple": "Яблоки и груши", "stone": "Абрикосы и сливы", "berries": "Ягоды: черника, малина, смородина, клюква", "dried": "Сухофрукты: курага, чернослив, изюм, финики", "avocado": "Авокадо", "coconut": "Кокос: кокосовое молоко, кокосовый йогурт", "ferment": "Квашеная капуста и солёные огурцы", "seaweed": "Водоросли: нори, спирулина", "honey": "Мёд", "cocoa": "Какао", "cilantro": "Кинза"}, EXCL_G={"milk": 0, "cheese": 0, "butter": 0, "egg": 0, "gluten": 1, "oats": 1, "barley": 1, "buckwheat": 1, "corn": 1, "legumes": 2, "soy": 2, "nuts": 2, "sesame": 2, "seeds": 2, "fish": 3, "seafood": 3, "beef": 3, "poultry": 3, "offal": 3, "tomatoes": 4, "pepper": 4, "eggplant": 4, "potato": 4, "onion": 4, "garlic": 4, "cabbage": 4, "celery": 4, "beet": 4, "mushrooms": 4, "citrus": 5, "kiwi": 5, "apple": 5, "stone": 5, "berries": 5, "dried": 5, "avocado": 5, "coconut": 6, "ferment": 6, "seaweed": 6, "honey": 6, "cocoa": 6, "cilantro": 6}, EXCL_GN=["Молочное и яйца", "Злаки", "Бобовые, орехи, семена", "Рыба, мясо, морепродукты", "Овощи и грибы", "Фрукты и ягоды", "Другое"];
+var SOFT_GRP={herb:1,spice:1,condiment:1,allium:1,acid:1,sweet:1,ferment:1,seeds:1,juice:1,seaweed:1};
+function myEx(){ var c=(LINK&&LINK.excl)||S.myex||[]; return c.filter(function(x){ return EXCL_MAP[x]; }); }
+function exSet(){ var s={}; myEx().forEach(function(c){ EXCL_MAP[c].forEach(function(p){ if(!s[p]) s[p]=c; }); }); return s; }
+function badIdx(ings,xs){ var o=[]; ings.forEach(function(x,i){ if(xs[x.p] && x.g>0 && x.p!=='water' && x.p!=='spices') o.push(i); }); return o; }
+function recipeOk(r,xs){ return !r.ings.some(function(x){ return xs[x.p] && x.g>0; }); }
+function dishFor(it,xs){
+  var r=R(it.id), base=calcItem(it), gen=/^G_/.test(r.id), best=null;
+  P().recipes.forEach(function(x){
+    if(x.id===r.id || x.role!==r.role || (x.meals||[]).indexOf(it.meal)<0 || !recipeOk(x,xs)) return;
+    var t=calcItem({id:x.id,f:it.f}), sc=Math.abs(t.kcal-base.kcal)+(gen!==/^G_/.test(x.id)?60:0)+(x.weeks&&x.weeks.length?0:25);
+    if(!best||sc<best.sc) best={r:x,sc:sc};
+  });
+  return best&&best.r;
+}
+function persItem(it,xs){
+  var r=R(it.id); if(!r) return {it:it,notes:[]};
+  var bad=badIdx(r.ings,xs); if(!bad.length) return {it:it,notes:[]};
+  var mods=Object.assign({},it.mods||{}), notes=[], fail=false;
+  bad.forEach(function(i){
+    var x=r.ings[i], cur={id:it.id,f:it.f,mods:mods};
+    var grp=PRODUCTS[x.p].grp;
+    if(SOFT_GRP[grp]){ mods[i]={p:x.p,g:0}; notes.push('без продукта «'+pname(x.p)+'»'); return; }
+    var c=prodCands(cur,i).list.filter(function(o){ return !xs[o.q]; });
+    c.sort(function(a,b){ return (b.ok-a.ok)||(Math.abs(a.dk)-Math.abs(b.dk)); });
+    if(c.length){ mods[i]={p:c[0].q,g:c[0].g}; notes.push(pname(x.p)+' → '+pname(c[0].q)); return; }
+    if(x.g*(it.f||1)<=15){ mods[i]={p:x.p,g:0}; notes.push('без продукта «'+pname(x.p)+'»'); return; }
+    fail=true;
+  });
+  if(!fail) return {it:{id:it.id,f:it.f,mods:mods,meal:it.meal,label:it.label},notes:notes,why:xs[r.ings[bad[0]].p]};
+  var d=dishFor(it,xs);
+  if(d) return {it:{id:d.id,f:it.f,mods:{},meal:it.meal,label:d.title},notes:['вместо «'+r.title+'»'],dish:true,why:xs[r.ings[bad[0]].p]};
+  return {it:it,notes:['в протоколе нет равноценной замены — уберите это блюдо или напишите куратору'],warn:true,why:xs[r.ings[bad[0]].p]};
+}
+function mineItems(day){ var xs=exSet(); return menuItems(day).map(function(it){ return persItem(it,xs); }); }
+function exEditor(){
+  var sel=myEx();
+  return EXCL_GN.map(function(g,gi){ var cs=Object.keys(EXCL_G).filter(function(c){ return EXCL_G[c]===gi; });
+    return '<div class="xg"><div class="xgn">'+esc(g)+'</div><div class="chips">'+cs.map(function(c){ return '<button class="fchip" data-mex="'+c+'" aria-pressed="'+(sel.indexOf(c)>=0)+'">'+esc(EXCL_NAME[c])+'</button>'; }).join('')+'</div></div>'; }).join('');
+}
+function renderMine(){
+  var ex=myEx(), plat=!!(LINK&&LINK.excl);
+  var h='<div class="xhead">';
+  if(ex.length){
+    h+='<p class="xlead"><b>Это меню вашего протокола, собранное под вас.</b> Блюда и продукты, которые вы отметили как «не ем», заменены на равноценные из вашего протокола. Замены подписаны под блюдом.</p>';
+    h+='<div class="xsel"><span class="xsl">Вы не едите:</span>'+ex.map(function(c){ return '<span class="xtag">'+esc(EXCL_NAME[c])+'</span>'; }).join('')+'</div>';
+    h+=plat?'<p class="xhint">Изменить список можно в кабинете — над конструктором, кнопка «Изменить список».</p>':'<button class="btn" data-mexed="1">'+(S.mexOpen?'Готово':'Изменить список')+'</button>';
+  } else {
+    h+='<p class="xlead"><b>Здесь будет ваше личное меню.</b> Отметьте продукты, которые вы не едите или плохо переносите, и мы заменим их в меню на равноценные из вашего протокола.</p>';
+    if(plat) h+='<p class="xhint">Список заполняется из анкеты. Изменить его можно в кабинете — над конструктором, кнопка «Изменить список».</p>';
+  }
+  h+='</div>';
+  if(!plat && (S.mexOpen || !ex.length)) h+='<div class="xed">'+exEditor()+'</div>';
+  if(!ex.length) return h;
+  h+='<div class="layout"><div style="min-width:0">';
+  h+='<div class="weeks">'+[3,4,5].map(function(w){ var a=(w-3)*7+1;
+    var s='<div><div class="wk-label">НЕДЕЛЯ '+w+' · ДНИ '+a+'–'+(a+6)+'</div><div class="pills">';
+    var lk=menuLockTxt(w); if(lk) s+='<span class="wk-lock">Откроется '+lk+'</span>'; else for(var d=a; d<a+7; d++) s+='<button class="pill num" data-day="'+d+'" aria-pressed="'+(S.day===d)+'">'+d+'</button>';
+    return s+'</div></div>'; }).join('')+'</div>';
+  S.day=menuOpenDay(S.day);
+  var px=mineItems(S.day), items=px.filter(function(x){ return !x.warn; }).map(function(x){ return x.it; });
+  var tots=items.map(calcItem), T=sumT(tots), base=sumT(menuItems(S.day).map(calcItem)), n=px.filter(function(x){ return x.notes.length; }).length;
+  var dk=T.kcal-base.kcal;
+  h+=expBar('mine',curWk());
+  h+='<div class="dayhead"><div class="daystat num">День '+S.day+', ваше меню: <b>'+fmt(T.kcal)+' ккал</b> · Б '+fmt(T.protein)+' · Ж '+fmt(T.fat)+' · У '+fmt(T.carbs)+' · клетчатка '+fmt(T.fiber,1)+' г'+
+     (n?'<br><span class="xsum">Замен в этот день: '+n+(Math.abs(dk)>=60?' · калорий '+(dk>0?'больше':'меньше')+' обычного на '+fmt(Math.abs(dk))+' — '+(dk<0?'добавьте порцию крупы или хлеба':'возьмите порцию крупы поменьше'):'')+'</span>':'<br><span class="xsum">В этот день менять ничего не пришлось.</span>')+'</div>'+
+     '<button class="btn solid" data-copymine="'+S.day+'">Перенести день в конструктор</button></div>';
+  SLOTS.forEach(function(sl){
+    var its=px.filter(function(x){ return x.it.meal===sl; }); if(!its.length) return;
+    var mk=its.reduce(function(a,x){ return a+(x.warn?0:calcItem(x.it).kcal); },0);
+    h+='<section class="meal"><div class="meal-h"><div class="meal-n"><i></i>'+sl+'</div><div class="meal-k num">'+fmt(mk)+' ккал</div></div>';
+    its.forEach(function(x){ h+=dishCard(x.it,calcItem(x.it),sl);
+      if(x.notes.length) h+='<div class="xnote'+(x.warn?' warn':'')+'">'+(x.dish?'Замена блюда: ':x.warn?'':'В блюде: ')+esc(x.notes.join('; '))+(x.why?' <span>· вы отметили: '+esc(EXCL_NAME[x.why].split(':')[0])+'</span>':'')+'</div>'; });
+    h+='</section>';
+  });
+  h+='</div>'+renderPanel(T, items.map(function(it,i){ return {it:it,t:tots[i]}; }), 'Расчёт дня '+S.day)+'</div>';
+  return h;
+}
+
+/* ==== ВЫГРУЗКА ==== */
+var SHOP_SEC=[['Мясо и птица',['meat','mince','poultry','poultry_bone','meat_bone','liver','offal']],['Рыба и морепродукты',['fish_white','fish_red','seafood']],
+  ['Яйца и молочное',['egg','dairy','dairy_cheese']],['Тофу и бобовые',['tofu','legume','protein_pow']],['Крупы, мука, хлеб',['grain','flour','noodle','bread','fiber']],
+  ['Овощи',['veg_soft','veg_green','veg_root','veg_starch','veg_crisp','veg_leafy','veg_fruit','allium','mushroom','salad_leaf','ferment']],['Зелень',['herb']],
+  ['Фрукты и ягоды',['fruit_sweet','fruit_sour','berry','fruit_fat']],['Орехи, семена, сухофрукты',['nuts','seeds','dried']],['Масла',['fat']],
+  ['Кокос и растительное молоко',['coconut','plant_milk']],['Бульоны',['broth']],['Соусы, мёд и прочее',['condiment','sweet','acid','juice','seaweed','drink','alcohol','none']]];
+function grams(g){ return g>=1000?fmt(g/1000,1)+' кг':(g>=100?fmt(Math.round(g/10)*10):fmt(Math.max(1,Math.round(g))))+' г'; }
+function shopList(days){
+  var by={}, gen={}, spices={};
+  days.forEach(function(d){ d.items.forEach(function(it){ var r=R(it.id); if(!r) return; var f=it.f||1;
+    if(/^G_/.test(r.id)||r.generic){ var k=r.title; gen[k]=gen[k]||{n:0,g:0}; gen[k].n+=f; gen[k].g+=ingsOf(it).reduce(function(a,x){ return a+(x.p==='water'?0:x.g*f); },0); return; }
+    ingsOf(it).forEach(function(x){ if(x.h||x.g<=0||x.p==='water') return;
+      if(x.p==='spices'){ spices[r.title]=1; return; }
+      by[x.p]=(by[x.p]||0)+x.g*f; }); }); });
+  var used={}, secs=SHOP_SEC.map(function(s){ var rows=Object.keys(by).filter(function(p){ return s[1].indexOf(PRODUCTS[p].grp)>-1; });
+    rows.forEach(function(p){ used[p]=1; }); return {t:s[0],rows:rows.sort(function(a,b){ return by[b]-by[a]; }).map(function(p){ return [pname(p),p==='egg'?Math.ceil(by[p]/50)+' шт.':grams(by[p])]; })}; });
+  var rest=Object.keys(by).filter(function(p){ return !used[p]; }); if(rest.length) secs.push({t:'Другое',rows:rest.map(function(p){ return [pname(p),grams(by[p])]; })});
+  var g=Object.keys(gen); if(g.length) secs.push({t:'На ваш выбор',rows:g.map(function(k){ var n=Math.round(gen[k].n*4)/4; return [k, fmt(n,2)+' '+(n%1||n>=5||n===0?'порций':n>1?'порции':'порция')+' (≈ '+grams(gen[k].g)+' всего)']; })});
+  return {secs:secs.filter(function(s){ return s.rows.length; }), spices:Object.keys(spices).length};
+}
+var EXP_CSS='@page{size:A4;margin:12mm}body{font:12px/1.45 "Golos Text",Arial,sans-serif;color:#1d2b25;margin:0 auto;max-width:820px;padding:16px}'+
+ '.brand{color:#9e007e;font-weight:700;font-size:11px}h1{color:#173f35;font-size:22px;margin:4px 0 4px}h2{color:#173f35;font-size:16px;margin:18px 0 8px;break-after:avoid}.lead{color:#4a5f55;margin:0 0 10px}'+
+ '.bar{position:sticky;top:0;background:#fff;padding:8px 0;border-bottom:1px solid #d6e6dc;margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap}.bar button{font:inherit;font-weight:600;border:1.5px solid #173f35;background:#173f35;color:#fff;border-radius:999px;padding:7px 16px;cursor:pointer}.bar button.l{background:#fff;color:#173f35}'+
+ 'table{border-collapse:collapse;width:100%;margin:0 0 8px}th{background:#173f35;color:#fff;text-align:left;padding:5px 8px;font-size:11.5px}td{border:1px solid #d6e6dc;padding:5px 8px;vertical-align:top}td.m{width:90px;background:#eaf5ef;font-weight:700;color:#173f35}'+
+ '.n{color:#9e007e;font-size:11px}.k{color:#5f7a6d;font-size:11px}.day{break-inside:avoid;margin-bottom:12px}.sec{break-inside:avoid;margin:0 0 10px}.sec h3{font-size:13px;color:#173f35;margin:0 0 4px;border-bottom:2px solid #a8e4c0;padding-bottom:2px}'+
+ '.row{display:flex;gap:8px;padding:3px 0;border-bottom:1px dotted #d6e6dc}.row i{width:12px;height:12px;border:1.5px solid #173f35;border-radius:3px;flex:0 0 auto;margin-top:2px}.row span{flex:1}.row b{font-weight:600;white-space:nowrap}'+
+ '.cols{columns:2;column-gap:24px}.r{break-inside:avoid;border:1px solid #d6e6dc;border-radius:10px;padding:10px 12px;margin:0 0 10px}.r h3{margin:0 0 4px;color:#173f35;font-size:13px}.r ul,.r ol{margin:4px 0;padding-left:18px}'+
+ '@media print{.bar{display:none}body{padding:0}}@media(max-width:600px){.cols{columns:1}}';
+function expOpen(title, body){
+  var html='<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title><style>'+EXP_CSS+'</style></head><body>'+
+    '<div class="bar"><button onclick="window.print()">Распечатать или сохранить в PDF</button><button class="l" onclick="window.close()">Закрыть</button></div>'+
+    '<p class="brand">Holistica DOC · Программа «Формула здоровья ЖКТ»</p>'+body+'</body></html>';
+  var blob=new Blob([html],{type:'text/html'}), url=URL.createObjectURL(blob), w=null;
+  try{ w=window.open(url,'_blank'); }catch(e){}
+  if(!w){ var a=document.createElement('a'); a.href=url; a.download=title.replace(/[\\/:*?"<>|]/g,'')+'.html'; document.body.appendChild(a); a.click(); a.remove(); toast('Файл скачан — откройте его, чтобы распечатать'); }
+  setTimeout(function(){ URL.revokeObjectURL(url); },60000);
+}
+function shopHtml(days, title, sub){
+  var L=shopList(days);
+  var h='<h1>'+esc(title)+'</h1><p class="lead">'+esc(sub)+' Количество — на одну порцию каждого блюда, как в меню; блюда «на 2 дня» уже посчитаны целиком.</p><div class="cols">';
+  L.secs.forEach(function(s){ h+='<div class="sec"><h3>'+esc(s.t)+'</h3>'+s.rows.map(function(r){ return '<div class="row"><i></i><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>'; }).join('')+'</div>'; });
+  if(L.spices) h+='<div class="sec"><h3>Специи</h3><div class="row"><i></i><span>Специи вашего протокола — по рецептам</span><b></b></div></div>';
+  return h+'</div>';
+}
+function menuHtml(days, title, sub, withRec){
+  var h='<h1>'+esc(title)+'</h1><p class="lead">'+esc(sub)+'</p>', rec=[];
+  days.forEach(function(d){ var T=sumT(d.items.map(calcItem));
+    h+='<div class="day"><h2>'+esc(d.name)+' <span class="k">· '+fmt(T.kcal)+' ккал · Б '+fmt(T.protein)+' · Ж '+fmt(T.fat)+' · У '+fmt(T.carbs)+'</span></h2><table>';
+    SLOTS.forEach(function(sl){ var its=d.items.filter(function(it){ return it.meal===sl; }); if(!its.length) return;
+      h+='<tr><td class="m">'+sl+'</td><td>'+its.map(function(it){ var r=R(it.id); if(!r) return ''; if(rec.indexOf(r.id)<0 && !/^G_/.test(r.id)) rec.push(r.id);
+        var f=it.f||1, ch=ingsOf(it).filter(function(x){ return x.orig; }).map(function(x){ return x.g>0?pname(x.orig)+' → '+pname(x.p):'без «'+pname(x.orig)+'»'; });
+        return '<div>'+esc(r.title)+(f!==1?' <span class="k">('+fmt(f,2)+' порции)</span>':'')+(ch.length?' <span class="n">· '+esc(ch.join('; '))+'</span>':'')+(it.note?' <span class="n">· '+esc(it.note)+'</span>':'')+'</div>'; }).join('')+'</td></tr>'; });
+    h+='</table></div>'; });
+  if(withRec && rec.length){ h+='<h2 style="break-before:page">Рецепты</h2><div class="cols">'+rec.map(function(id){ var r=R(id);
+    return '<div class="r"><h3>'+esc(r.title)+'</h3>'+(r.portion?'<div class="k">'+esc(r.portion)+'</div>':'')+'<b>Ингредиенты</b><ul>'+r.ings.filter(function(x){ return !x.h; }).map(function(x){ return '<li>'+esc(x.t)+'</li>'; }).join('')+'</ul>'+
+      ((r.prep||[]).length?'<b>Приготовление</b><ol>'+r.prep.map(function(p){ return '<li>'+esc(String(p).replace(/^\s*\d+[.)]\s*/,''))+'</li>'; }).join('')+'</ol>':'')+(r.note?'<div class="k">'+esc(r.note)+'</div>':'')+'</div>'; }).join('')+'</div>'; }
+  return h;
+}
+function weekDaysFrom(src, w){
+  var a=(w-3)*7+1, out=[];
+  for(var d=a; d<a+7; d++){ var its = src==='mine' ? mineItems(d).filter(function(x){ return !x.warn; }).map(function(x){ return x.it; }) : menuItems(d);
+    out.push({name:'День '+d, items:its}); }
+  return out;
+}
+function savedWeekDays(w){
+  return DAYS.filter(function(d){ return weekOf(d.date)===w; }).map(function(d){ var its=[];
+    SLOTS.forEach(function(sl){ ((d.items||{})[sl]||[]).forEach(function(it){ its.push({id:it.id,f:it.f||1,mods:it.mods||{},meal:sl}); }); });
+    return {name:fdate(parseDay(d.date),{weekday:'long',day:'numeric',month:'long'}), items:its}; });
+}
+function buildDay(){ var its=[]; SLOTS.forEach(function(sl){ (B()[sl]||[]).forEach(function(it){ its.push({id:it.id,f:it.f||1,mods:it.mods||{},meal:sl}); }); }); return [{name:'Мой день',items:its}]; }
+function doExport(kind, src, w){
+  var days, who=PROTO_FULL[S.proto], tt, sub;
+  if(src==='saved'){ days=savedWeekDays(w); tt='неделя '+w+', мои дни'; sub=who+'. Дни, которые вы собрали и сохранили в конструкторе.'; }
+  else if(src==='build'){ days=buildDay(); tt='мой день'; sub=who+'. День, собранный в конструкторе.'; }
+  else { days=weekDaysFrom(src,w); tt='неделя '+w+(src==='mine'?', ваше меню':''); sub=who+(src==='mine'?'. Меню протокола с заменами под продукты, которые вы не едите.':'. Меню протокола на неделю.'); }
+  days=days.filter(function(d){ return d.items.length; });
+  if(!days.length){ toast('Здесь пока нечего выгружать'); return; }
+  if(kind==='shop') expOpen('Список продуктов — '+tt, shopHtml(days,'Список продуктов — '+tt, sub));
+  else expOpen('Меню — '+tt, menuHtml(days,'Меню — '+tt, sub, true));
+}
+function expBar(src, w){
+  if(src!=='saved' && src!=='build' && menuLockTxt(w)) return '';
+  var lab = src==='build' ? 'на этот день' : 'на неделю '+w;
+  return '<div class="expbar"><span>Выгрузить '+lab+':</span><button class="btn" data-exp="menu" data-src="'+src+'" data-w="'+w+'">Меню и рецепты</button><button class="btn" data-exp="shop" data-src="'+src+'" data-w="'+w+'">Список продуктов</button></div>';
+}
+function curWk(){ return 3+Math.floor((S.day-1)/7); }
 
 /* --- библиотека --- */
 function renderLib(){
@@ -606,6 +787,7 @@ function renderBuild(){
     h+='<button class="addslot" data-pick="'+esc(sl)+'">+ Добавить блюдо в «'+sl+'»</button></div>';
   });
   h+=renderSaveBar();
+  if(Object.keys(B()).some(function(k){ return (B()[k]||[]).length; })) h+=expBar('build',0);
   h+='<div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center"><button class="linkbtn" data-reset="1">Очистить день</button>'+
      '<span class="muted" style="font-size:12.5px; color:var(--muted)">Быстрый старт: откройте «Меню по дням» и перенесите любой день целиком.</span></div>';
   h+='</div>'+renderPanel(sumT(allT), rows, 'Калькулятор дня')+'</div>';
@@ -981,6 +1163,7 @@ function renderWeek(){
       (d?'<div class="wd-v num">'+fmt(d.tot.kcal)+' ккал<br>Б '+fmt(d.tot.protein)+' г'+(d.inp!=null?' · ИНП '+d.inp:'')+'</div><div class="wd-a"><button class="lnk2" data-openday="'+ds+'">Открыть</button><button class="lnk2 del" data-delday="'+ds+'" aria-label="Удалить день">Удалить</button></div>'
          :'<div class="wd-v muted2">'+(fut?'впереди':'не сохранён')+'</div>')+'</div>'; }
   h+='</div>';
+  if(wd.length) h+=expBar('saved',W);
   if(!wd.length) return h+'<div class="empty">За эту неделю сохранённых дней пока нет. Соберите день в конструкторе и нажмите «Сохранить день».</div></div>';
   // средний день
   var A={}; NUTS.forEach(function(k){ var s=0; wd.forEach(function(d){ s+=+(d.tot[k]||0); }); A[k]=s/wd.length; });
@@ -1139,6 +1322,10 @@ app.addEventListener('click',function(e){
   if(d.wk){ S.wk=+d.wk; render(); return; }
   if(d.adv){ S.advOpen=S.advOpen||{}; S.advOpen[d.adv]=el.getAttribute('aria-expanded')!=='true'; render(); return; }
   if(d.proto){ if(LOCKED) return; S.proto=d.proto; modal=null; render(); return; }
+  if(d.mex){ var mx=S.myex=(S.myex||[]).slice(), ix=mx.indexOf(d.mex); if(ix>=0) mx.splice(ix,1); else mx.push(d.mex); render(); return; }
+  if(d.mexed){ S.mexOpen=!S.mexOpen; render(); return; }
+  if(d.copymine){ mineItems(+d.copymine).forEach(function(x){ if(!x.warn) addItem(x.it.meal,x.it.id,x.it.f,x.it.mods); }); S.tab='build'; render(); return; }
+  if(d.exp){ doExport(d.exp, d.src, +d.w); return; }
   if(d.tab){ S.tab=d.tab; render(); return; }
   if(d.day){ S.day=+d.day; render(); return; }
   if(d.close){ closeModal(); return; }
