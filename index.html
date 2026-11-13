@@ -555,6 +555,29 @@ body.fv-on{overflow:hidden}
 .pubt.on{background:#e6f4ee;color:#173f35}
 @media (max-width:760px){.gc-intro{display:none}}
 
+/* ── меню для печати ── */
+.prn{background:var(--mint-pale);border:1px solid var(--card-bd,var(--line));border-radius:20px;padding:16px 18px;margin:0 0 14px}
+.prn h3{margin:0 0 4px;font-size:16px;color:var(--e)}
+.prn p{margin:0 0 10px;font-size:13.5px;color:var(--grey)}
+.prn a{display:flex;align-items:center;gap:12px;min-height:48px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:8px 14px;margin:0 0 8px;color:var(--ink);text-decoration:none;font-weight:500;font-size:14px}
+.prn a:last-child{margin-bottom:0}
+.prn a svg{flex:0 0 20px;width:20px;height:20px;color:var(--mag)}
+.prn a span{flex:1}.prn a small{color:var(--grey);font-size:12px}
+/* ── нижнее меню на телефоне и планшете ── */
+.tbar{display:none}
+@media (max-width:1099px){
+  body.wide .tbar{display:flex;position:fixed;z-index:20;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));background:#fff;border-radius:28px;padding:6px;gap:2px;box-shadow:0 6px 24px rgba(23,63,53,.16)}
+  body.wide #U .wrap{padding-bottom:110px}
+  .tbar button{flex:1;min-width:0;min-height:54px;border:none;border-radius:22px;background:none;color:var(--e);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;position:relative;padding:4px 2px;font-family:inherit}
+  .tbar button svg{width:21px;height:21px}
+  .tbar button.on{background:var(--e);color:#fff}
+  .tbar button i{position:absolute;top:4px;right:calc(50% - 22px);min-width:17px;height:17px;border-radius:9px;background:var(--mag);color:#fff;font-style:normal;font-size:10.5px;font-weight:700;display:grid;place-items:center;padding:0 4px}
+  body.wide .pvbar{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  body.wide .toast{bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+  body.wide .gc-form{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+}
+@media print{.tbar{display:none!important}}
+
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
 .dtop .dt-b .cal{margin-top:16px}
@@ -6717,11 +6740,20 @@ function menuLink(){
   const menu = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : menuSched();
   LS.set('hz_menu_link', MODE === 'live' && !U.preview ? { api: CFG.API_URL, token: S.token, start: iso, menu } : { start: iso, menu });
 }
+// ── Меню недели для печати (меню по дням + рецепты, PDF) — открывается вместе с неделей меню ──
+function menuPrint(){
+  const sch = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : menuSched(), pk = TYPE();
+  const rows = [3, 4, 5].map(w => { const t = sch[w] ? new Date(sch[w]).getTime() : 0, op = !t || Date.now() >= t;
+    return op ? `<a href="materials/${pk}/menu_w${w}.pdf" target="_blank" rel="noopener" download="Меню_неделя_${w}.pdf">${I.fpdf}<span>Неделя ${w} — меню и рецепты</span><small>PDF</small></a>`
+      : `<a aria-disabled="true" style="opacity:.6;pointer-events:none">${I.lock}<span>Неделя ${w}</span><small>откроется ${fmt(new Date(t), {day:'numeric', month:'long'})}</small></a>`; }).join('');
+  return `<div class="prn"><h3>Меню для печати</h3><p>Меню на всю неделю и рецепты одним файлом — удобно распечатать и держать на кухне.</p>${rows}</div>`;
+}
 function menuView(){
   menuLink();
   const src = CFG.MENU_URL + '?protocol=' + PCODE[TYPE()] + '#' + PCODE[TYPE()];
   return `${protoSwitch()}<h1 style="margin-top:22px">Меню и рецепты</h1>
   <p class="muted">Собирайте меню на день из рецептов вашего протокола. <a class="lnk" href="${esc(src)}" target="_blank" rel="noopener">Открыть в отдельной вкладке</a></p>
+  ${menuPrint()}
   <iframe class="menu-frame" src="${esc(src)}" title="Конструктор меню"></iframe>`;
 }
 function lessonNav(x){
@@ -7285,6 +7317,14 @@ function renderNav(wide){
   const sc = el.querySelector('.snav'), top = sc ? sc.scrollTop : 0;
   el.innerHTML = `<div class="snav-bd${NAV.open ? ' on' : ''}" data-a="navClose"></div><nav class="snav${NAV.open ? ' open' : ''}" aria-label="Навигация по программе">${navHtml()}</nav><div class="srail">${railHtml()}</div>`;
   el.querySelector('.snav').scrollTop = top;
+  el.insertAdjacentHTML('beforeend', tbarHtml());
+}
+// нижнее меню на телефоне и планшете (как на платформе ИР)
+function tbarHtml(){
+  const g = gcTypes().length, un = g ? gcUnreadAll() : 0, gt = gcTypes().includes(TYPE()) ? TYPE() : gcTypes()[0];
+  const it = [['dash','Главная',I.home,'data-a="home"'],['cat','Уроки',I.book,'data-a="cat" data-k="lessons"'],['tracker','Трекер',I.ck,'data-a="tracker"'],['menu','Меню',I.plate,'data-a="menu"']];
+  if (g) it.push(['gchat','Чат',I.chs,`data-a="gchat" data-t="${gt}"`]);
+  return `<nav class="tbar" aria-label="Разделы кабинета">${it.map(([s, t, ic, a]) => `<button type="button" ${a} class="${V.s === s || (s === 'cat' && V.s === 'item') ? 'on' : ''}" ${V.s === s ? 'aria-current="page"' : ''}>${ic}<span>${t}</span>${s === 'gchat' && un ? `<i>${un}</i>` : ''}</button>`).join('')}</nav>`;
 }
 function navClick(b, a){
   if (a === 'navPin') { NAV.pin = NAV.pin ? 0 : 1; NAV.open = false; LS.set('hz_nav_pin', NAV.pin); }
