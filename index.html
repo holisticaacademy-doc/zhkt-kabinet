@@ -5204,13 +5204,25 @@ function byId(id){for(const k in CAT){const f=CAT[k].find(x=>x.id===id);if(f) re
 function catOf(id){for(const k in CAT){if(CAT[k].some(x=>x.id===id)) return k}return null}
 const ITEMS = QBLOCKS.flatMap(b=>b.items);
 function labelOf(it,v){ if(!it||!v) return ''; if(it.k==='scale') return (it.react?SCALE_REACT:SCALE_STD)[v]||String(v); if(it.k==='opts'){const o=it.o.find(o=>o[0]===v);return o?o[1]:String(v)} return 'Да'; }
-function dayNum(start){ return Math.max(1, Math.floor((dayStart(Date.now())-dayStart(start))/DAY)+1) }
+// Даты программы заданы по Москве. Чтобы у учениц в других часовых поясах дни не съезжали, берём московскую календарную дату
+// и считаем её полночью по местному времени ученицы (день 1 = 1 ноября и в Москве, и в Европе, и в США).
+// разовая правка отметок трекера у учениц не из московского часового пояса: раньше их дни считались со сдвигом на сутки
+function trkTzFix(){ try {
+  if (!U.st || U.st.tzfix || !START()) return; const st = new Date(START()).getTime();
+  const diff = (Math.max(1, Math.floor((dayStart(Date.now()) - dayStart(st))/DAY) + 1)) - dayNum(st); U.st.tzfix = 1;
+  if (!diff) return;
+  const sh = o => { const r = {}; Object.keys(o || {}).forEach(k => { const m = /^(\d+):(.+)$/.exec(k); r[m ? (+m[1] - diff) + ':' + m[2] : k] = o[k]; }); return r; };
+  U.st.track = sh(U.st.track); if (U.st.trackX) Object.keys(U.st.trackX).forEach(t => { U.st.trackX[t] = sh(U.st.trackX[t]); });
+  setTimeout(() => { try { save(); } catch (e) {} }, 0);
+} catch (e) {} }
+function mskDay(t){ const d = new Date(new Date(t).getTime() + 3 * 36e5); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).getTime(); }
+function dayNum(start){ return Math.max(1, Math.round((dayStart(Date.now())-mskDay(start))/DAY)+1) }
 // ── Трекер: недели 2–5 программы, дни считаются от старта (день 1 = старт потока). Неделя 5 длится до раздела «Завершение». ──
 const TRK_WEEKS = [2,3,4,5];
 function trkStart(){ try { return startT(); } catch (e) { return Date.parse('2026-11-01T00:00:00+03:00'); } }
 function trkSpan(w, set){
   if (!START()) { const o = CAL.weekOpens, a0 = o[w]; return { a: a0, b: Math.min(CAL.programDays, (w === 5 ? o[6] : o[w + 1]) - 1) }; }   // без даты старта потока — по неделям от назначения протокола
-  const s = dayStart(trkStart()), d = ms => Math.floor((dayStart(ms) - s)/DAY) + 1;
+  const s = mskDay(trkStart()), d = ms => Math.round((mskDay(ms) - s)/DAY) + 1;
   const a = d(openAt(w, set)), nx = openAt(w === 5 ? 6 : w + 1, set), b = nx ? d(nx) - 1 : a + 6;
   return { a, b: Math.max(a, Math.min(b, CAL.programDays)) };
 }
@@ -5629,7 +5641,7 @@ function normState(s){ s = s && typeof s === 'object' ? s : {}; const f = freshS
 
 async function loadMe(){
   const r = await api('me', { token: S.token });
-  S.user = r.user; if (S.user && /индивид/i.test(S.user.tariff || '')) S.user.tariff = TARIFF_IND; S.set = r.settings || {}; U.quiz = r.quiz || null; U.st = normState(r.state); U.links = r.lessons || {}; U.msgs = r.messages || []; U.fb = r.feedback || {}; _RK = '';
+  S.user = r.user; if (S.user && /индивид/i.test(S.user.tariff || '')) S.user.tariff = TARIFF_IND; S.set = r.settings || {}; U.quiz = r.quiz || null; U.st = normState(r.state); trkTzFix(); U.links = r.lessons || {}; U.msgs = r.messages || []; U.fb = r.feedback || {}; _RK = '';
   U.at = LS.get(atKey(), '') || '';
 }
 async function boot(){
@@ -6081,8 +6093,8 @@ function gcRe(fn){
 
 const startT = () => START() ? new Date(START()).getTime() : U.preview ? (U.pstart ? new Date(U.pstart).getTime() : Date.now()) : (S.user.confirmedAt ? new Date(S.user.confirmedAt).getTime() : Date.now());
 const dayN = () => dayNum(startT());
-const dateOf = n => new Date(dayStart(startT()) + (n-1)*DAY);
-const preStart = () => !U.preview && !!START() && dayStart(Date.now()) < dayStart(new Date(START()).getTime());
+const dateOf = n => { const b = new Date(mskDay(startT())); return new Date(b.getFullYear(), b.getMonth(), b.getDate() + n - 1); };
+const preStart = () => !U.preview && !!START() && dayStart(Date.now()) < mskDay(new Date(START()).getTime());
 // ── расписание: неделя открывается в заданный момент (лист «Настройки» → CFG.SCHEDULE) ──
 function SCHED(set){ const d = CFG.SCHEDULE, s = ((set !== undefined ? set : S.set) || {}).schedule || {};
   const pick = (a, b) => { const o = Object.assign({}, a); for (const k in (b || {})) if (b[k]) o[k] = b[k]; return o; };
@@ -6699,7 +6711,7 @@ function catList(){
 }
 function menuLink(){
   // конструктор (рядом, тот же сайт) берёт отсюда адрес сервера, токен и дату старта — для сохранённых дней
-  const start = new Date(dayStart(startT())); const iso = start.getFullYear()+'-'+String(start.getMonth()+1).padStart(2,'0')+'-'+String(start.getDate()).padStart(2,'0');
+  const start = new Date(mskDay(startT())); const iso = start.getFullYear()+'-'+String(start.getMonth()+1).padStart(2,'0')+'-'+String(start.getDate()).padStart(2,'0');
   const menu = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : menuSched();
   LS.set('hz_menu_link', MODE === 'live' && !U.preview ? { api: CFG.API_URL, token: S.token, start: iso, menu } : { start: iso, menu });
 }
