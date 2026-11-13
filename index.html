@@ -5217,13 +5217,15 @@ function trkTzFix(){ try {
 } catch (e) {} }
 function mskDay(t){ const d = new Date(new Date(t).getTime() + 3 * 36e5); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).getTime(); }
 function dayNum(start){ return Math.max(1, Math.round((dayStart(Date.now())-mskDay(start))/DAY)+1) }
-// ── Трекер: недели 2–5 программы, дни считаются от старта (день 1 = старт потока). Неделя 5 длится до раздела «Завершение». ──
+// ── Трекер: недели 2–5 программы, с понедельника по воскресенье (день 1 = старт потока). Неделя 5 длится до понедельника после открытия «Завершения». ──
 const TRK_WEEKS = [2,3,4,5];
 function trkStart(){ try { return startT(); } catch (e) { return Date.parse('2026-11-01T00:00:00+03:00'); } }
 function trkSpan(w, set){
   if (!START()) { const o = CAL.weekOpens, a0 = o[w]; return { a: a0, b: Math.min(CAL.programDays, (w === 5 ? o[6] : o[w + 1]) - 1) }; }   // без даты старта потока — по неделям от назначения протокола
-  const s = mskDay(trkStart()), d = ms => Math.round((mskDay(ms) - s)/DAY) + 1;
-  const a = d(openAt(w, set)), nx = openAt(w === 5 ? 6 : w + 1, set), b = nx ? d(nx) - 1 : a + 6;
+  // недели трекера идут с понедельника: неделя открывается в субботу, трекер этой недели — с ближайшего понедельника
+  const s = mskDay(trkStart()), d = ms => Math.round((ms - s)/DAY) + 1;
+  const mon = t => { const x = new Date(mskDay(t)), add = (8 - x.getDay()) % 7; return new Date(x.getFullYear(), x.getMonth(), x.getDate() + add).getTime(); };
+  const a = d(mon(openAt(w, set))), nx = openAt(w === 5 ? 6 : w + 1, set), b = nx ? d(mon(nx)) - 1 : a + 6;
   return { a, b: Math.max(a, Math.min(b, CAL.programDays)) };
 }
 function trkWeekOf(day, set){ for (const w of TRK_WEEKS) { const s = trkSpan(w, set); if (day >= s.a && day <= s.b) return w; } return 0; }
