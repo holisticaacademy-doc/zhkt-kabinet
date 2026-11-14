@@ -603,6 +603,7 @@ body.fv-on{overflow:hidden}
 .chnew .btn{margin-left:auto}
 #U .chmiss{margin:12px 0 0}
 #U .chat .bub.nw:not(.me),#U .chat .bub.miss:not(.me){box-shadow:0 0 0 2px #9e007e inset}
+body.u-drop #uChat{outline:3px dashed #9e007e;outline-offset:-4px;border-radius:14px}
 
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
@@ -1822,6 +1823,7 @@ textarea.inp,.emo-w>textarea{border-radius:16px}
 .chmiss b,.chnew b{color:#9e007e}
 .chmiss span{display:flex;gap:6px;margin-left:auto}
 .chnew .btn{margin-left:auto}
+#chat.drop{outline:3px dashed #9e007e;outline-offset:-6px;background:#fbe9f6}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -5957,6 +5959,13 @@ async function sendMsg(lessonId){
       U.chMiss = chatMsgsU().filter(m => m.from === 'cu' && tsOf(m) > seen && tsOf(m) <= T).map(m => m.id || m.at); U.chMissShown = ''; U.chBase = null; } U.cf = []; U.cdraft = ''; if (lessonId && U.ldraft) delete U.ldraft[lessonId]; if (lessonId && U.lpriv) delete U.lpriv[lessonId]; ta.value = ''; keepY(render); toast('Отправлено'); }
   catch (e) { btn.disabled = false; btn.textContent = 'Отправить'; toast(e.message); }
 }
+// Файлы в чат ученицы: кнопка, перетаскивание в чат и вставка из буфера (Ctrl+V)
+async function uAddFiles(files){ if (!files || !files.length || !document.getElementById('chat-file') || V.s !== 'chat') return;
+  const ta = $('#msgIn'); U.cdraft = ta ? ta.value : ''; U.cf = U.cf || []; await readChatFiles({ files, value:'' }, U.cf); keepY(render); }
+document.addEventListener('dragover', e => { if (V.s !== 'chat' || !document.getElementById('chat-file') || !(e.dataTransfer && [...e.dataTransfer.types].includes('Files'))) return; e.preventDefault(); document.body.classList.add('u-drop'); });
+document.addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('u-drop'); });
+document.addEventListener('drop', e => { document.body.classList.remove('u-drop'); if (V.s !== 'chat' || !document.getElementById('chat-file')) return; e.preventDefault(); uAddFiles(e.dataTransfer && e.dataTransfer.files); });
+document.addEventListener('paste', e => { if (!e.target || e.target.id !== 'msgIn' || V.s !== 'chat') return; const f = e.clipboardData && e.clipboardData.files; if (f && f.length && document.getElementById('chat-file')) { e.preventDefault(); uAddFiles(f); } });
 // Личный чат ученицы: держим ленту у последнего сообщения, показываем пришедшее во время набора и кнопку «↓ новые»
 let uChStick = true;
 function uChatFocus(sel){ const ch = $('#uChat'), el = ch && ch.querySelector(sel); if (!el) return;
@@ -7311,7 +7320,7 @@ document.addEventListener('change', async e => {
   const t = e.target;
   if (t.id === 'pvType') { U.ptype = t.value; _RK = ''; return keepY(render); }
   if (t.id === 'gc-photo' && !t.closest('#A')) return gcPhotoPick(t, V.t, () => keepY(render));
-  if (t.id === 'chat-file') { const ta = $('#msgIn'); U.cdraft = ta ? ta.value : ''; U.cf = U.cf || []; await readChatFiles(t, U.cf); return keepY(render); }
+  if (t.id === 'chat-file') return uAddFiles(t.files);
   if (t.id === 'rz-before' || t.id === 'rz-after') return rzAdd(t, t.id === 'rz-after' ? 'после' : 'до');
   if (t.id === 'rzConsent') { RZ().consent = t.checked; return; }
   if (t.id === 'lPriv') { (U.lpriv = U.lpriv || {})[V.id] = t.checked; return; }
@@ -8212,6 +8221,13 @@ const Adm = (() => {
       ${MODE === 'demo' ? `<button class="btn sm" data-a="demoResetA">Сбросить демо-данные</button>` : ''}
       <button class="btn sm" data-a="logout">Выйти</button></div>`;
   }
+  // Файлы в личный чат: кнопка «Прикрепить файл», перетаскивание файлов в чат и вставка из буфера (Ctrl+V)
+  function admAddFiles(files){ if (!files || !files.length || !document.getElementById('adm-chat-file')) return;
+    const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; AV.cf = AV.cf || []; return readChatFiles({ files, value:'' }, AV.cf).then(() => render(true)); }
+  document.addEventListener('dragover', e => { const z = e.target.closest && e.target.closest('#chat'); if (!z || !document.getElementById('adm-chat-file') || !(e.dataTransfer && [...e.dataTransfer.types].includes('Files'))) return; e.preventDefault(); z.classList.add('drop'); });
+  document.addEventListener('dragleave', e => { const z = e.target.closest && e.target.closest('#chat'); if (z && !z.contains(e.relatedTarget)) z.classList.remove('drop'); });
+  document.addEventListener('drop', e => { const z = e.target.closest && e.target.closest('#chat'); if (!z || !document.getElementById('adm-chat-file')) return; e.preventDefault(); z.classList.remove('drop'); admAddFiles(e.dataTransfer && e.dataTransfer.files); });
+  document.addEventListener('paste', e => { if (!e.target || e.target.id !== 'chatIn' || !document.getElementById('adm-chat-file')) return; const f = e.clipboardData && e.clipboardData.files; if (f && f.length) { e.preventDefault(); admAddFiles(f); } });
   // Личный чат в карточке: после перерисовки — снова у последнего сообщения (если куратор не листал историю вверх)
   let chatPos = { id:'', top:0, stick:true };
   // прокрутить чат к сообщению и подсветить его
@@ -8842,7 +8858,7 @@ const Adm = (() => {
     ${miss.length ? `<div class="chmiss"><b>Пока вы писали ответ, ${nm} ${miss.length > 1 ? 'прислала ещё ' + miss.length + ' сообщения' : 'прислала ещё сообщение'}</b> (${miss.map(x => fmtDT(x.at).split(', ').pop()).join(', ')}). Оно выше вашего ответа.<span><button type="button" class="btn sm" data-a="missShow">Показать</button><button type="button" class="btn sm ghost" data-a="msgRead" data-email="${esc(c.email)}" data-lid="">✓ Видела</button></span></div>` : ''}
     <div class="chnew" id="chNew" hidden></div>
     <textarea id="chatIn" rows="5" placeholder="Сообщение ученице" style="margin-top:10px;min-height:136px">${esc(AV.cdraft || '')}</textarea>
-    ${ind ? `<div class="cattach"><input type="file" multiple id="adm-chat-file" class="vh" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf,.odt,.heic"><label for="adm-chat-file" class="btn sm ghost">${I.clip.replace('<svg', '<svg width="15" height="15"')} Прикрепить файл</label><span class="small muted">до ${CF_MAX} файлов, до ${CF_MB} МБ каждый</span></div>${cfPending(AV.cf || [], 'acfDel')}` : ''}
+    ${ind ? `<div class="cattach"><input type="file" multiple id="adm-chat-file" class="vh" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf,.odt,.heic"><label for="adm-chat-file" class="btn sm ghost">${I.clip.replace('<svg', '<svg width="15" height="15"')} Прикрепить файл</label><span class="small muted">или перетащите файлы в чат / вставьте Ctrl+V · до ${CF_MAX} файлов, до ${CF_MB} МБ каждый</span></div>${cfPending(AV.cf || [], 'acfDel')}` : ''}
     <div style="margin-top:8px"><button class="btn sm" data-a="chatSend">Отправить</button>${unreadOf(c) ? ` <button class="btn sm ghost" data-a="msgRead" data-email="${esc(c.email)}" data-lid="" title="Ответ не нужен — убрать из новых">✓ Прочитано</button>` : ''} <span class="small muted">${W(c).N} увидит сообщение в кабинете, в разделе «Чат с куратором».</span></div></div>`;
   }
   // правка своих сообщений: куратор — свои, админ — любые сообщения кураторов
@@ -9224,7 +9240,7 @@ const Adm = (() => {
     if (e.target.id === 'sch-photo') { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; schKeep(); return gcShrink(f).then(d => { SD.photo = d; render(true); }).catch(err => toast(err)); }
     if (e.target.id === 'gc-photo') return gcPhotoPick(e.target, AV.t || 'slow', () => render(true));
     if (['dgT','dgW','dgD'].includes(e.target.id)) { const v = e.target.value; if (e.target.id === 'dgT') AV.dgt = v; else if (e.target.id === 'dgW') AV.dgw = v; else AV.dgd = +v; AV.dgText = undefined; return render(true); }
-    if (e.target.id === 'adm-chat-file') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; AV.cf = AV.cf || []; return readChatFiles(e.target, AV.cf).then(() => render(true)); }
+    if (e.target.id === 'adm-chat-file') return admAddFiles(e.target.files);
     if (e.target.id === 'curF') { CF.cur = e.target.value || 'all'; LS.set('hz_curf', CF.cur); return render(true); }
     if (e.target.id === 'adm-tongue' && AV.s === 'client') { const c = C.find(x => x.email === AV.id), f = e.target.files && e.target.files[0]; e.target.value = ''; if (!c || !f) return; if (!/^image\//.test(f.type || '') && !/\.heic$/i.test(f.name)) return toast('Нужна картинка: JPG, PNG или HEIC'); return gcShrink(f).then(d => tongueSet(c, { photo:d })).catch(err => toast(err.message || err)); }
     if (e.target.id === 'fmtSel' && AV.s === 'client') { const c = C.find(x => x.email === AV.id), rec = e.target.value === 'rec';
