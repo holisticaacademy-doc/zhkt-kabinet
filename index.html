@@ -560,7 +560,8 @@ body.fv-on{overflow:hidden}
 .prn h3{margin:0 0 4px;font-size:16px;color:var(--e)}
 .prn p{margin:0 0 10px;font-size:13.5px;color:var(--grey)}
 .prn a{display:flex;align-items:center;gap:12px;min-height:48px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:8px 14px;margin:0 0 8px;color:var(--ink);text-decoration:none;font-weight:500;font-size:14px}
-.prn a:last-child{margin-bottom:0}
+.prn a:last-of-type{margin-bottom:0}
+.prn .prn-tip{margin:10px 0 0;font-size:12.5px;line-height:1.45;color:var(--grey)}
 .prn a svg{flex:0 0 20px;width:20px;height:20px;color:var(--mag)}
 .prn a span{flex:1}.prn a small{color:var(--grey);font-size:12px}
 /* ── нижнее меню на телефоне и планшете ── */
@@ -6314,6 +6315,10 @@ function lessonLinks(id, sheet){
   if ((LOCAL_CON[pf] || []).includes(id)) {
     files.unshift(['Полный конспект урока', 'materials/' + pf + '/' + id + '_konspekt.pdf', 'pdf']); }
   if (loc) { const i = files.findIndex(f => /презентац|материал урока/i.test(f[0])); if (i > -1) files[i] = [files[i][0], loc, 'pdf']; else files.unshift(['Презентация и конспект', loc, 'pdf']); }
+  // урок «Список продуктов, меню и сборник рецептов» недель 3–5 — актуальные PDF с платформы (те же, что в разделе «Меню и рецепты»)
+  const mw = /^(slow|infl|sens|mix)([345])_1$/.exec(id);
+  if (mw) { files = files.filter(f => !/меню|рецепт|продукт/i.test(f[0]));
+    files.unshift(['Меню и рецепты на ' + mw[2] + '-ю неделю', 'materials/' + mw[1] + '/menu_w' + mw[2] + '.pdf', 'pdf'], ['Список продуктов на ' + mw[2] + '-ю неделю', 'materials/' + mw[1] + '/menu_w' + mw[2] + '_products.pdf', 'pdf']); }
   return { video: s.video || d.v || '', files, hide: !!s.hide, con: s.con || '' };
 }
 // дополнительные блоки урока: промокод, кнопки на встроенные трекер, анкету и конструктор
@@ -6398,6 +6403,20 @@ window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); A2HS_E
 window.addEventListener('appinstalled', () => { A2HS_EVT = null; try { LS.set('hz_a2hs', 'done'); toast('Значок программы добавлен'); render(); } catch (x) {} });
 if ('serviceWorker' in navigator && location.protocol === 'https:' && MODE === 'live') { try { navigator.serviceWorker.register('sw.js'); } catch (e) {} }
 const isStandalone = () => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } };
+// PDF внутри установленного приложения: открывался поверх кабинета без кнопки «назад». Теперь файл скачивается
+// и открывается в системном просмотрщике телефона (там есть «Готово/Назад», «Поделиться» и «Печать»).
+document.addEventListener('click', e => {
+  const a = e.target.closest && e.target.closest('a[href]'); if (!a || !isStandalone()) return;
+  const href = a.getAttribute('href') || ''; if (!/\.pdf(\?|#|$)/i.test(href)) return;
+  let u; try { u = new URL(href, location.href); } catch (x) { return; } if (u.origin !== location.origin) return;
+  e.preventDefault(); e.stopPropagation();
+  const name = a.getAttribute('download') || decodeURIComponent(u.pathname.split('/').pop());
+  toast('Открываю файл…');
+  fetch(u.href).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => {
+    const url = URL.createObjectURL(new Blob([b], { type: 'application/pdf' })), t = document.createElement('a');
+    t.href = url; t.download = name; document.body.appendChild(t); t.click(); t.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }).catch(() => toast('Не получилось открыть файл. Проверьте интернет и попробуйте ещё раз'));
+}, true);
 function a2hsEnv(){
   const ua = navigator.userAgent || '', ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
   const android = /Android/.test(ua), mobile = ios || android || /Mobi/.test(ua);
@@ -6768,9 +6787,9 @@ function menuLink(){
 function menuPrint(){
   const sch = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : menuSched(), pk = TYPE();
   const rows = [3, 4, 5].map(w => { const t = sch[w] ? new Date(sch[w]).getTime() : 0, op = !t || Date.now() >= t;
-    return op ? `<a href="materials/${pk}/menu_w${w}.pdf" target="_blank" rel="noopener" download="Меню_неделя_${w}.pdf">${I.fpdf}<span>Неделя ${w} — меню и рецепты</span><small>PDF</small></a>`
+    return op ? `<a href="materials/${pk}/menu_w${w}.pdf" target="_blank" rel="noopener" download="Меню_неделя_${w}.pdf">${I.fpdf}<span>Неделя ${w} — меню и рецепты</span><small>PDF</small></a><a href="materials/${pk}/menu_w${w}_products.pdf" target="_blank" rel="noopener" download="Продукты_неделя_${w}.pdf">${I.fpdf}<span>Неделя ${w} — список продуктов</span><small>PDF</small></a>`
       : `<a aria-disabled="true" style="opacity:.6;pointer-events:none">${I.lock}<span>Неделя ${w}</span><small>откроется ${fmt(new Date(t), {day:'numeric', month:'long'})}</small></a>`; }).join('');
-  return `<div class="prn"><h3>Меню для печати</h3><p>Меню на всю неделю и рецепты одним файлом — удобно распечатать и держать на кухне.</p>${rows}</div>`;
+  return `<div class="prn"><h3>Меню для печати</h3><p>Меню на неделю с рецептами и список продуктов к нему — удобно распечатать и держать на кухне. Своё меню и список продуктов к нему выгружайте в конструкторе ниже.</p>${rows}<p class="prn-tip"><b>Как распечатать.</b> На телефоне откройте файл → «Поделиться» → «Печать» (или отправьте файл себе и распечатайте с компьютера). На компьютере — значок принтера в окне файла или Ctrl+P. Вернуться в кабинет: «Готово» или «Назад» в окне файла.</p></div>`;
 }
 function menuView(){
   menuLink();
