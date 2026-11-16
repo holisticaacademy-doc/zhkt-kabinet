@@ -423,7 +423,7 @@ function load(){
   return d;
 }
 var S=load();
-try{ var _lk=JSON.parse(localStorage.getItem('hz_menu_link')||'null'); if(_lk&&_lk.pv){ S.tab='mine'; } else if(_lk&&_lk.excl&&_lk.excl.length&&!S.mineSeen){ S.tab='mine'; S.mineSeen=1; } }catch(e){}
+try{ var _lk=JSON.parse(localStorage.getItem('hz_menu_link')||'null'); if(/[?&]tab=mine\b/.test(location.search)){ S.tab='mine'; S.mineSeen=1; } else if(_lk&&_lk.pv){ S.tab='mine'; } else if(_lk&&_lk.excl&&_lk.excl.length&&!S.mineSeen){ S.tab='mine'; S.mineSeen=1; } }catch(e){}
 /* ---- платформа: протокол ученицы приходит из адреса (?protocol=V|I|C|M или #V) ---- */
 var LOCKED=(function(){
   var map={V:'sluggish',I:'inflamed',C:'sensitive',M:'mixed'}, q='';
