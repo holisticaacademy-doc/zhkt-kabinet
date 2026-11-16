@@ -539,7 +539,7 @@ function render(){
      '<p class="sub">Меню протокола по дням, все рецепты недель 3–5 и сборка своего дня с расчётом КБЖУ, сахаров, клетчатки и 30 витаминов и минералов. Блюда и продукты можно заменять на равноценные прямо в конструкторе.</p></div>'+
      '<button class="tour-btn" data-tour="1"><i>?</i>Как пользоваться</button>'+'<div class="protos" role="group" aria-label="Протокол">'+PROTOS.map(function(p){ return '<button class="proto" data-proto="'+p[0]+'" aria-pressed="'+(S.proto===p[0])+'">'+p[1]+'</button>'; }).join('')+'</div></header>';
   if(ctorLockAt()){ renderCtorLock(h); return; }
-  h+='<nav class="tabs" role="tablist">'+[['menu','Меню по дням'],['mine','Меню для вас'],['lib','Рецепты'],['build','Собрать свой день'],['week','Мои итоги'],['prof','Мои нормы']].map(function(t){
+  h+='<nav class="tabs" role="tablist">'+[['menu','Меню программы'],['mine','Индивидуальное меню'],['lib','Рецепты'],['build','Собрать свой день'],['week','Мои итоги'],['prof','Мои нормы']].map(function(t){
      return '<button role="tab" data-tab="'+t[0]+'" aria-selected="'+(S.tab===t[0])+'">'+t[1]+'</button>'; }).join('')+'</nav>';
   h+=tourInvite();
   if(S.tab==='mine') h+=renderMine(); else if(S.tab==='menu') h+=renderMenu(); else if(S.tab==='lib') h+=renderLib(); else if(S.tab==='build') h+=renderBuild(); else if(S.tab==='week') h+=renderWeek(); else h+=renderProf();
@@ -1014,7 +1014,7 @@ function renderBuild(){
   h+=renderSaveBar();
   if(Object.keys(B()).some(function(k){ return (B()[k]||[]).length; })) h+=expBar('build',0);
   h+='<div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center"><button class="linkbtn" data-reset="1">Очистить день</button>'+
-     '<span class="muted" style="font-size:12.5px; color:var(--muted)">Быстрый старт: откройте «Меню по дням» и перенесите любой день целиком.</span></div>';
+     '<span class="muted" style="font-size:12.5px; color:var(--muted)">Быстрый старт: откройте «Меню программы» и перенесите любой день целиком.</span></div>';
   h+='</div>'+renderPanel(sumT(allT), rows, 'Калькулятор дня')+'</div>';
   return h;
 }
@@ -1446,8 +1446,8 @@ function tourSet(v){ try{ localStorage.setItem(TOUR_LS,v); }catch(e){} }
 var TOUR_STEPS=[
  {t:'Добро пожаловать в конструктор меню', c:true,
   x:'Здесь всё, чтобы питание по протоколу стало простым и понятным: готовое меню на каждый день, все рецепты, свой день с расчётом витаминов и минералов и итоги недели с подсказками.<br><br>Покажем всё за пару минут. Можно пропустить и вернуться к обзору позже — кнопка «Как пользоваться» всегда наверху.'},
- {tab:'menu', sel:'.tabs', t:'Пять разделов',
-  x:'«Меню по дням» — готовое меню. «Рецепты» — вся библиотека блюд. «Собрать свой день» — свой рацион с расчётом. «Мои итоги» — картина недели. «Мои нормы» — ваши личные нормы.'},
+ {tab:'menu', sel:'.tabs', t:'Шесть разделов',
+  x:'«Меню программы» — готовое меню. «Индивидуальное меню» — то же меню без продуктов, которые вы не едите. «Рецепты» — вся библиотека блюд. «Собрать свой день» — свой рацион с расчётом. «Мои итоги» — картина недели. «Мои нормы» — ваши личные нормы.'},
  {tab:'menu', sel:'.weeks', t:'Меню на 21 день',
   x:'Это меню 3–5 недель программы. Выберите номер дня — увидите все приёмы пищи: завтрак, перекус, обед, полдник и ужин.'},
  {tab:'menu', sel:'.meal', t:'Блюда дня',
@@ -1469,7 +1469,7 @@ var TOUR_STEPS=[
  {tab:'prof', sel:'.form', t:'Мои нормы',
   x:'Укажите возраст, рост, вес, активность и цель — нормы калорий, белков, жиров и углеводов посчитаются лично для вас. Начните с этого шага, чтобы все проценты были точными.'},
  {c:true, last:true, t:'Готово! Вы прошли обзор 🎉',
-  x:'Теперь вы знаете всё, что умеет конструктор. Предлагаем начать так:<ol><li>заполнить «Мои нормы»;</li><li>открыть «Меню по дням» и перенести день в конструктор;</li><li>подстроить его под себя и сохранить.</li></ol>Обзор можно посмотреть снова в любой момент — кнопка «Как пользоваться» наверху.'}
+  x:'Теперь вы знаете всё, что умеет конструктор. Предлагаем начать так:<ol><li>заполнить «Мои нормы»;</li><li>открыть «Меню программы» и перенести день в конструктор;</li><li>подстроить его под себя и сохранить.</li></ol>Обзор можно посмотреть снова в любой момент — кнопка «Как пользоваться» наверху.'}
 ];
 function tourSteps(){ return TOUR_STEPS.filter(function(s){ return !(s.skipLocked && typeof LOCKED!=='undefined' && LOCKED); }); }
 function startTour(){ if(typeof ctorLockAt==='function'&&ctorLockAt()) return; modal=null; TOUR={i:0, prevTab:S.tab}; tourShow(); }

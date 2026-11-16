@@ -6885,9 +6885,9 @@ function myExcl(){ if (U.preview) return (U.pexcl || []).filter(c => EXCLUDABLE.
 function exclName(c){ const p = EXCLUDABLE.find(x => x.code === c); return p ? p.name.split(':')[0] : c; }
 function exclBlock(){
   if (U.preview) { const pc = myExcl();
-    return `<div class="exb"><div class="exb-h"><div><b>Продукты, которые клиент не ест</b><p>${pc.length ? 'Так видит клиент: во вкладке «Меню для вас» конструктора эти продукты заменены на равноценные из протокола. Изменить список можно в карточке клиента.' : 'Клиент ничего не отметил — «Меню для вас» совпадает с меню протокола.'}</p></div></div>${pc.length ? `<div class="exb-t">${pc.map(c => `<span>${esc(exclName(c))}</span>`).join('')}</div>` : ''}</div>`; }
+    return `<div class="exb"><div class="exb-h"><div><b>Продукты, которые клиент не ест</b><p>${pc.length ? 'Так видит клиент: во вкладке «Индивидуальное меню» конструктора эти продукты заменены на равноценные из протокола. Изменить список можно в карточке клиента.' : 'Клиент ничего не отметил — «Индивидуальное меню» совпадает с меню протокола.'}</p></div></div>${pc.length ? `<div class="exb-t">${pc.map(c => `<span>${esc(exclName(c))}</span>`).join('')}</div>` : ''}</div>`; }
   const cur = myExcl(), ed = V.exclEd;
-  let h = `<div class="exb"><div class="exb-h"><div><b>Продукты, которые вы не едите</b><p>${cur.length ? 'Во вкладке «Меню для вас» конструктора они заменены на равноценные из вашего протокола.' : 'Ничего не отмечено. Если какие-то продукты вы не едите или плохо переносите — отметьте их, и мы соберём меню без них.'}</p></div>${ed ? '' : `<button class="btn sm" data-a="exclEdit">Изменить список</button>`}</div>`;
+  let h = `<div class="exb"><div class="exb-h"><div><b>Продукты, которые вы не едите</b><p>${cur.length ? 'Во вкладке «Индивидуальное меню» конструктора они заменены на равноценные из вашего протокола.' : 'Ничего не отмечено. Если какие-то продукты вы не едите или плохо переносите — отметьте их, и мы соберём меню без них.'}</p></div>${ed ? '' : `<button class="btn sm" data-a="exclEdit">Изменить список</button>`}</div>`;
   if (!ed && cur.length) h += `<div class="exb-t">${cur.map(c => `<span>${esc(exclName(c))}</span>`).join('')}</div>`;
   if (ed) h += `${EXCL_GROUPS.map((g, gi) => `<div class="exb-g"><div class="exb-gn">${g}</div><div class="exb-t ed">${EXCLUDABLE.filter(p => p.g === gi).map(p => `<button type="button" data-a="exclTog" data-v="${p.code}" aria-pressed="${ed.includes(p.code)}">${esc(p.name)}</button>`).join('')}</div></div>`).join('')}
     <div class="exb-a"><button class="btn" data-a="exclSave">Сохранить</button><button class="btn ghost" data-a="exclCancel">Отмена</button></div>`;
@@ -8014,7 +8014,7 @@ function studentClick(e, b, a){
   if (a === 'exclCancel') { V.exclEd = null; return keepY(render); }
   if (a === 'exclTog') { const v = b.dataset.v, l = V.exclEd || (V.exclEd = []), i = l.indexOf(v); if (i > -1) l.splice(i, 1); else l.push(v); return keepY(render); }
   if (a === 'exclSave') { const codes = (V.exclEd || []).slice(); b.disabled = true;
-    return api('setExcl', { token:S.token, codes }).then(() => { S.user.excl = { codes, by:'ученица', at:new Date().toISOString() }; V.exclEd = null; toast(codes.length ? 'Список сохранён — меню во вкладке «Меню для вас» обновлено' : 'Список очищен'); keepY(render); })
+    return api('setExcl', { token:S.token, codes }).then(() => { S.user.excl = { codes, by:'ученица', at:new Date().toISOString() }; V.exclEd = null; toast(codes.length ? 'Список сохранён — меню во вкладке «Индивидуальное меню» обновлено' : 'Список очищен'); keepY(render); })
       .catch(e => { b.disabled = false; toast(e.message); }); }
   if (a === 'home') return home();
   if (['calD','calM','calW','calX','calPin','calOpen'].includes(a)) return calClick(b, a);
