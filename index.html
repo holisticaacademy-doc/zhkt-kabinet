@@ -605,6 +605,11 @@ body.fv-on{overflow:hidden}
 #U .chat .bub.nw:not(.me),#U .chat .bub.miss:not(.me){box-shadow:0 0 0 2px #9e007e inset}
 body.u-drop #uChat{outline:3px dashed #9e007e;outline-offset:-4px;border-radius:14px}
 
+/* чат протокола: место под фото до загрузки, «Показать ранее» */
+.gc-ph span{padding:48px 16px;text-align:center}
+.gc-phs .gc-ph span{padding:0;height:100%;display:flex;align-items:center;justify-content:center}
+.gc-more{align-self:center;flex:0 0 auto}
+
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
 .dtop .dt-b .cal{margin-top:16px}
@@ -1824,6 +1829,11 @@ textarea.inp,.emo-w>textarea{border-radius:16px}
 .chmiss span{display:flex;gap:6px;margin-left:auto}
 .chnew .btn{margin-left:auto}
 #chat.drop{outline:3px dashed #9e007e;outline-offset:-6px;background:#fbe9f6}
+
+/* чат протокола: место под фото до загрузки, «Показать ранее» */
+.gc-ph span{padding:48px 16px;text-align:center}
+.gc-phs .gc-ph span{padding:0;height:100%;display:flex;align-items:center;justify-content:center}
+.gc-more{align-self:center;flex:0 0 auto}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -6002,7 +6012,7 @@ function chatView(){
 // ═══ Чаты протоколов: общий чат участниц одного типа пищеварения прямо в платформе ═══
 // Сообщения подтягиваются раз в 15 секунд, пока чат открыт. Фото, ответы, реакции, закреп и модерация куратора.
 const GC_RX = ['❤️', '👍', '🙏', '😊'];
-const GC = { data: {}, v: {}, photos: {}, ph: {}, reply: null, att: [], draft: '', busy: false, stick: true, enter: true, timer: null, err: '' };
+const GC = { data: {}, v: {}, photos: {}, ph: {}, show: {}, staff: false, reply: null, att: [], draft: '', busy: false, stick: true, enter: true, timer: null, err: '' };
 // Пол клиента: из анкеты («Мужской»/«Женский»), а пока анкеты нет — по имени (Арсен, Игорь — мужские; Анна, Любовь — женские)
 const M_NAMES_A = /^(илья|никита|кузьма|фома|лука|савва|данила|гаврила|миша|гоша|паша|петя|вася|дима|лёша|леша|серёжа|сережа|витя|коля|толя|вова|костя|стёпа|степа|ваня|федя|юра|слава|тимоша|ilya|nikita|misha|dima|sasha_m)$/;
 const F_NAMES_SOFT = /^(любовь|нинель|эсфирь|руфь|адель|ассоль|изабель|рахиль|юдифь|айгуль|гульнур|динара_)$/;
@@ -6041,13 +6051,31 @@ function gcAfter(){
   queueMicrotask(fix);
   setTimeout(() => {
     fix();
-    document.querySelectorAll('[data-a="gcPhoto"]').forEach(b => { const id = b.dataset.id; if (!GC.photos[id] && !GC.ph[id]) gcPhotoLoad(id); });
+    gcObserve();
   }, 0);
 }
+// Фото в ленте: грузим только те, что видны на экране (или почти видны), не больше двух одновременно,
+// и храним уменьшенную копию (до 640 px) — полный снимок загружается заново, только когда его открывают.
+const GC_Q = [];
+let GC_IO = null, GC_ACT = 0;
+function gcObserve(){
+  const root = document.getElementById('gc-list'); if (!root) return;
+  if (!('IntersectionObserver' in window)) { root.querySelectorAll('[data-a="gcPhoto"]').forEach(b => gcPhotoQueue(b.dataset.id)); return; }
+  if (GC_IO) GC_IO.disconnect();
+  GC_IO = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { GC_IO.unobserve(e.target); gcPhotoQueue(e.target.dataset.id); } }), { root, rootMargin:'300px 0px' });
+  root.querySelectorAll('[data-a="gcPhoto"]').forEach(b => { if (!GC.photos[b.dataset.id]) GC_IO.observe(b); });
+}
+function gcPhotoQueue(id){ if (!id || GC.photos[id] || GC.ph[id]) return; GC.ph[id] = 1; GC_Q.push(id); gcPhotoNext(); }
+function gcPhotoNext(){ while (GC_ACT < 2 && GC_Q.length) { GC_ACT++; gcPhotoLoad(GC_Q.shift()).finally(() => { GC_ACT--; gcPhotoNext(); }); } }
+function gcThumb(data){ return new Promise(res => { const img = new Image();
+  img.onload = () => { const k = Math.min(1, 640 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k)); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    img.onerror = null; img.src = ''; c.toBlob(b => { res(b ? URL.createObjectURL(b) : data); c.width = c.height = 0; }, 'image/jpeg', 0.8); };
+  img.onerror = () => res(data); img.src = data; }); }
 async function gcPhotoLoad(id){
   GC.ph[id] = 1;
-  try { const r = await api('gchatPhoto', { token:S.token, id }); GC.photos[id] = r.data;
-    document.querySelectorAll(`[data-a="gcPhoto"][data-id="${id}"]`).forEach(b => { b.innerHTML = `<img src="${r.data}" alt="Фото">`; });
+  try { const r = await api('gchatPhoto', { token:S.token, id }); const u = await gcThumb(r.data); GC.photos[id] = u;
+    document.querySelectorAll(`[data-a="gcPhoto"][data-id="${id}"]`).forEach(b => { b.innerHTML = `<img src="${u}" alt="Фото" decoding="async">`; });
     const el = document.getElementById('gc-list'); if (el && GC.stick) el.scrollTop = el.scrollHeight; }
   catch (e) { document.querySelectorAll(`[data-a="gcPhoto"][data-id="${id}"]`).forEach(b => { b.innerHTML = '<span>Фото не загрузилось</span>'; }); }
 }
@@ -6060,13 +6088,13 @@ function gcShrink(file){ return new Promise((res, rej) => {
     URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.82)); };
   img.onerror = () => { URL.revokeObjectURL(url); rej('Не получилось открыть фото. Попробуйте другое.'); };
   img.src = url; }); }
-const GC_PH_MAX = 10;
+const GC_PH_MAX = 10, GC_SHOW = 60;
 const gcPids = v => String(v || '').split(',').filter(Boolean);
 const gcAtt = t => GC.att.filter(x => x.t === t);
 function gcMsg(m, d, staff){
   const mine = m.aid === d.me;
   const re = m.re ? `<button type="button" class="gc-re" data-a="gcJump" data-id="${esc(m.re.id)}"><b>${esc(m.re.name)}</b><span>${esc(plainMd(m.re.text) || (m.re.photo ? 'Фото' : 'Сообщение удалено'))}</span></button>` : '';
-  const pids = gcPids(m.photo), phb = id => `<button type="button" class="gc-ph" data-a="gcPhoto" data-id="${esc(id)}">${GC.photos[id] ? `<img src="${GC.photos[id]}" alt="Фото">` : '<span>Загружаем фото…</span>'}</button>`;
+  const pids = gcPids(m.photo), phb = id => `<button type="button" class="gc-ph" data-a="gcPhoto" data-id="${esc(id)}">${GC.photos[id] ? `<img src="${GC.photos[id]}" alt="Фото" decoding="async">` : '<span>Фото</span>'}</button>`;
   const ph = pids.length > 1 ? `<div class="gc-phs n${Math.min(pids.length, 3)}">${pids.map(phb).join('')}</div>` : pids.length ? phb(pids[0]) : '';
   const rx = GC_RX.map(e => { const l = (m.rx && m.rx[e]) || [], on = l.includes(d.me);
     return `<button type="button" class="gc-rx${on ? ' on' : ''}${l.length ? ' has' : ''}" data-a="gcRx" data-id="${esc(m.id)}" data-e="${e}" aria-pressed="${on}" aria-label="Реакция ${e}">${e}${l.length ? `<small>${l.length}</small>` : ''}</button>`; }).join('');
@@ -6084,7 +6112,8 @@ function gcMsg(m, d, staff){
 function gcBody(t, staff){
   const d = GC.data[t];
   if (!d) { if (GC.err) GC.errT = 1; return GC.err ? `<p class="muted">${esc(GC.err)}</p><button type="button" class="btn ghost sm" data-a="gcRetry">Повторить</button>` : `<p class="muted">Загружаем сообщения…</p>`; }
-  const list = d.list.map(m => gcMsg(m, d, staff)).join('') || `<p class="muted small gc-empty">Сообщений пока нет. Начните разговор — поздоровайтесь и расскажите, с чего начинаете программу.</p>`;
+  GC.staff = staff; const lim = GC.show[t] || GC_SHOW, vis = d.list.slice(-lim), more = d.list.length - vis.length;
+  const list = (more > 0 ? `<button type="button" class="btn ghost sm gc-more" data-a="gcMore">Показать ранее · ${more}</button>` : '') + vis.map(m => gcMsg(m, d, staff)).join('') || `<p class="muted small gc-empty">Сообщений пока нет. Начните разговор — поздоровайтесь и расскажите, с чего начинаете программу.</p>`;
   const pin = d.pin ? `<button type="button" class="gc-pin" data-a="gcJump" data-id="${esc(d.pin.id)}"><span class="gc-pin-i" aria-hidden="true">📌</span><span><small>Закреплено · ${esc(d.pin.name)}</small><b>${esc(plainMd(d.pin.text) || 'Фото')}</b></span></button>` : '';
   const rp = GC.reply && GC.reply.t === t ? `<div class="gc-rp"><span><small>Ответ ${esc(GC.reply.name)}</small><b>${esc(GC.reply.text || 'Фото')}</b></span><button type="button" class="fx" data-a="gcReplyX" aria-label="Отменить ответ">✕</button></div>` : '';
   const att = gcAtt(t), pp = att.length ? `<div class="gc-pp gc-pps">${att.map((x, i) => `<span class="gc-pt"><img src="${x.data}" alt=""><button type="button" class="fx" data-a="gcPhotoX" data-i="${i}" aria-label="Убрать фото">✕</button></span>`).join('')}${att.length < GC_PH_MAX ? '' : '<small class="muted">не больше ' + GC_PH_MAX + '</small>'}</div>` : '';
@@ -6142,7 +6171,11 @@ function gcClick(a, b, t, staff, rerender){
     run('gchatBan', { email:b.dataset.email, on }, on ? 'Участнице запрещено писать в чатах' : 'Запрет снят'); return true; }
   if (a === 'gcJump') { const el = document.getElementById('gcm-' + b.dataset.id), box = document.getElementById('gc-list');
     if (el && box) { box.scrollTo({ top: el.offsetTop - box.offsetTop - 20, behavior: 'smooth' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600); } else toast('Сообщение уже не в ленте'); return true; }
-  if (a === 'gcPhoto') { const src = GC.photos[b.dataset.id]; if (src) fvOpen(src, 'Фото из чата.jpg', b); return true; }
+  if (a === 'gcPhoto') { const id = b.dataset.id; if (!GC.photos[id]) { gcPhotoQueue(id); return true; }
+    toast('Открываем фото…'); api('gchatPhoto', { token:S.token, id }).then(r => fvOpen(r.data, 'Фото из чата.jpg', b)).catch(err => toast(err.message)); return true; }
+  if (a === 'gcMore') { const box = document.getElementById('gc-list'), h0 = box ? box.scrollHeight - box.scrollTop : 0;
+    GC.show[t] = (GC.show[t] || GC_SHOW) + GC_SHOW; GC.stick = false; rerender();
+    const nb = document.getElementById('gc-list'); if (nb) { nb.scrollTop = nb.scrollHeight - h0; GC.top = nb.scrollTop; } return true; }
   return false;
 }
 async function gcPhotoPick(input, t, rerender){
@@ -6154,10 +6187,32 @@ async function gcPhotoPick(input, t, rerender){
   rerender();
 }
 let gcPollT = null;
+// Обновление ленты без полной перерисовки: новые сообщения дописываются в конец, изменённые заменяются, удалённые убираются.
+// Если поменялось что-то крупное (закреп, запреты, много сообщений сразу) — обычная перерисовка.
+function gcPatch(t, old){
+  const d = GC.data[t], box = document.getElementById('gc-list');
+  if (!old || !d || !box || GC.edit || box.querySelector('.gc-empty') || JSON.stringify(old.pin || null) !== JSON.stringify(d.pin || null)
+    || JSON.stringify(old.bans || []) !== JSON.stringify(d.bans || []) || old.banned !== d.banned) return false;
+  const was = {}; old.list.forEach(m => { was[m.id] = JSON.stringify(m); });
+  const now = {}; d.list.forEach(m => { now[m.id] = 1; });
+  let n = 0; const keep = GC.stick;
+  old.list.forEach(m => { if (!now[m.id]) { const el = document.getElementById('gcm-' + m.id); if (el) { el.remove(); n++; } } });
+  const html = m => { const w = document.createElement('div'); w.innerHTML = gcMsg(m, d, GC.staff).trim(); return w.firstChild; };
+  for (const m of d.list) {
+    if (n > 25) return false;
+    const el = document.getElementById('gcm-' + m.id);
+    if (!was[m.id]) { box.appendChild(html(m)); n++; GC.show[t] = (GC.show[t] || GC_SHOW) + 1; }
+    else if (el && was[m.id] !== JSON.stringify(m)) { el.replaceWith(html(m)); n++; }
+  }
+  if (keep) box.scrollTop = box.scrollHeight;
+  gcObserve();
+  return true;
+}
 function gcPoll(on, getT, rerender){
   if (gcPollT) { clearInterval(gcPollT); gcPollT = null; }
   if (!on) return;
-  gcPollT = setInterval(async () => { const t = getT(); if (!t || document.hidden) return; if (await gcLoad(t)) { gcKeep(); gcRe(rerender); } }, 15000);
+  gcPollT = setInterval(async () => { const t = getT(); if (!t || document.hidden) return; const old = GC.data[t];
+    if (await gcLoad(t)) { if (!gcPatch(t, old)) { gcKeep(); gcRe(rerender); } } }, 15000);
 }
 // Число новых сообщений — сразу после входа в кабинет и дальше раз в 2 минуты, даже если чат не открывали.
 // Если ничего не изменилось, сервер отвечает из кеша — нагрузки почти нет.
@@ -6826,10 +6881,11 @@ function catList(){
   ${note}${html}`;
 }
 // ── Продукты «не ем»: из анкеты, потом правит ученица или куратор (колонка «Не ем») ──
-function myExcl(){ const x = S.user && S.user.excl; if (x && Array.isArray(x.codes)) return x.codes; return ((U.quiz && U.quiz.excluded) || []).filter(c => EXCLUDABLE.some(p => p.code === c)); }
+function myExcl(){ if (U.preview) return (U.pexcl || []).filter(c => EXCLUDABLE.some(p => p.code === c)); const x = S.user && S.user.excl; if (x && Array.isArray(x.codes)) return x.codes; return ((U.quiz && U.quiz.excluded) || []).filter(c => EXCLUDABLE.some(p => p.code === c)); }
 function exclName(c){ const p = EXCLUDABLE.find(x => x.code === c); return p ? p.name.split(':')[0] : c; }
 function exclBlock(){
-  if (U.preview) return '';
+  if (U.preview) { const pc = myExcl();
+    return `<div class="exb"><div class="exb-h"><div><b>Продукты, которые клиент не ест</b><p>${pc.length ? 'Так видит клиент: во вкладке «Меню для вас» конструктора эти продукты заменены на равноценные из протокола. Изменить список можно в карточке клиента.' : 'Клиент ничего не отметил — «Меню для вас» совпадает с меню протокола.'}</p></div></div>${pc.length ? `<div class="exb-t">${pc.map(c => `<span>${esc(exclName(c))}</span>`).join('')}</div>` : ''}</div>`; }
   const cur = myExcl(), ed = V.exclEd;
   let h = `<div class="exb"><div class="exb-h"><div><b>Продукты, которые вы не едите</b><p>${cur.length ? 'Во вкладке «Меню для вас» конструктора они заменены на равноценные из вашего протокола.' : 'Ничего не отмечено. Если какие-то продукты вы не едите или плохо переносите — отметьте их, и мы соберём меню без них.'}</p></div>${ed ? '' : `<button class="btn sm" data-a="exclEdit">Изменить список</button>`}</div>`;
   if (!ed && cur.length) h += `<div class="exb-t">${cur.map(c => `<span>${esc(exclName(c))}</span>`).join('')}</div>`;
@@ -6841,7 +6897,7 @@ function menuLink(){
   // конструктор (рядом, тот же сайт) берёт отсюда адрес сервера, токен и дату старта — для сохранённых дней
   const start = new Date(mskDay(startT())); const iso = start.getFullYear()+'-'+String(start.getMonth()+1).padStart(2,'0')+'-'+String(start.getDate()).padStart(2,'0');
   const menu = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : menuSched();
-  const excl = U.preview ? [] : myExcl();
+  const excl = myExcl();
   LS.set('hz_menu_link', MODE === 'live' && !U.preview ? { api: CFG.API_URL, token: S.token, start: iso, menu, excl } : { start: iso, menu, excl });
 }
 // ── Меню недели для печати (меню по дням + рецепты, PDF) — открывается вместе с неделей меню ──
@@ -9171,8 +9227,8 @@ const Adm = (() => {
     if (a === 'refresh') return open();
     if (a === 'logout') return logout();
     if (a === 'demoResetA') { Demo.reset(); toast('Демо-данные сброшены'); return logout(); }
-    if (a === 'preview') { U.prec = false; U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
-    if (a === 'asStudent' && c) { U.prec = !!c.rec; U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
+    if (a === 'preview') { U.pexcl = []; U.pname = ''; U.prec = false; U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
+    if (a === 'asStudent' && c) { U.pexcl = exclCodesOf(c, c.quiz).codes; U.pname = c.name; U.prec = !!c.rec; U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (!c) return;
     if (a === 'assignMe') return act(() => api('assignCurator', { token:S.token, email:c.email, curator:meEmail() }), `${W(c).N} ${W(c).zk} за вами`, () => { rowOf(c.email)['Закреплён за'] = meEmail(); });
     if (a === 'demoExtend') return act(() => api('demoExtend', { token:S.token, email:c.email }), 'Продление добавлено (демо)');
