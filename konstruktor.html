@@ -423,7 +423,7 @@ function load(){
   return d;
 }
 var S=load();
-try{ var _lk=JSON.parse(localStorage.getItem('hz_menu_link')||'null'); if(_lk&&_lk.excl&&_lk.excl.length&&!S.mineSeen){ S.tab='mine'; S.mineSeen=1; } }catch(e){}
+try{ var _lk=JSON.parse(localStorage.getItem('hz_menu_link')||'null'); if(_lk&&_lk.pv){ S.tab='mine'; } else if(_lk&&_lk.excl&&_lk.excl.length&&!S.mineSeen){ S.tab='mine'; S.mineSeen=1; } }catch(e){}
 /* ---- платформа: протокол ученицы приходит из адреса (?protocol=V|I|C|M или #V) ---- */
 var LOCKED=(function(){
   var map={V:'sluggish',I:'inflamed',C:'sensitive',M:'mixed'}, q='';
@@ -625,9 +625,13 @@ function exEditor(){
     return '<div class="xg"><div class="xgn">'+esc(g)+'</div><div class="chips">'+cs.map(function(c){ return '<button class="fchip" data-mex="'+c+'" aria-pressed="'+(sel.indexOf(c)>=0)+'">'+esc(EXCL_NAME[c])+'</button>'; }).join('')+'</div></div>'; }).join('');
 }
 function renderMine(){
-  var ex=myEx(), plat=!!(LINK&&LINK.excl);
+  var ex=myEx(), plat=!!(LINK&&LINK.excl), pv=LINK&&LINK.pv;
   var h='<div class="xhead">';
-  if(ex.length){
+  if(pv){
+    h+='<p class="xlead"><b>Так видит этот раздел клиентка: '+esc(pv)+'.</b> '+(ex.length?'Блюда и продукты из её списка «не ем» заменены на равноценные из протокола. Замены подписаны под блюдом.':'В анкете и в кабинете она не отметила продуктов «не ем», поэтому её меню совпадает с меню протокола.')+'</p>';
+    if(ex.length) h+='<div class="xsel"><span class="xsl">Не ест:</span>'+ex.map(function(c){ return '<span class="xtag">'+esc(EXCL_NAME[c])+'</span>'; }).join('')+'</div>';
+    h+='<p class="xhint">Режим просмотра из админки. Список «не ем» клиентка меняет сама в кабинете — над конструктором.</p>';
+  } else if(ex.length){
     h+='<p class="xlead"><b>Это меню вашего протокола, собранное под вас.</b> Блюда и продукты, которые вы отметили как «не ем», заменены на равноценные из вашего протокола. Замены подписаны под блюдом.</p>';
     h+='<div class="xsel"><span class="xsl">Вы не едите:</span>'+ex.map(function(c){ return '<span class="xtag">'+esc(EXCL_NAME[c])+'</span>'; }).join('')+'</div>';
     h+=plat?'<p class="xhint">Изменить список можно в кабинете — над конструктором, кнопка «Изменить список».</p>':'<button class="btn" data-mexed="1">'+(S.mexOpen?'Готово':'Изменить список')+'</button>';

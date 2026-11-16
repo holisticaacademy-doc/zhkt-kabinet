@@ -6898,7 +6898,7 @@ function menuLink(){
   const start = new Date(mskDay(startT())); const iso = start.getFullYear()+'-'+String(start.getMonth()+1).padStart(2,'0')+'-'+String(start.getDate()).padStart(2,'0');
   const menu = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : menuSched();
   const excl = myExcl();
-  LS.set('hz_menu_link', MODE === 'live' && !U.preview ? { api: CFG.API_URL, token: S.token, start: iso, menu, excl } : { start: iso, menu, excl });
+  LS.set('hz_menu_link', MODE === 'live' && !U.preview ? { api: CFG.API_URL, token: S.token, start: iso, menu, excl } : (U.preview ? { start: iso, menu, excl, pv: U.pname || 'клиентка' } : { start: iso, menu, excl }));
 }
 // ── Меню недели для печати (меню по дням + рецепты, PDF) — открывается вместе с неделей меню ──
 function menuPrint(){
