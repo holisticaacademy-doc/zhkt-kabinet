@@ -2395,17 +2395,27 @@ var CHOL = 'Повышенный холестерин';
 /* Продукты из меню программы, которые часто плохо переносят. Отмеченное куратор учитывает при подборе и подсказывает замены */
 var EXCL_GROUPS = ['Молочное и яйца','Злаки','Бобовые, орехи, семена','Рыба, мясо, морепродукты','Овощи и грибы','Фрукты и ягоды','Другое'];
 var EXCLUDABLE = [
-  {code:'milk',     g:0, name:'Молоко, йогурт, сметана, творог'},
+  {code:'yogurt',   g:0, name:'Йогурт и простокваша'},
+  {code:'quark',    g:0, name:'Творог'},
+  {code:'sourcream',g:0, name:'Сметана'},
   {code:'cheese',   g:0, name:'Сыры (адыгейский, козий)'},
-  {code:'butter',   g:0, name:'Сливочное масло и гхи'},
+  {code:'cbutter',  g:0, name:'Сливочное масло'},
+  {code:'ghee',     g:0, name:'Гхи (топлёное масло)'},
   {code:'egg',      g:0, name:'Яйца'},
-  {code:'gluten',   g:1, name:'Пшеница и глютен: хлеб, мука, манка, булгур, кускус'},
+  {code:'wbread',   g:1, name:'Хлеб цельнозерновой (пшеница, глютен)'},
+  {code:'wflour',   g:1, name:'Пшеничная мука и манка (глютен)'},
+  {code:'bulgur',   g:1, name:'Булгур (глютен)'},
+  {code:'couscous', g:1, name:'Кускус (глютен)'},
   {code:'oats',     g:1, name:'Овёс: хлопья, овсяный кисель, овсяное молоко'},
-  {code:'barley',   g:1, name:'Ячмень: перловка, цампа'},
+  {code:'barley',   g:1, name:'Ячмень: перловка, цампа (глютен)'},
   {code:'buckwheat',g:1, name:'Гречка'},
   {code:'corn',     g:1, name:'Кукуруза (крахмал)'},
-  {code:'legumes',  g:2, name:'Бобовые: нут, чечевица, маш, фасоль, горошек'},
-  {code:'soy',      g:2, name:'Соя: тофу, соевый соус, мисо, соевый протеин'},
+  {code:'chickpea', g:2, name:'Нут (и нутовая мука, аквафаба)'},
+  {code:'lentil',   g:2, name:'Чечевица'},
+  {code:'mung',     g:2, name:'Маш (и фунчоза из его крахмала)'},
+  {code:'beans',    g:2, name:'Фасоль: красная, белая'},
+  {code:'peas',     g:2, name:'Зелёный горошек'},
+  {code:'soy',      g:2, name:'Соя: тофу, соевый соус (в нём есть пшеница), мисо, соевый протеин'},
   {code:'nuts',     g:2, name:'Орехи: миндаль, кешью, кедровые, грецкие'},
   {code:'sesame',   g:2, name:'Кунжут и тахини'},
   {code:'seeds',    g:2, name:'Тыквенные семечки'},
@@ -2438,6 +2448,9 @@ var EXCLUDABLE = [
   {code:'cocoa',    g:6, name:'Какао'},
   {code:'cilantro', g:6, name:'Кинза'},
 ];
+/* Прежние общие пункты (до 16.11) раскладываются на новые — у тех, кто уже отметил их в анкете или кабинете */
+var EXCL_LEGACY = { milk:['yogurt','quark','sourcream'], butter:['cbutter','ghee'], gluten:['wbread','wflour','bulgur','couscous'], legumes:['chickpea','lentil','mung','beans','peas'] };
+function exclNorm(codes){ var o = []; (codes || []).forEach(function(c){ (EXCL_LEGACY[c] || [c]).forEach(function(x){ if (o.indexOf(x) < 0) o.push(x); }); }); return o; }
 var CONSENT_VERSION = '2026-09-30-draft';
 var STEP_NAMES = ['Данные','Диагнозы','Боли','Тяжесть','Изжога','Тошнота','Вздутие','Стул','Кожа и волосы','Общее состояние','Лекарства','Цели','Продукты','Важное','Фото языка','Проверка'];
 var QSTEPS = 16;
@@ -5329,8 +5342,8 @@ function deriveQuiz(q){
   const sev=ids=>{ let m=0; ids.forEach(id=>{ const a=ans[id]; if(!a) return; const it=ITEMS.find(i=>i.id===id); if(!it) return; const mx=it.k==='scale'?it.max:2; m=Math.max(m,Math.round(a.v/mx*10)) }); return m };
   const ids=n=>(QBLOCKS.find(b=>b.n===n)||{items:[]}).items.map(i=>i.id);
   const scores={heartburn:sev(ids(5)),bloating:sev(ids(7)),heaviness:sev(ids(4).concat(['b10q4'])),stool:sev(ids(8)),fatigue:sev(['b10q2','b10q4'])};
-  const diag=q.diag||[], excluded=q.excluded||[];
-  const diet=[]; if(excluded.includes('milk')||diag.includes('Непереносимость лактозы / фруктозы')) diet.push('nolactose');
+  const diag=q.diag||[], excluded=exclNorm(q.excluded);
+  const diet=[]; if(['yogurt','quark','sourcream'].some(c=>excluded.includes(c))||diag.includes('Непереносимость лактозы / фруктозы')) diet.push('nolactose');
   if(diag.includes('Целиакия / непереносимость глютена')) diet.push('nogluten');
   const flags=[]; if(diag.includes('Удалён желчный пузырь')) flags.push('chole');
   if(/омепр|пантопр|рабепр|эзомепр|нексиум|лансопр/i.test(q.meds||'')) flags.push('ppi');
@@ -5353,7 +5366,7 @@ function quizPayload(q){
   return { personal:{fio:q.fio||'',sex:q.pol||'',age:q.age||'',height:q.height||'',weight:q.weight||'',waist:q.waist||'',bmi},
     answers:scoringAnswers(q.ans), raw, labels, gates:q.gates||{}, diagnoses:(q.gates&&q.gates.diag==='yes')?(q.diag||[]):[], chol:q.chol||'',
     products:q.b7prod||'', meds:q.meds||'', goals:q.goals||'',
-    excluded:(q.excluded||[]).map(c=>(EXCLUDABLE.find(p=>p.code===c)||{name:c}).name), excludedCodes:q.excluded||[],
+    excluded:exclNorm(q.excluded).map(c=>(EXCLUDABLE.find(p=>p.code===c)||{name:c}).name), excludedCodes:exclNorm(q.excluded),
     productsOther:q.productsOther||'', free:q.free||'', redFlags:d.red, redAck:!!q.redAck,
     scores:d.scores, flags:d.flags, diet:d.diet, tongueLater:!!q.tongueLater,
     consent:{version:CONSENT_VERSION, at:new Date().toISOString()} };
@@ -6884,7 +6897,7 @@ function catList(){
   ${note}${html}`;
 }
 // ── Продукты «не ем»: из анкеты, потом правит ученица или куратор (колонка «Не ем») ──
-function myExcl(){ if (U.preview) return (U.pexcl || []).filter(c => EXCLUDABLE.some(p => p.code === c)); const x = S.user && S.user.excl; if (x && Array.isArray(x.codes)) return x.codes; return ((U.quiz && U.quiz.excluded) || []).filter(c => EXCLUDABLE.some(p => p.code === c)); }
+function myExcl(){ if (U.preview) return exclNorm(U.pexcl).filter(c => EXCLUDABLE.some(p => p.code === c)); const x = S.user && S.user.excl; if (x && Array.isArray(x.codes)) return exclNorm(x.codes); return exclNorm(U.quiz && U.quiz.excluded).filter(c => EXCLUDABLE.some(p => p.code === c)); }
 function exclName(c){ const p = EXCLUDABLE.find(x => x.code === c); return p ? p.name.split(':')[0] : c; }
 function exclBlock(){
   if (U.preview) { const pc = myExcl();
@@ -7072,7 +7085,7 @@ function qdFrom(a){
   Object.keys(a.raw || {}).forEach(id => { ans[id] = { v: a.raw[id], label: (a.labels || {})[id] }; });
   return { fio:p.fio || '', pol:p.sex || '', age:p.age || '', height:p.height || '', weight:p.weight || '', waist:p.waist || '',
     gates:Object.assign({}, a.gates || {}), diag:(a.diagnoses || []).slice(), chol:a.chol || '', ans, b7prod:a.products || '', meds:a.meds || '', goals:a.goals || '',
-    excluded:(a.excludedCodes || []).slice(), productsOther:a.productsOther || '', free:a.free || '', redAck:!!a.redAck, consent:true,
+    excluded:exclNorm(a.excludedCodes), productsOther:a.productsOther || '', free:a.free || '', redAck:!!a.redAck, consent:true,
     reo:true, hadPhoto:!!a.photo, hadForm:indFiles(a).some(f => f.kind === 'form') };
 }
 const reopened = () => !!(U.quiz && U.quiz.reopened && S.user && S.user.status === STS.none);
@@ -8124,7 +8137,7 @@ const Adm = (() => {
     box.innerHTML = `<b>${esc(c.name.split(' ')[0])} прислала новое сообщение</b> (${fresh.length > 1 ? fresh.length + ' шт., ' : ''}${esc(fmtDT(fresh[fresh.length-1].at).split(', ').pop())}). Прочитайте его перед отправкой — черновик сохранится.<button type="button" class="btn sm" data-a="chNewShow">Показать</button>`;
     box.hidden = false;
   }, 30000); }
-  function exclCodesOf(c, a){ let x = null; try { x = JSON.parse(rowOf(c.email)['Не ем'] || 'null'); } catch (e) {} return x && Array.isArray(x.codes) ? { codes:x.codes, by:x.by, at:x.at } : { codes:(a && a.excludedCodes) || [], by:'анкета' }; }
+  function exclCodesOf(c, a){ let x = null; try { x = JSON.parse(rowOf(c.email)['Не ем'] || 'null'); } catch (e) {} return x && Array.isArray(x.codes) ? { codes:exclNorm(x.codes), by:x.by, at:x.at } : { codes:exclNorm(a && a.excludedCodes), by:'анкета' }; }
   function exclAdm(c, a){
     const x = exclCodesOf(c, a), nm = cd => (EXCLUDABLE.find(p => p.code === cd) || { name:cd }).name.split(':')[0];
     if (AV.exclEd && AV.exclEd.email === c.email) return `${EXCL_GROUPS.map((g, gi) => `<div class="exb-gn">${g}</div><div class="exb-t ed">${EXCLUDABLE.filter(p => p.g === gi).map(p => `<button type="button" data-a="exclTogA" data-v="${p.code}" aria-pressed="${AV.exclEd.codes.includes(p.code)}">${esc(p.name.split(':')[0])}</button>`).join('')}</div>`).join('')}
