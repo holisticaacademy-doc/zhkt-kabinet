@@ -948,7 +948,7 @@ function menuHtml(days, h1, sub, withRec){
         return '<div class="ds"><span class="nb">'+(ix+1)+'</span><span><b>'+lab+'</b>'+extra+'</span></div>'; }).join('')+'</div>'); });
     var head=dn?'<span class="dw">День</span><span class="dnum">'+dnum+'</span>':'<span class="dnm">'+esc(d.name)+'</span>';
     h+='<div class="day"><div class="dh"><div>'+head+'</div><div class="kb"><span class="kc">'+fmt(T.kcal)+' ккал</span><span>Б '+fmt(T.protein)+' г</span><span>Ж '+fmt(T.fat)+' г</span><span>У '+fmt(T.carbs)+' г</span></div></div><div class="dg" style="grid-template-columns:repeat('+cols.length+',1fr)">'+cols.join('')+'</div></div>'; });
-  if(days.length>1){ var n=days.length; h+='<div class="avg"><b>В среднем за день:</b> '+fmt(tot.kcal/n)+' ккал · белки '+fmt(tot.protein/n)+' г · жиры '+fmt(tot.fat/n)+' г · углеводы '+fmt(tot.carbs/n)+' г</div>'; }
+  if(days.length>1){ var n=days.length; h+='<div class="avg"><b>'+(EXP_CTX.meal?'В среднем за '+EXP_CTX.meal+':':'В среднем за день:')+'</b> '+fmt(tot.kcal/n)+' ккал · белки '+fmt(tot.protein/n)+' г · жиры '+fmt(tot.fat/n)+' г · углеводы '+fmt(tot.carbs/n)+' г</div>'; }
   if(withRec && rec.length) h+='<div class="pb"></div><span class="pill">'+(EXP_CTX.w?'Неделя '+EXP_CTX.w+' · ':'')+esc(PROTO_FULL[S.proto]||'')+'</span><h1>Рецепты'+(EXP_CTX.w?' '+EXP_CTX.w+' недели':'')+'</h1><p class="sub">Все блюда меню — в том порядке, в каком они появляются в меню. Граммовки в ингредиентах — на весь рецепт.</p>'+rec.map(function(id,i){ return recBlock(R(id), i+1, rdays[id]); }).join('');
   return h;
 }
@@ -973,7 +973,10 @@ function savedDaysOf(dates){
     out.push({name:fdate(parseDay(d.date),{weekday:'long',day:'numeric',month:'long'}), items:its}); });
   return out;
 }
+// kind: 'menu' | 'shop' | 'meal:Завтрак' / 'meal:Обед' / 'meal:Ужин' — все блюда одного приёма пищи за неделю с рецептами
+var MEAL_EXP={'Завтрак':{t:'Завтраки',sl:['Завтрак']},'Обед':{t:'Обеды',sl:['Перед обедом','Обед']},'Ужин':{t:'Ужины',sl:['Ужин']}};
 function expBuild(kind, src, w){
+  var mk=/^meal:/.test(kind)?MEAL_EXP[kind.slice(5)]:null; if(mk) kind='menu';
   var days, h1, sub, wk=(src==='build'||src==='pick')?0:w;
   EXP_CTX={w:wk};
   if(src==='saved'){ days=savedWeekDays(w); h1=kind==='shop'?'Продукты к моим дням':'Мои дни — неделя '+w; sub='Дни, которые вы собрали и сохранили в конструкторе.'; }
@@ -981,9 +984,12 @@ function expBuild(kind, src, w){
   else if(src==='build'){ days=buildDay(); h1=kind==='shop'?'Продукты на мой день':'Мой день'; sub='День, собранный в конструкторе.'; }
   else { days=weekDaysFrom(src,w); var a=(w-3)*7+1; h1=kind==='shop'?'Продукты на '+w+' неделю':(src==='mine'?'Ваше меню на '+w+' неделю':'Меню на '+w+' неделю');
     sub='Программа «Формула здоровья ЖКТ» · дни '+a+'–'+(a+6)+' меню программы'+(src==='mine'?' · с заменами под продукты, которые вы не едите':''); }
+  EXP_CTX.meal=mk?{'Завтраки':'завтрак','Обеды':'обед','Ужины':'ужин'}[mk.t]:'';
+  if(mk){ days=days.map(function(d){ return Object.assign({},d,{items:d.items.filter(function(it){ return mk.sl.indexOf(it.meal)>=0; })}); });
+    h1=mk.t+' на '+w+' неделю'; sub=sub.replace(' меню программы',' · только '+mk.t.toLowerCase()+' с рецептами').replace(/ · с заменами.*/,''); }
   days=days.filter(function(d){ return d.items.length; });
   if(!days.length) return null;
-  var title=(kind==='shop'?'Продукты':'Меню и рецепты')+(wk?' — неделя '+wk:src==='pick'?' — мои дни':' — мой день');
+  var title=mk?mk.t+' — неделя '+wk:(kind==='shop'?'Продукты':'Меню и рецепты')+(wk?' — неделя '+wk:src==='pick'?' — мои дни':' — мой день');
   return {title:title, body: kind==='shop'?shopHtml(days,h1,sub):menuHtml(days,h1,sub,true)};
 }
 function doExport(kind, src, w){ var x=expBuild(kind, src, w); if(!x){ toast('Здесь пока нечего выгружать'); return; } expOpen(x.title, x.body); }

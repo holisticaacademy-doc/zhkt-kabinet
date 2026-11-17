@@ -678,6 +678,8 @@ body.u-drop #uChat{outline:3px dashed #9e007e;outline-offset:-4px;border-radius:
 @media(prefers-reduced-motion:reduce){.wk-ch::after{transition:none}}
 .menu-frame.auto{height:900px;min-height:0;overflow:hidden;border:0;border-radius:0;background:transparent;margin-top:4px}
 @media(max-width:700px){.menu-frame.auto{height:900px;min-height:0;border:0}}
+.pm-sub{display:block;border-top:1px dashed var(--line);margin-top:4px;padding:6px 4px 0;font-size:12.5px;font-weight:600;color:var(--grey)}
+.pm-w a.pm-meal{min-height:36px}
 .pm-w a.pm-fod{border-top:1px dashed var(--line);border-radius:0;margin-top:2px;padding-top:6px}
 
 @media(max-width:700px){
@@ -7175,7 +7177,7 @@ function menuLink(){
 function menuPrintMini(){
   const sch = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : menuSched(), pk = TYPE();
   const cols = [3, 4, 5].map(w => { const t = sch[w] ? new Date(sch[w]).getTime() : 0, op = !t || Date.now() >= t;
-    return `<div class="pm-w"><b>Неделя ${w}</b>${op ? `<a href="materials/${pk}/menu_w${w}.pdf" target="_blank" rel="noopener" download="Меню_неделя_${w}.pdf">${I.fpdf}<span>Скачать меню</span></a><a href="materials/${pk}/menu_w${w}_products.pdf" target="_blank" rel="noopener" download="Продукты_неделя_${w}.pdf">${I.fpdf}<span>Скачать список продуктов</span></a>${pk !== 'slow' ? `<a class="pm-fod" href="materials/${pk}/menu_w${w}_fodmap.pdf" target="_blank" rel="noopener" download="FODMAP_меню_неделя_${w}.pdf">${I.fpdf}<span>Скачать FODMAP-меню</span></a>` : ''}`
+    return `<div class="pm-w"><b>Неделя ${w}</b>${op ? `<a href="materials/${pk}/menu_w${w}.pdf" target="_blank" rel="noopener" download="Меню_неделя_${w}.pdf">${I.fpdf}<span>Скачать меню</span></a><a href="materials/${pk}/menu_w${w}_products.pdf" target="_blank" rel="noopener" download="Продукты_неделя_${w}.pdf">${I.fpdf}<span>Скачать список продуктов</span></a><span class="pm-sub">Отдельно, с рецептами:</span>${[['zavtraki','Все завтраки','Завтраки'],['obedy','Все обеды','Обеды'],['uzhiny','Все ужины','Ужины']].map(([f, t, n]) => `<a class="pm-meal" href="materials/${pk}/menu_w${w}_${f}.pdf" target="_blank" rel="noopener" download="${n}_неделя_${w}.pdf">${I.fpdf}<span>${t}</span></a>`).join('')}${pk !== 'slow' ? `<a class="pm-fod" href="materials/${pk}/menu_w${w}_fodmap.pdf" target="_blank" rel="noopener" download="FODMAP_меню_неделя_${w}.pdf">${I.fpdf}<span>Скачать FODMAP-меню</span></a>` : ''}`
       : `<span class="pm-lock">${I.lock} откроется ${fmt(new Date(t), {day:'numeric', month:'long'})}</span>`}</div>`; }).join('');
   return `<div class="pmini"><div class="pm-h"><b>Готовое меню для печати</b><span>Нажмите — файл откроется. Распечатайте его или сохраните в телефон.${pk !== 'slow' ? ' FODMAP-меню — только если его рекомендовал куратор.' : ''}</span></div><div class="pm-g">${cols}</div></div>`;
 }
