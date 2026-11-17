@@ -5399,7 +5399,9 @@ function trkTzFix(){ try {
   const diff = (Math.max(1, Math.floor((dayStart(Date.now()) - dayStart(st))/DAY) + 1)) - dayNum(st); U.st.tzfix = 1;
   if (!diff) return;
   const sh = o => { const r = {}; Object.keys(o || {}).forEach(k => { const m = /^(\d+):(.+)$/.exec(k); r[m ? (+m[1] - diff) + ':' + m[2] : k] = o[k]; }); return r; };
-  U.st.track = sh(U.st.track); if (U.st.trackX) Object.keys(U.st.trackX).forEach(t => { U.st.trackX[t] = sh(U.st.trackX[t]); });
+  const tomb = (o, n, pre) => { U.st.x = U.st.x || {}; Object.keys(o || {}).forEach(k => { if (!(k in n)) U.st.x[pre + k] = Date.now(); }); };
+  const nt = sh(U.st.track); tomb(U.st.track, nt, 'track/'); U.st.track = nt;
+  if (U.st.trackX) Object.keys(U.st.trackX).forEach(t => { const n = sh(U.st.trackX[t]); tomb(U.st.trackX[t], n, 'trackX/' + t + '/'); U.st.trackX[t] = n; });
   setTimeout(() => { try { save(); } catch (e) {} }, 0);
 } catch (e) {} }
 function mskDay(t){ const d = new Date(new Date(t).getTime() + 3 * 36e5); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).getTime(); }
@@ -5752,7 +5754,7 @@ const Demo = (() => {
       log(st['Email'],'quiz_submit',res.name); return {auto:res}; },
     uploadTongue({token,photo}){ const st=auth(token), q=load().quizzes[st['Email']]; if(!q) throw new Error('Сначала отправьте анкету');
       q.photo=true; load().photos[st['Email']]=photo; log(st['Email'],'photo'); return {}; },
-    saveState({token,state}){ const st=auth(token); openOnly(st); st['Прогресс']=JSON.stringify(state); return {}; },
+    saveState({token,state}){ const st=auth(token); openOnly(st); const m=mergeState(parse(st['Прогресс']),state); st['Прогресс']=JSON.stringify(m); return {state:m}; },
     event({token,type,item}){ const st=auth(token); log(st['Email'],type,item); return {}; },
     adminData({token}){ adminAuth(token); const db=load();
       return { students: db.students.map(s=>{ const r=Object.assign({},s); r['Пароль задан']=s._pw?'да':'нет'; r.state=parse(s['Прогресс']); r.ov=parse(s['Правки материалов']); r.access=accessOf(s); delete r._pw; delete r['Прогресс']; delete r['Правки материалов']; return r; }),
@@ -5829,6 +5831,39 @@ function useUI(w){
   $('#U').hidden = !u; $('#A').hidden = u;
 }
 const freshState = () => ({ done:{}, track:{}, checks:[], lx:{}, seen:0, seenChat:0, seenL:{}, saved:{}, vp:{} });
+// Слияние прогресса с разных устройств: отметки объединяются, снятые помечаются в x{} (путь → время снятия)
+function mergeState(a, b) {
+  a = a && typeof a === 'object' ? a : {}; b = b && typeof b === 'object' ? b : {};
+  var r = {}, k, x = {}, ax = a.x || {}, bx = b.x || {}, old = Date.now() - 200 * 864e5;
+  for (k in ax) x[k] = ax[k]; for (k in bx) if (!(x[k] >= bx[k])) x[k] = bx[k];
+  var ts = function (v) { return typeof v === 'number' && v > 1 ? v : 1; };
+  var marks = function (pa, pb, path) { pa = pa || {}; pb = pb || {}; var o = {}, kk, keys = {};
+    for (kk in pa) keys[kk] = 1; for (kk in pb) keys[kk] = 1;
+    for (kk in keys) { var va = pa[kk], vb = pb[kk], t = Math.max(va ? ts(va) : 0, vb ? ts(vb) : 0), del = x[path + kk] || 0;
+      if (t && t >= del) o[kk] = ts(va || 0) >= ts(vb || 0) && va ? va : vb; }
+    return o; };
+  for (k in a) r[k] = a[k]; for (k in b) if (b[k] !== undefined && b[k] !== null) r[k] = b[k];
+  r.done = marks(a.done, b.done, 'done/'); r.saved = marks(a.saved, b.saved, 'saved/'); r.track = marks(a.track, b.track, 'track/');
+  if (a.trackX || b.trackX) { r.trackX = {}; var tk = {}; for (k in (a.trackX || {})) tk[k] = 1; for (k in (b.trackX || {})) tk[k] = 1;
+    for (k in tk) r.trackX[k] = marks((a.trackX || {})[k], (b.trackX || {})[k], 'trackX/' + k + '/'); }
+  r.lx = {}; var la = a.lx || {}, lb = b.lx || {};
+  for (k in la) r.lx[k] = la[k];
+  for (k in lb) { var p = r.lx[k], q = lb[k] || {}; r.lx[k] = p ? { open: Math.max(p.open || 0, q.open || 0), last: Math.max(p.last || 0, q.last || 0) } : q; }
+  r.vp = {}; var va2 = a.vp || {}, vb2 = b.vp || {};
+  for (k in va2) r.vp[k] = va2[k];
+  for (k in vb2) if (!r.vp[k] || ((vb2[k] || [])[2] || 0) >= ((r.vp[k] || [])[2] || 0)) r.vp[k] = vb2[k];
+  r.seenL = {}; var sa = a.seenL || {}, sb = b.seenL || {};
+  for (k in sa) r.seenL[k] = sa[k]; for (k in sb) r.seenL[k] = Math.max(r.seenL[k] || 0, sb[k] || 0);
+  r.trkAsk = {}; for (k in (a.trkAsk || {})) r.trkAsk[k] = a.trkAsk[k]; for (k in (b.trkAsk || {})) r.trkAsk[k] = b.trkAsk[k];
+  r.seen = Math.max(a.seen || 0, b.seen || 0); r.seenChat = Math.max(a.seenChat || 0, b.seenChat || 0);
+  var ch = {}, cl = [];
+  (a.checks || []).concat(b.checks || []).forEach(function (c) { if (c && !ch[c.at]) { ch[c.at] = 1; cl.push(c); } });
+  r.checks = cl.sort(function (p1, p2) { return p1.at - p2.at; });
+  r.tour = b.tour || a.tour; r.tzfix = b.tzfix || a.tzfix;
+  for (k in x) if (x[k] < old) delete x[k];
+  r.x = x;
+  return r;
+}
 function normState(s){ s = s && typeof s === 'object' ? s : {}; const f = freshState(); for (const k in f) if (s[k] == null) s[k] = f[k]; return s; }
 
 async function loadMe(){
@@ -5909,8 +5944,20 @@ let saveT = null;
 function save(){
   if (U.preview || accessClosed()) return;   // доступ закрыт — сервер отметки не принимает, не сыплем ошибками
   clearTimeout(saveT);
-  saveT = setTimeout(() => { saveT = null; api('saveState', { token:S.token, state:U.st }).catch(() => toast('Не получилось сохранить отметку. Проверьте интернет.')); }, 700);
+  saveT = setTimeout(() => { saveT = null; syncState().catch(() => toast('Не получилось сохранить отметку. Проверьте интернет.')); }, 700);
 }
+// отправляет прогресс и подтягивает отметки с других устройств (сервер их объединяет)
+const stSig = st => JSON.stringify([st.done, st.saved, st.track, st.trackX, (st.checks || []).length]);
+async function syncState(){
+  if (!S.token || U.preview || accessClosed() || !U.st) return;
+  const r = await api('saveState', { token:S.token, state:U.st });
+  if (!r || !r.state || !U.st) return;
+  const before = stSig(U.st); U.st = normState(mergeState(r.state, U.st));
+  if (stSig(U.st) !== before && !document.querySelector('textarea:focus, input:focus')) keepY(render);
+}
+let syncHid = 0;
+document.addEventListener('visibilitychange', () => { if (document.hidden) { syncHid = Date.now(); flushSave(); return; }
+  if (syncHid && Date.now() - syncHid > 20000 && S.user && !isStaff(S.user)) syncState().catch(() => {}); });
 function flushSave(){
   if (!saveT) return; clearTimeout(saveT); saveT = null;
   if (MODE === 'live' && navigator.sendBeacon) navigator.sendBeacon(CFG.API_URL, JSON.stringify({ action:'saveState', token:S.token, state:U.st }));
@@ -5924,6 +5971,8 @@ const MAINT = () => PKEY[S.user.protocol] || CODEKEY[((U.quiz||{}).auto||{}).cod
 const EXTRA = () => S.user && S.user.status === STS.ok ? extraList(S.user.extra, MAINT()).filter(extraActive) : [];
 const TYPE = () => U.preview ? U.ptype : (U.at && EXTRA().some(x => x.t === U.at) ? U.at : MAINT());
 // трекер: у основного протокола — U.st.track, у дополнительных — свой, чтобы отметки не смешивались
+const stUnset = path => { U.st.x = U.st.x || {}; U.st.x[path] = Date.now(); };
+const trkPath = () => { const t = TYPE(); return U.preview || t === MAINT() ? 'track/' : 'trackX/' + t + '/'; };
 const TRK = () => { const t = TYPE(); if (U.preview || t === MAINT()) return U.st.track; U.st.trackX = U.st.trackX || {}; return U.st.trackX[t] = U.st.trackX[t] || {}; };
 const atKey = () => 'hz_at_' + ((S.user && S.user.email) || '');
 function protoSwitch(){
@@ -7706,7 +7755,7 @@ function navClick(b, a){
   keepY(render);
 }
 // ── сохранение урока ──
-function bmToggle(id){ U.st.saved = U.st.saved || {}; if (U.st.saved[id]) { delete U.st.saved[id]; toast('Урок убран из сохранённых'); } else { U.st.saved[id] = Date.now(); toast('Урок сохранён — он в меню, раздел «Сохранённые»'); } save(); keepY(render); }
+function bmToggle(id){ U.st.saved = U.st.saved || {}; if (U.st.saved[id]) { delete U.st.saved[id]; stUnset('saved/' + id); toast('Урок убран из сохранённых'); } else { U.st.saved[id] = Date.now(); toast('Урок сохранён — он в меню, раздел «Сохранённые»'); } save(); keepY(render); }
 // ── плеер Kinescope: продолжение с места остановки ──
 let KP = null, KPid = '', KPsaved = 0;
 function kinescopeApi(){
@@ -8255,7 +8304,7 @@ function studentClick(e, b, a){
     if (/^https?:/.test(u) && !u.startsWith(location.origin)) { e.preventDefault(); dlFile(u, b.dataset.fn); }
     return; }
   if (a === 'progress') return go('progress');
-  if (a === 'toggle') { const id = b.dataset.id; if (U.st.done[id]) delete U.st.done[id]; else { U.st.done[id] = 1; track('done', byId(id).t); } save(); render(); toast(U.st.done[id] ? 'Отмечено' : 'Отметка снята'); return; }
+  if (a === 'toggle') { const id = b.dataset.id; if (U.st.done[id]) { delete U.st.done[id]; stUnset('done/' + id); } else { U.st.done[id] = Date.now(); track('done', byId(id).t); } save(); render(); toast(U.st.done[id] ? 'Отмечено' : 'Отметка снята'); return; }
   if (a === 'check') { const base = U.st.checks.length ? U.st.checks[U.st.checks.length-1].scores : scores0(); return go('check', { sc:Object.assign({}, base) }); }
   if (a === 'saveCheck') { U.st.checks.push({ at:Date.now(), scores:V.sc }); save(); track('check', ''); toast('Замер сохранён'); hist.pop(); V = { s:'progress' }; render(); return window.scrollTo(0,0); }
   if (a === 'tracker') return go('tracker', {});
@@ -8280,7 +8329,7 @@ function studentClick(e, b, a){
   if (a === 'cfOpen') return openChatFile(b);
   if (a === 'cfDel') { const ta = $('#msgIn'); U.cdraft = ta ? ta.value : ''; (U.cf || []).splice(+b.dataset.i, 1); return keepY(render); }
   if (a === 'support') { track('support', ''); return; }
-  if (a === 'tick') { const k = b.dataset.d + ':' + b.dataset.i, TR = TRK(); if (TR[k]) delete TR[k]; else TR[k] = 1; save(); return keepY(render); }
+  if (a === 'tick') { const k = b.dataset.d + ':' + b.dataset.i, TR = TRK(); if (TR[k]) { delete TR[k]; stUnset(trkPath() + k); } else TR[k] = Date.now(); save(); return keepY(render); }
 }
 document.addEventListener('submit', e => { if (e.target.id === 'lf') { e.preventDefault(); doLogin(); } });
 document.addEventListener('input', e => {
