@@ -613,6 +613,64 @@ body.u-drop #uChat{outline:3px dashed #9e007e;outline-offset:-4px;border-radius:
 .mk-open{margin:4px 0 22px;padding:16px 30px;font-size:17px;text-decoration:none}
 @media(max-width:600px){.mk-open{display:flex;width:100%}}
 
+/* Меню и рецепты — по шагам */
+.mstep{margin:0 0 18px}
+.mstep-n{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mag);margin:0 0 6px 4px}
+.mstep .prn,.mstep .exb{margin:0}
+.msec-box{background:var(--mint-pale);border:1px solid var(--card-bd,var(--line));border-radius:20px;padding:16px 18px}
+.msec-box h3{margin:0 0 4px;font-size:16px;color:var(--e)}.msec-box>p{margin:0 0 12px;font-size:13.5px;color:var(--grey)}
+.msec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(max-width:700px){.msec{grid-template-columns:1fr}}
+.msec-b{display:flex;align-items:center;gap:14px;min-height:76px;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:12px 16px;cursor:pointer;font:inherit;color:var(--ink)}
+.msec-b:hover{border-color:var(--e)}.msec-b:focus-visible{outline:3px solid var(--mag);outline-offset:2px}
+.msec-i{flex:0 0 44px;height:44px;border-radius:12px;background:var(--mint-pale);color:var(--e);display:flex;align-items:center;justify-content:center}
+.msec-i svg{width:24px;height:24px}
+.msec-t{flex:1;min-width:0}.msec-t b{display:block;font-size:17px;color:var(--e)}.msec-t small{display:block;font-size:13.5px;color:var(--grey);margin-top:2px;line-height:1.35}
+.msec-go{font-size:28px;color:var(--mag);line-height:1}
+.mt-back{display:inline-flex;align-items:center;min-height:46px;margin:16px 0 0;padding:10px 18px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--e);font:inherit;font-weight:700;font-size:15px;cursor:pointer}
+.mt-how{background:#fdf3fa;border:1px solid #f0c9e4;border-radius:16px;padding:12px 16px;margin:0 0 10px;font-size:14.5px;line-height:1.5}
+.mt-how b{color:var(--mag)}.mt-how ol{margin:6px 0 0;padding-left:22px}.mt-how li{margin:2px 0}
+@media(max-width:700px){.msec{gap:8px}.msec-b{min-height:62px;padding:10px 14px;gap:12px}.msec-i{flex-basis:38px;height:38px}.msec-t b{font-size:16px}.msec-t small{font-size:13px}}
+.pmini{background:var(--mint-pale);border:1px solid var(--card-bd,var(--line));border-radius:16px;padding:12px 14px;margin:0 0 10px}
+.pm-h b{display:block;color:var(--e);font-size:15.5px}.pm-h span{display:block;font-size:13px;color:var(--grey);margin:2px 0 10px}
+.pm-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}@media(max-width:700px){.pm-g{grid-template-columns:1fr}}
+.pm-w{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.pm-w>b{font-size:14px;color:var(--e)}
+.pm-w a{display:flex;align-items:center;gap:8px;min-height:40px;color:var(--ink);text-decoration:none;font-size:14.5px;font-weight:500;border-radius:8px;padding:2px 4px}
+.pm-w a:hover{background:var(--mint-pale)}.pm-w a svg{flex:0 0 18px;width:18px;height:18px;color:var(--mag)}
+.pm-lock{font-size:13px;color:var(--grey)}.pm-lock svg{width:13px;height:13px;vertical-align:-2px}
+.mt-title{margin:14px 0 6px}
+.mt-how summary{cursor:pointer;font-weight:700;color:var(--mag);list-style:none;display:flex;align-items:center;gap:8px;min-height:28px}
+.mt-how summary::-webkit-details-marker{display:none}
+.mt-how summary::after{content:"";width:8px;height:8px;border:solid var(--mag);border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-4px}
+.mt-how[open] summary::after{transform:rotate(-135deg);margin-top:4px}
+@media(max-width:700px){
+  .mt-back{min-height:44px;margin:8px 0 0;padding:8px 14px;font-size:14.5px}
+  .mt-title{font-size:24px;margin:10px 0 6px}
+  .mt-how{padding:8px 14px;font-size:15px}
+  .menu-frame{height:calc(100dvh - 300px);min-height:440px;border-width:1.5px;border-radius:12px}
+}
+/* недели в уроках — сворачиваются */
+.wk-t{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;background:none;border:none;border-radius:12px;padding:6px 6px 6px 2px;margin:12px 0 6px;font:inherit;font-weight:700;font-size:14px;color:var(--mag);text-align:left;cursor:pointer}
+.wk-t>span:first-child{flex:1;min-width:0}
+.wk-t:focus-visible{outline:3px solid var(--mag);outline-offset:2px}
+.wk-c{font-size:12.5px;color:var(--grey);font-weight:700}
+.wk-ch{flex:0 0 34px;height:34px;border-radius:50%;background:var(--mint-pale);position:relative}
+.wk-ch::after{content:"";position:absolute;left:12px;top:10px;width:8px;height:8px;border:solid var(--e);border-width:0 2px 2px 0;transform:rotate(-135deg);transition:transform .15s}
+.wkg.shut .wk-ch::after{transform:rotate(45deg);top:9px}
+.wkg.shut .list{display:none}
+.wkg.shut .wk-t{margin-bottom:0;border-bottom:1px solid var(--line);border-radius:0}
+@media(prefers-reduced-motion:reduce){.wk-ch::after{transition:none}}
+.menu-frame.auto{height:900px;min-height:0;overflow:hidden;border:0;border-radius:0;background:transparent;margin-top:4px}
+@media(max-width:700px){.menu-frame.auto{height:900px;min-height:0;border:0}}
+.pm-w a.pm-fod{border-top:1px dashed var(--line);border-radius:0;margin-top:2px;padding-top:6px}
+
+@media(max-width:700px){
+  .mt-back{display:flex;width:100%;justify-content:center}
+  .exb-h .btn,.exb-a .btn{width:100%;min-height:48px;justify-content:center}
+  .exb-a{display:grid;gap:8px}
+}
+
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
 .dtop .dt-b .cal{margin-top:16px}
@@ -5202,6 +5260,7 @@ const supportLink = (cls='btn ghost full') => `<a class="${cls}" href="${esc(CFG
 const supportBtn = (cls='btn ghost full') => `<a class="${cls}" href="${esc(CFG.SUPPORT_URL)}" target="_blank" rel="noopener" data-a="support">${I.sup.replace('<svg','<svg width="18" height="18" style="vertical-align:-4px;margin-right:6px"')}Техподдержка</a>`;
 
 const I = {
+  bowl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18a9 7.2 0 0 1-18 0z"/><path d="M9 20.5h6"/><path d="M7.5 12c-.8-2 .2-4 2.3-4.8 1 1.6.9 3.4-.2 4.8"/><path d="M11.5 12c-.2-3 1.4-5.2 4.1-6 .5 2.6-.4 4.6-2.2 6"/><path d="M15.8 12c.6-1.5 2.1-2.4 3.6-2.4-.1 1-.6 1.9-1.6 2.4"/></svg>',
   sup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/><path d="M6 6l3.5 3.5M14.5 14.5 18 18M18 6l-3.5 3.5M9.5 14.5 6 18"/></svg>',
   share:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',
  target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
@@ -6450,7 +6509,7 @@ function lessonLinks(id, sheet){
   // урок «Список продуктов, меню и сборник рецептов» недель 3–5 — актуальные PDF с платформы (те же, что в разделе «Меню и рецепты»)
   const mw = /^(slow|infl|sens|mix)([345])_1$/.exec(id);
   if (mw) { files = files.filter(f => !/меню|рецепт|продукт/i.test(f[0]));
-    files.unshift(['Меню и рецепты на ' + mw[2] + '-ю неделю', 'materials/' + mw[1] + '/menu_w' + mw[2] + '.pdf', 'pdf'], ['Список продуктов на ' + mw[2] + '-ю неделю', 'materials/' + mw[1] + '/menu_w' + mw[2] + '_products.pdf', 'pdf']); }
+    files.unshift(['Скачать меню на ' + mw[2] + '-ю неделю', 'materials/' + mw[1] + '/menu_w' + mw[2] + '.pdf', 'pdf'], ['Скачать список продуктов на ' + mw[2] + '-ю неделю', 'materials/' + mw[1] + '/menu_w' + mw[2] + '_products.pdf', 'pdf']); }
   return { video: s.video || d.v || '', files, hide: !!s.hide, con: s.con || '' };
 }
 // дополнительные блоки урока: промокод, кнопки на встроенные трекер, анкету и конструктор
@@ -6881,7 +6940,9 @@ function catList(){
   let html;
   if (k === 'lessons') {
     const weeks = [...new Set(items.map(l => l.w))].sort((a,b) => a - b);
-    html = weeks.map(w => `<div class="wk">${WEEKNAME[w]}${weekOpen(w) || items.filter(l => l.w === w).some(lessonOpen) ? '' : ` · откроется ${whenTxt(openAt(w))}`}</div><div class="list">${items.filter(l => l.w === w).map(l => lessonOpen(l) ? li(l) : liLock(l)).join('')}</div>`).join('');
+    const shut = LS.get('hz_wk_shut', []) || [];
+    html = weeks.map(w => { const cl = shut.includes(w), its = items.filter(l => l.w === w), dn = its.filter(l => U.st.done[l.id]).length;
+      return `<div class="wkg${cl ? ' shut' : ''}"><button type="button" class="wk wk-t" data-a="wkTog" data-w="${w}" aria-expanded="${!cl}"><span>${WEEKNAME[w]}${weekOpen(w) || its.some(lessonOpen) ? '' : ` · откроется ${whenTxt(openAt(w))}`}</span><span class="wk-c">${dn}/${its.length}</span><span class="wk-ch" aria-hidden="true"></span></button><div class="list">${its.map(l => lessonOpen(l) ? li(l) : liLock(l)).join('')}</div></div>`; }).join('');
   } else html = `<div class="list">${items.map(li).join('')}</div>`;
   const p = progress(k);
   const intro = {
@@ -6917,23 +6978,66 @@ function menuLink(){
   LS.set('hz_menu_link', MODE === 'live' && !U.preview ? { api: CFG.API_URL, token: S.token, start: iso, menu, excl } : (U.preview ? { start: iso, menu, excl, pv: U.pname || 'клиентка' } : { start: iso, menu, excl }));
 }
 // ── Меню недели для печати (меню по дням + рецепты, PDF) — открывается вместе с неделей меню ──
+function menuPrintMini(){
+  const sch = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : menuSched(), pk = TYPE();
+  const cols = [3, 4, 5].map(w => { const t = sch[w] ? new Date(sch[w]).getTime() : 0, op = !t || Date.now() >= t;
+    return `<div class="pm-w"><b>Неделя ${w}</b>${op ? `<a href="materials/${pk}/menu_w${w}.pdf" target="_blank" rel="noopener" download="Меню_неделя_${w}.pdf">${I.fpdf}<span>Скачать меню</span></a><a href="materials/${pk}/menu_w${w}_products.pdf" target="_blank" rel="noopener" download="Продукты_неделя_${w}.pdf">${I.fpdf}<span>Скачать список продуктов</span></a>${pk !== 'slow' ? `<a class="pm-fod" href="materials/${pk}/menu_w${w}_fodmap.pdf" target="_blank" rel="noopener" download="FODMAP_меню_неделя_${w}.pdf">${I.fpdf}<span>Скачать FODMAP-меню</span></a>` : ''}`
+      : `<span class="pm-lock">${I.lock} откроется ${fmt(new Date(t), {day:'numeric', month:'long'})}</span>`}</div>`; }).join('');
+  return `<div class="pmini"><div class="pm-h"><b>Готовое меню для печати</b><span>Нажмите — файл откроется. Распечатайте его или сохраните в телефон.${pk !== 'slow' ? ' FODMAP-меню — только если его рекомендовал куратор.' : ''}</span></div><div class="pm-g">${cols}</div></div>`;
+}
 function menuPrint(){
   const sch = (U.preview || CFG.OPEN_ALL_WEEKS) ? {} : menuSched(), pk = TYPE();
   const rows = [3, 4, 5].map(w => { const t = sch[w] ? new Date(sch[w]).getTime() : 0, op = !t || Date.now() >= t;
     return op ? `<a href="materials/${pk}/menu_w${w}.pdf" target="_blank" rel="noopener" download="Меню_неделя_${w}.pdf">${I.fpdf}<span>Неделя ${w} — меню и рецепты</span><small>PDF</small></a><a href="materials/${pk}/menu_w${w}_products.pdf" target="_blank" rel="noopener" download="Продукты_неделя_${w}.pdf">${I.fpdf}<span>Неделя ${w} — список продуктов</span><small>PDF</small></a>`
       : `<a aria-disabled="true" style="opacity:.6;pointer-events:none">${I.lock}<span>Неделя ${w}</span><small>откроется ${fmt(new Date(t), {day:'numeric', month:'long'})}</small></a>`; }).join('');
-  return `<div class="prn"><h3>Меню для печати</h3><p>Меню на неделю с рецептами и список продуктов к нему — удобно распечатать и держать на кухне. Своё меню и список продуктов к нему выгружайте в конструкторе ниже.</p>${rows}<p class="prn-tip"><b>Как распечатать.</b> На телефоне откройте файл → «Поделиться» → «Печать» (или отправьте файл себе и распечатайте с компьютера). На компьютере — значок принтера в окне файла или Ctrl+P. Вернуться в кабинет: «Готово» или «Назад» в окне файла.</p></div>`;
+  return `<div class="prn">${rows}<p class="prn-tip"><b>Как распечатать.</b> На телефоне откройте файл → «Поделиться» → «Печать» (или отправьте файл себе и распечатайте с компьютера). На компьютере — значок принтера в окне файла или Ctrl+P. Вернуться в кабинет: «Готово» или «Назад» в окне файла.</p></div>`;
 }
+// ── Меню и рецепты: по шагам. Сначала файлы для печати, потом большие кнопки разделов конструктора ──
+const MSV = 'stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+const MSECT = [
+  { k:'menu',  t:'Меню программы', d:'Готовое меню на каждый день недель 3–5', ic:`<svg viewBox="0 0 24 24" ${MSV}><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M8 3v4M16 3v4M8 13h3M8 16h6"/></svg>`,
+    h:['Готовое меню недели для печати — сразу под этой подсказкой.', 'Нажмите номер дня — откроется меню на этот день.', 'Нажмите на название блюда — откроется рецепт.', 'Хотите что-то поменять — нажмите «Редактировать меню под себя».', 'Чтобы сохранить сразу всю неделю — кнопка «Составить меню на 7 дней».'] },
+  { k:'mine',  t:'Индивидуальное меню', d:'Меню программы с заменами под ваш список «не ем»', ic:`<svg viewBox="0 0 24 24" ${MSV}><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>`,
+    h:['Нажмите номер дня — откроется меню программы на этот день.', 'Если в блюде есть продукт из вашего списка «не ем», под блюдом написано, чем его заменить.', 'Если этот продукт в блюде главный, предлагаем другое блюдо — можно выбрать его или оставить как в программе.', 'Хотите поменять ещё что-то — нажмите «Редактировать меню под себя».', 'Чтобы сохранить сразу всю неделю — кнопка «Составить меню на 7 дней».'] },
+  { k:'build', t:'Собрать своё меню', d:'Поменяйте блюда под себя и сохраните дни', ic:`<svg viewBox="0 0 24 24" ${MSV}><path d="M4 20l4-1 10-10-3-3L5 16l-1 4z"/><path d="M13 7l3 3"/></svg>`,
+    h:['Добавьте блюда кнопкой «+ Добавить блюдо» в нужный приём пищи. Проще начать с готового дня: в «Меню программы» нажмите «Редактировать меню под себя».', 'Заменить блюдо — значок ⇄. Заменить продукт внутри блюда — кнопка «Состав».', 'Внизу выберите дату и нажмите «Сохранить день». Стрелками ‹ › переходите к следующему дню.'] },
+  { k:'lib',   t:'Рецепты программы', d:'Все рецепты вашего протокола', ic:`<svg viewBox="0 0 24 24" ${MSV}><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z"/><path d="M5 17a3 3 0 0 1 3-3h10M9 8h5"/></svg>`,
+    h:['Найдите рецепт по названию или выберите приём пищи.', 'Нажмите на рецепт — откроется состав и приготовление.'] },
+  { k:'week',  t:'Мои итоги', d:'Сохранённые дни и картина недели', ic:`<svg viewBox="0 0 24 24" ${MSV}><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>`,
+    h:['Здесь видны дни, которые вы сохранили. «Открыть» — поправить день.', 'Ниже — каких витаминов и минералов не хватает и чем их добрать.'] },
+  { k:'prof', t:'Мои нормы', d:'Ваш расчёт калорий, белка и витаминов', ic:`<svg viewBox="0 0 24 24" ${MSV}><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>`,
+    h:['Заполните рост, вес, возраст и активность — мы посчитаем ваши нормы.', 'Достаточно сделать это один раз, в начале.'] },
+  { k:'excl', t:'Продукты, которые я не ем', d:'Отметьте их — мы уберём их из индивидуального меню', own:true, ic:`<svg viewBox="0 0 24 24" ${MSV}><circle cx="12" cy="12" r="8"/><path d="M6.5 6.5l11 11"/></svg>`,
+    h:['Нажмите «Изменить список» и отметьте продукты, которые вы не едите или плохо переносите.', 'Сохраните — в «Индивидуальном меню» они заменятся на подходящие.'] },
+];
+function mtBackTxt(){ const p = hist[hist.length - 1]; return p && p.s === 'menu' && p.mt ? `← Назад: «${msect(p.mt).t}»` : '← Назад к разделу «Меню и рецепты»'; }
+function msect(k){ return MSECT.find(x => x.k === k) || MSECT[0]; }
+function menuSrc(tab, embed){ return CFG.MENU_URL + '?protocol=' + PCODE[TYPE()] + '&tab=' + tab + (embed ? '&embed=1' : '') + '#' + PCODE[TYPE()]; }
+function mtHead(k){ const m = msect(k), mob = window.matchMedia && matchMedia('(max-width:700px)').matches; return `<h1 id="mt-title" class="mt-title">${m.t}</h1><details class="mt-how" id="mt-how"${mob ? '' : ' open'}><summary>Как пользоваться</summary><ol>${m.h.map(x => `<li>${esc(x)}</li>`).join('')}</ol></details>`; }
 function menuView(){
   menuLink();
-  const src = CFG.MENU_URL + '?protocol=' + PCODE[TYPE()] + '#' + PCODE[TYPE()];
+  if (V.mt && msect(V.mt).own) return `${protoSwitch()}<button class="mt-back" data-a="back">${mtBackTxt()}</button>
+    <div id="mt-head">${mtHead(V.mt)}</div>${exclBlock()}`;
+  if (V.mt) {
+    return `${protoSwitch()}<button class="mt-back" id="mt-back" data-a="back">${mtBackTxt()}</button>
+    <div id="mt-head">${mtHead(V.mt)}</div>
+    ${V.mt === 'menu' ? menuPrintMini() : ''}
+    <iframe class="menu-frame auto" id="menu-frame" scrolling="no" src="${esc(menuSrc(V.mt, 1))}" title="Конструктор меню"></iframe>
+    <p class="muted small" style="margin:8px 0 0">Неудобно на маленьком экране? <a class="lnk" href="${esc(menuSrc(V.mt))}" target="_blank" rel="noopener">Открыть на весь экран</a></p>`;
+  }
   return `${protoSwitch()}<h1 style="margin-top:22px">Меню и рецепты</h1>
-  <p class="muted">Собирайте меню на день из рецептов вашего протокола.</p>
-  <a class="btn mk-open" href="${esc(CFG.MENU_URL + '?protocol=' + PCODE[TYPE()] + '&tab=mine#' + PCODE[TYPE()])}" target="_blank" rel="noopener">Открыть индивидуальное меню</a>
-  ${exclBlock()}
-  ${menuPrint()}
-  <iframe class="menu-frame" src="${esc(src)}" title="Конструктор меню"></iframe>`;
+  <p class="muted">Выберите, что хотите сделать. Если не знаете, с чего начать, — откройте «Меню программы».</p>
+  <div class="msec">${MSECT.map(m => `<button class="msec-b" data-a="mtab" data-v="${m.k}"><span class="msec-i">${m.ic}</span><span class="msec-t"><b>${m.t}</b><small>${m.d}</small></span><span class="msec-go" aria-hidden="true">›</span></button>`).join('')}</div>`;
 }
+window.addEventListener('message', e => { const g = e.data; if (g && g.hzGo === 'excl' && V && V.s === 'menu') { V.exclEd = null; return go('menu', { mt:'excl' }); } });
+window.addEventListener('message', e => { const d = e.data; if (!d || typeof d !== 'object' || !d.hzTab || !V || V.s !== 'menu' || !V.mt || d.hzTab === V.mt) return;
+  if (!MSECT.some(x => x.k === d.hzTab)) return; hist.push(Object.assign({}, V)); V = Object.assign({}, V, { mt:d.hzTab }); const h = document.getElementById('mt-head'); if (h) h.innerHTML = mtHead(V.mt); const pm = document.querySelector('.pmini'); if (pm) pm.hidden = V.mt !== 'menu'; const bk = document.getElementById('mt-back'); if (bk) bk.textContent = mtBackTxt(); });
+window.addEventListener('message', e => { const d = e.data, fr = document.getElementById('menu-frame'); if (!d || typeof d !== 'object' || !fr || e.source !== fr.contentWindow) return;
+  if (d.hzH) { fr.style.height = Math.max(300, +d.hzH) + 'px'; mfView(); }
+  if (d.hzTop) window.scrollTo(0, 0); });
+function mfView(){ const fr = document.getElementById('menu-frame'); if (!fr || !fr.contentWindow) return; const r = fr.getBoundingClientRect(), bar = document.getElementById('bar'), tb = document.querySelector('.tbar'), bt = bar ? Math.max(0, bar.getBoundingClientRect().bottom) : 0, tt = tb && getComputedStyle(tb).display !== 'none' ? tb.getBoundingClientRect().top - 6 : innerHeight, top = Math.max(0, bt - r.top), bot = Math.min(r.height, tt - r.top);
+  try { fr.contentWindow.postMessage({ hzView:{ top, h: Math.max(200, bot - top) } }, '*'); } catch (e) {} }
+window.addEventListener('scroll', mfView, { passive:true }); window.addEventListener('resize', mfView);
 function lessonNav(x){
   const ls = (assigned() ? RES().lessons.map(byId) : preLessons()).map((l, i) => [l, i]).sort((a, b) => a[0].w - b[0].w || a[1] - b[1]).map(p => p[0]);
   const i = ls.findIndex(l => l.id === x.id); if (i < 0) return '';
@@ -7500,7 +7604,7 @@ function renderNav(wide){
 // нижнее меню на телефоне и планшете (как на платформе ИР)
 function tbarHtml(){
   const g = gcTypes().length, un = g ? gcUnreadAll() : 0, gt = gcTypes().includes(TYPE()) ? TYPE() : gcTypes()[0];
-  const it = [['dash','Главная',I.home,'data-a="home"'],['cat','Уроки',I.book,'data-a="cat" data-k="lessons"'],['tracker','Трекер',I.ck,'data-a="tracker"'],['menu','Меню',I.plate,'data-a="menu"']];
+  const it = [['dash','Главная',I.home,'data-a="home"'],['cat','Уроки',I.book,'data-a="cat" data-k="lessons"'],['tracker','Трекер',I.ck,'data-a="tracker"'],['menu','Меню',I.bowl,'data-a="menu"']];
   if (g) it.push(['gchat','Чат',I.chs,`data-a="gchat" data-t="${gt}"`]);
   return `<nav class="tbar" aria-label="Разделы кабинета">${it.map(([s, t, ic, a]) => `<button type="button" ${a} class="${V.s === s || (s === 'cat' && V.s === 'item') ? 'on' : ''}" ${V.s === s ? 'aria-current="page"' : ''}>${ic}<span>${t}</span>${s === 'gchat' && un ? `<i>${un}</i>` : ''}</button>`).join('')}</nav>`;
 }
@@ -8044,7 +8148,10 @@ function studentClick(e, b, a){
     if (V.err) delete V.err[q.id]; LS.set('hz_fb_' + V.k, V.ans); return keepY(render); }
   if (a === 'fbSend') return fbSend();
   if (a === 'cat') return go('cat', { k:b.dataset.k });
+  if (a === 'wkTog') { const w = +b.dataset.w, g = b.closest('.wkg'), sh = (LS.get('hz_wk_shut', []) || []).filter(x => x !== w); const cl = !g.classList.contains('shut'); if (cl) sh.push(w);
+    LS.set('hz_wk_shut', sh); g.classList.toggle('shut', cl); b.setAttribute('aria-expanded', String(!cl)); return; }
   if (a === 'menu') { track('menu', 'Конструктор меню'); return go('menu'); }
+  if (a === 'mtab') { track('menu', msect(b.dataset.v).t); return go('menu', { mt:b.dataset.v }); }
   if (a === 'lnav') { const id = b.dataset.id, l = lx(id); l.open++; l.last = Date.now(); save(); track('open', byId(id).t); V = { s:'item', id }; render(); window.scrollTo(0,0); return; }
   if (a === 'rzKind') { RZ().kind = b.dataset.k; return keepY(render); }
   if (a === 'rzDel') { RZ().files.splice(+b.dataset.i, 1); return keepY(render); }
@@ -8799,7 +8906,7 @@ const Adm = (() => {
       const low = Object.keys(pc).filter(k => pc[k] < 70).sort((a, b) => pc[a] - pc[b]), ok = Object.keys(pc).filter(k => pc[k] >= 100).length;
       return `<div style="margin-bottom:14px"><p style="margin:0 0 6px"><b>${w ? 'Неделя ' + w : 'До старта программы'}</b> · сохранено ${L.length} из 7 · в среднем ${avg('kcal')} ккал, белок ${avg('protein')} г, клетчатка ${avg('fiber')} г · закрыто нутриентов: ${ok} из ${Object.keys(pc).length}</p>
         <p class="small" style="margin:0 0 6px">${low.length ? 'Просадка (меньше 70% нормы): ' + low.map(k => `<span class="chip r">${MNAME[k]} ${pc[k]}%</span>`).join(' ') : 'Просадок нет'}</p>
-        <p class="small muted" style="margin:0">${L.map(d => fmt(d.date, {day:'numeric', month:'short'}) + ' — ' + Math.round((d.tot || {}).kcal || 0) + ' ккал').join(' · ')}</p></div>`; }).join('');
+        <p class="small muted" style="margin:0">${L.map(d => fmt(d.date, {day:'numeric', month:'short'}) + ' — ' + Math.round((d.tot || {}).kcal || 0) + ' ккал' + (String(d.date) > new Date().toISOString().slice(0, 10) ? ' (план)' : '')).join(' · ')}</p></div>`; }).join('');
   }
   async function loadMenuDays(){
     const c = C.find(x => x.email === AV.id); if (!c || mdays[c.email] !== undefined) return;
