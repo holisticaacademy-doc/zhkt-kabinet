@@ -716,6 +716,14 @@ body.u-drop #uChat{outline:3px dashed #9e007e;outline-offset:-4px;border-radius:
 .gc-down{position:absolute;top:-54px;right:14px;z-index:3;font:inherit;font-size:14px;font-weight:700;color:#fff;background:var(--e);border:0;border-radius:999px;padding:10px 16px;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
 .gc-down[hidden]{display:none}
 
+/* телефон: лента чата протокола у ученицы — без окна прокрутки, листается вся страница */
+@media (max-width:760px){ #U .gc-list{max-height:none!important;overflow:visible;overscroll-behavior:auto} }
+/* телефон: поле ввода в чате протокола компактное, пока в него не нажали (больше места для сообщений) */
+@media (max-width:760px){
+  #U .gc-form:not(:has(.emo-w:focus-within, textarea:focus)) textarea{height:50px!important;min-height:50px}
+  #U .gc-form:not(:has(.emo-w:focus-within, textarea:focus)) .fmt-b{display:none}
+}
+
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
 .dtop .dt-b .cal{margin-top:16px}
@@ -6200,7 +6208,7 @@ function chatView(){
 // ═══ Чаты протоколов: общий чат участниц одного типа пищеварения прямо в платформе ═══
 // Сообщения подтягиваются раз в 15 секунд, пока чат открыт. Фото, ответы, реакции, закреп и модерация куратора.
 const GC_RX = ['❤️', '👍', '🙏', '😊'];
-const GC = { data: {}, v: {}, photos: {}, ph: {}, show: {}, pinI: {}, pinOpen: null, pinAll: null, staff: false, reply: null, att: [], draft: '', busy: false, stick: true, enter: true, timer: null, err: '' };
+const GC = { onwin: null, data: {}, v: {}, photos: {}, ph: {}, show: {}, pinI: {}, pinOpen: null, pinAll: null, staff: false, reply: null, att: [], draft: '', busy: false, stick: true, enter: true, timer: null, err: '' };
 // Пол клиента: из анкеты («Мужской»/«Женский»), а пока анкеты нет — по имени (Арсен, Игорь — мужские; Анна, Любовь — женские)
 const M_NAMES_A = /^(илья|никита|кузьма|фома|лука|савва|данила|гаврила|миша|гоша|паша|петя|вася|дима|лёша|леша|серёжа|сережа|витя|коля|толя|вова|костя|стёпа|степа|ваня|федя|юра|слава|тимоша|ilya|nikita|misha|dima|sasha_m)$/;
 const F_NAMES_SOFT = /^(любовь|нинель|эсфирь|руфь|адель|ассоль|изабель|рахиль|юдифь|айгуль|гульнур|динара_)$/;
@@ -6227,18 +6235,35 @@ async function gcLoad(t, force){
     GC.err = ''; if (r.same) return false; GC.data[t] = r; GC.v[t] = r.v; return true; }
   catch (e) { if (e.message === 'AUTH') { logout(); return false; } GC.err = e.message; return true; }
 }
-function gcKeep(){ const ta = document.getElementById('gcIn'); if (ta) GC.draft = ta.value; const el = document.getElementById('gc-list'); if (el) { GC.stick = el.scrollHeight - el.scrollTop - el.clientHeight < 80; GC.top = el.scrollTop; } }
+// На телефоне лента чата ученицы листается всей страницей (без окна с отдельной прокруткой) — gcSc даёт одинаковые команды для обоих случаев
+const gcPg = el => !!(el && el.closest('#U') && getComputedStyle(el).overflowY === 'visible');
+const gcHdr = () => { const b = document.querySelector('#U .bar'); return b && /fixed|sticky/.test(getComputedStyle(b).position) ? b.offsetHeight : 0; };
+function gcSc(el){
+  if (gcPg(el)) { const D = document.documentElement;
+    return { pg: true, gap: () => D.scrollHeight - window.scrollY - innerHeight, top: () => window.scrollY, set: y => window.scrollTo(0, y),
+      bottom: sm => window.scrollTo({ top: D.scrollHeight, behavior: sm ? 'smooth' : 'auto' }),
+      to: (n, sm) => window.scrollTo({ top: n.getBoundingClientRect().top + window.scrollY - gcHdr() - 12, behavior: sm ? 'smooth' : 'auto' }) }; }
+  return { pg: false, gap: () => el.scrollHeight - el.scrollTop - el.clientHeight, top: () => el.scrollTop, set: y => { el.scrollTop = y; },
+    bottom: sm => el.scrollTo({ top: el.scrollHeight, behavior: sm ? 'smooth' : 'auto' }),
+    to: (n, sm) => el.scrollTo({ top: el.scrollTop + n.getBoundingClientRect().top - el.getBoundingClientRect().top - 8, behavior: sm ? 'smooth' : 'auto' }) };
+}
+function gcKeep(){ const ta = document.getElementById('gcIn'); if (ta) GC.draft = ta.value; const el = document.getElementById('gc-list'); if (el) { const sc = gcSc(el); GC.stick = sc.gap() < 80; GC.top = sc.top(); } }
 // после перерисовки лента остаётся на том же месте (реакция, ответ, новое сообщение не сбивают прокрутку)
 function gcAfter(){
   const fix = () => { const el = document.getElementById('gc-list'); if (!el || el.dataset.fx) return; el.dataset.fx = 1;
-    el.scrollTop = GC.stick || GC.top == null ? el.scrollHeight : GC.top;
+    const sc = gcSc(el);
+    if (GC.stick || GC.top == null) sc.bottom(); else if (!sc.pg) sc.set(GC.top);   // на странице место держит keepY
     const nw = GC.enter && document.getElementById('gc-new');   // при входе — к первому непрочитанному
-    if (nw) { el.scrollTop += nw.getBoundingClientRect().top - el.getBoundingClientRect().top - 8; GC.stick = false; GC.top = el.scrollTop; }
-    // на телефоне при входе в чат прокручиваем страницу к концу ленты, чтобы последние сообщения не прятались под полем ввода
-    if (GC.enter) { GC.enter = false; GC.cutT = 0; if (innerWidth <= 760) { const f = document.querySelector('.gc-form'), fh = f ? f.offsetHeight : 0;
+    if (nw) { sc.to(nw); GC.stick = false; GC.top = sc.top(); }
+    // окно с прокруткой на узком экране: при входе прокручиваем страницу к концу ленты, чтобы последние сообщения не прятались под полем ввода
+    if (GC.enter) { GC.enter = false; GC.cutT = 0; if (!sc.pg && innerWidth <= 760) { const f = document.querySelector('.gc-form'), fh = f ? f.offsetHeight : 0;
       window.scrollTo(0, Math.max(0, el.getBoundingClientRect().bottom + window.scrollY + fh + 12 - innerHeight)); } }
-    const dn = document.getElementById('gc-down'), tog = () => { if (dn) dn.hidden = el.scrollHeight - el.scrollTop - el.clientHeight < 200; };
-    tog(); el.onscroll = () => { GC.stick = el.scrollHeight - el.scrollTop - el.clientHeight < 80; GC.top = el.scrollTop; tog(); }; };
+    const dn = document.getElementById('gc-down'), tog = () => { if (dn) dn.hidden = sc.gap() < 200; };
+    tog();
+    if (GC.onwin) { removeEventListener('scroll', GC.onwin); GC.onwin = null; }
+    if (sc.pg) { GC.onwin = () => { if (!document.body.contains(el)) { removeEventListener('scroll', GC.onwin); GC.onwin = null; return; } GC.stick = sc.gap() < 80; GC.top = sc.top(); tog(); };
+      addEventListener('scroll', GC.onwin, { passive: true }); }
+    else el.onscroll = () => { GC.stick = sc.gap() < 80; GC.top = sc.top(); tog(); }; };
   queueMicrotask(fix);
   setTimeout(() => {
     fix();
@@ -6253,7 +6278,7 @@ function gcObserve(){
   const root = document.getElementById('gc-list'); if (!root) return;
   if (!('IntersectionObserver' in window)) { root.querySelectorAll('[data-a="gcPhoto"]').forEach(b => gcPhotoQueue(b.dataset.id)); return; }
   if (GC_IO) GC_IO.disconnect();
-  GC_IO = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { GC_IO.unobserve(e.target); gcPhotoQueue(e.target.dataset.id); } }), { root, rootMargin:'300px 0px' });
+  GC_IO = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { GC_IO.unobserve(e.target); gcPhotoQueue(e.target.dataset.id); } }), { root: gcPg(root) ? null : root, rootMargin:'300px 0px' });
   root.querySelectorAll('[data-a="gcPhoto"]').forEach(b => { if (!GC.photos[b.dataset.id]) GC_IO.observe(b); });
 }
 function gcPhotoQueue(id){ if (!id || GC.photos[id] || GC.ph[id]) return; GC.ph[id] = 1; GC_Q.push(id); gcPhotoNext(); }
@@ -6267,7 +6292,7 @@ async function gcPhotoLoad(id){
   GC.ph[id] = 1;
   try { const r = await api('gchatPhoto', { token:S.token, id }); const u = await gcThumb(r.data); GC.photos[id] = u;
     document.querySelectorAll(`[data-a="gcPhoto"][data-id="${id}"]`).forEach(b => { b.innerHTML = `<img src="${u}" alt="Фото" decoding="async">`; });
-    const el = document.getElementById('gc-list'); if (el && GC.stick) el.scrollTop = el.scrollHeight; }
+    const el = document.getElementById('gc-list'); if (el && GC.stick) gcSc(el).bottom(); }
   catch (e) { document.querySelectorAll(`[data-a="gcPhoto"][data-id="${id}"]`).forEach(b => { b.innerHTML = '<span>Фото не загрузилось</span>'; }); }
 }
 function gcShrink(file){ return new Promise((res, rej) => {
@@ -6377,7 +6402,7 @@ function gcClick(a, b, t, staff, rerender){
     run('gchatBan', { email:b.dataset.email, on }, on ? 'Участнице запрещено писать в чатах' : 'Запрет снят'); return true; }
   if (a === 'gcJump' || a === 'gcPinTap') { const pins = gcPins(d);
     const go = id => { const el = document.getElementById('gcm-' + id), box = document.getElementById('gc-list');
-      if (!el || !box) return false; box.scrollTo({ top: el.offsetTop - box.offsetTop - 20, behavior: 'smooth' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600); return true; };
+      if (!el || !box) return false; gcSc(box).to(el, true); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600); return true; };
     const show = id => { if (go(id)) return true; const i = d ? d.list.findIndex(m => m.id === id) : -1;
       if (i > -1) { GC.show[t] = Math.max(GC.show[t] || GC_SHOW, d.list.length - i + 3); GC.stick = false; rerender(); setTimeout(() => go(id), 30); return true; } return false; };
     if (a === 'gcJump') { const id = b.dataset.id; if (GC.pinAll === t) { GC.pinAll = null; gcKeep(); rerender(); setTimeout(() => show(id), 30); return true; }
@@ -6391,10 +6416,10 @@ function gcClick(a, b, t, staff, rerender){
   if (a === 'gcPinAll') { GC.pinAll = b.dataset.on === '1' ? t : null; GC.pinOpen = null; gcKeep(); rerender(); return true; }
   if (a === 'gcPhoto') { const id = b.dataset.id; if (!GC.photos[id]) { gcPhotoQueue(id); return true; }
     toast('Открываем фото…'); api('gchatPhoto', { token:S.token, id }).then(r => fvOpen(r.data, 'Фото из чата.jpg', b)).catch(err => toast(err.message)); return true; }
-  if (a === 'gcDown') { const el = document.getElementById('gc-list'); if (el) { el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }); GC.stick = true; } return true; }
-  if (a === 'gcMore') { const box = document.getElementById('gc-list'), h0 = box ? box.scrollHeight - box.scrollTop : 0;
+  if (a === 'gcDown') { const el = document.getElementById('gc-list'); if (el) { gcSc(el).bottom(true); GC.stick = true; } return true; }
+  if (a === 'gcMore') { const box = document.getElementById('gc-list'), pg = gcPg(box), D = document.documentElement, h0 = !box ? 0 : pg ? D.scrollHeight - window.scrollY : box.scrollHeight - box.scrollTop;
     GC.show[t] = (GC.show[t] || GC_SHOW) + GC_SHOW; GC.stick = false; rerender();
-    const nb = document.getElementById('gc-list'); if (nb) { nb.scrollTop = nb.scrollHeight - h0; GC.top = nb.scrollTop; } return true; }
+    const nb = document.getElementById('gc-list'); if (nb) { if (pg) window.scrollTo(0, D.scrollHeight - h0); else nb.scrollTop = nb.scrollHeight - h0; GC.top = gcSc(nb).top(); } return true; }
   return false;
 }
 async function gcPhotoPick(input, t, rerender){
@@ -6423,7 +6448,7 @@ function gcPatch(t, old){
     if (!was[m.id]) { box.appendChild(html(m)); n++; GC.show[t] = (GC.show[t] || GC_SHOW) + 1; }
     else if (el && was[m.id] !== JSON.stringify(m)) { el.replaceWith(html(m)); n++; }
   }
-  if (keep) box.scrollTop = box.scrollHeight;
+  if (keep) gcSc(box).bottom();
   gcObserve();
   return true;
 }
