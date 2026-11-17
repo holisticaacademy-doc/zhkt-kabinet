@@ -424,6 +424,20 @@ button.fchip:hover{border-color:var(--mint-bd)}
 .gc-pin small{font-size:11.5px;color:var(--e);font-weight:700}
 .gc-pin b{font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gc-pin-i{font-size:18px;flex:none}
+.gc-pinw{display:flex;align-items:stretch;gap:0;margin-top:12px;background:var(--mint-pale);border:1px solid var(--mint);border-radius:14px}
+.gc-pinw .gc-pin{margin:0;border:0;background:none;flex:1;min-width:0}
+.gc-pin-tx{flex:1}
+.gc-pin-seg{display:flex!important;flex-direction:column;gap:3px;align-self:stretch;justify-content:center;flex:none}
+.gc-pin-seg i{display:block;width:3px;flex:1;max-height:14px;min-height:6px;border-radius:2px;background:var(--mint)}
+.gc-pin-seg i.on{background:var(--e)}
+.gc-pin-all{flex:none;align-self:center;margin-right:10px;font:inherit;font-size:13px;font-weight:700;color:var(--e);padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--mint);cursor:pointer;white-space:nowrap}
+.gc-pinw.open{border-radius:14px 14px 0 0}
+.gc-pinbox{border:1px solid var(--mint);border-top:0;border-radius:0 0 14px 14px;background:var(--mint-pale);padding:10px 12px 12px;max-height:60vh;overflow:auto}
+.gc-pinbox .gc-m,.gc-pall .gc-m{max-width:100%;margin:0}
+.gc-pall{margin-top:12px;background:var(--mint-pale);border:1px solid var(--mint);border-radius:14px;padding:12px;max-height:70vh;overflow:auto}
+.gc-pall-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.gc-pall-i{margin-bottom:12px}.gc-pall-i:last-child{margin-bottom:0}
+.gc-pall-go{display:block;width:100%;margin-top:8px;font:inherit;font-size:14px;font-weight:700;color:var(--e);background:#fff;border:1px solid var(--mint);border-radius:12px;padding:10px;cursor:pointer}
 .gc-empty{text-align:center;margin:24px auto;max-width:380px}
 .gc-form{margin-top:10px;display:grid;gap:8px}
 .gc-form textarea{width:100%;resize:vertical;min-height:58px;max-height:220px}
@@ -437,8 +451,8 @@ button.fchip:hover{border-color:var(--mint-bd)}
 .gc-pp img{max-height:90px;max-width:160px;border-radius:8px;display:block}
 .gc-card{padding:14px}
 .gc-card .gc-list{margin-top:0}
-.gc-card .gc-pin+.gc-list{margin-top:12px}
-.gc-card>.gc-pin:first-child{margin-top:0}
+.gc-card .gc-pin+.gc-list,.gc-card .gc-pinw+.gc-list,.gc-card .gc-pinbox+.gc-list,.gc-card .gc-pall+.gc-list{margin-top:12px}
+.gc-card>.gc-pin:first-child,.gc-card>.gc-pinw:first-child,.gc-card>.gc-pall:first-child{margin-top:0}
 @media (max-width:640px){.gc-list{max-height:58vh;padding:10px}.gc-m{max-width:92%}}
 @media (prefers-reduced-motion:reduce){.gc-list{scroll-behavior:auto}}
 .gc-fb .btn{padding:9px 18px;min-height:42px;font-size:14px}
@@ -670,6 +684,30 @@ body.u-drop #uChat{outline:3px dashed #9e007e;outline-offset:-4px;border-radius:
   .exb-h .btn,.exb-a .btn{width:100%;min-height:48px;justify-content:center}
   .exb-a{display:grid;gap:8px}
 }
+
+/* Мои комментарии */
+.mycm-go{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--mint-pale);border:1px solid var(--mint);border-radius:16px;padding:14px 16px;margin:0 0 18px;cursor:pointer}
+.mycm-go .ic{flex:none;width:40px;height:40px;border-radius:12px;background:#fff;display:grid;place-items:center;color:var(--e)}
+.mycm-go .ic svg{width:22px;height:22px}
+.mycm-go>span:nth-child(2){flex:1;display:flex;flex-direction:column;min-width:0}
+.mycm-go b{font-size:16px;color:var(--e)}.mycm-go small{font-size:13.5px;color:var(--grey)}
+.mycm-go>i{flex:none;font-style:normal;font-size:13px;font-weight:700;color:#fff;background:var(--mag,#9e007e);border-radius:999px;min-width:24px;height:24px;display:grid;place-items:center;padding:0 7px}
+.mycm-ch{flex:none;font-size:22px;color:var(--e)}
+.mycm-f{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 16px}
+.mycm-chip{font:inherit;font-size:14.5px;font-weight:700;padding:10px 16px;border-radius:999px;border:1px solid var(--mint);background:#fff;color:var(--e);cursor:pointer;min-height:44px}
+.mycm-chip.on{background:var(--e);border-color:var(--e);color:#fff}
+.mycm-c{margin-bottom:14px}
+.mycm-c.fresh{border-color:var(--mag,#9e007e);box-shadow:0 0 0 1px var(--mag,#9e007e) inset}
+.mycm-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.mycm-h small{display:block;font-size:12.5px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.03em}
+.mycm-h h3{margin:2px 0 0;font-size:17px;line-height:1.3;color:var(--e)}
+.mycm-st{flex:none;font-size:12.5px;font-weight:700;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.mycm-st.ok{background:var(--mint-pale);color:var(--e)}
+.mycm-st.wait{background:#fff4e5;color:#8a5a00}
+.mycm-st.new{background:#fbe6f6;color:var(--mag,#9e007e)}
+.mycm-chat{margin-bottom:12px}
+@media (max-width:560px){.mycm-h{flex-direction:column}.mycm-h h3{font-size:16px}}
+@media (max-width:560px){.mycm-f{gap:6px;flex-wrap:nowrap}.mycm-chip{font-size:13.5px;padding:8px 11px;white-space:nowrap}}
 
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
@@ -5555,8 +5593,9 @@ const Demo = (() => {
   function gcSchOut(){ const wk=Date.now()-7*DAY; return (gcDb().sch||[]).filter(x=>x.status==='ждёт'||Date.parse(x.sent||x.at)>wk).map(x=>({id:x.id,at:x.at,by:x.by,types:x.types,text:x.text,photo:!!x.photo,pin:x.pin,status:x.status,sent:x.sent})).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)); }
   function gcDue(){ const g=gcDb(); (g.sch||[]).forEach(x=>{ if(x.status!=='ждёт'||Date.parse(x.at)>Date.now()) return;
       x.types.forEach(t=>{ const id='g'+Math.random().toString(36).slice(2); if(x.photo) g.photos[x.photo].type=t;
-        gcList(t).push({id,at:now(),email:x.email,name:x.by,cu:true,text:x.text,re:'',photo:x.photo,rx:{}}); if(x.pin) g.pin[t]=id; gcBump(t); });
+        gcList(t).push({id,at:now(),email:x.email,name:x.by,cu:true,text:x.text,re:'',photo:x.photo,rx:{}}); if(x.pin) g.pin[t]=gcPinIds(t).concat([id]).slice(-20); gcBump(t); });
       x.status='отправлено'; x.sent=now(); }); save(); }
+  const gcPinIds = t => [].concat(gcDb().pin[t]||[]);
   function gcDb(){ const db=load(); if(!db.gchat){ db.gchat={ver:{},pin:{},photos:{},list:{}}; gcSeed(db.gchat); } return db.gchat; }
   const gcList = t => { const g=gcDb(); return g.list[t]=g.list[t]||[]; };
   const gcBump = t => { const g=gcDb(); g.ver[t]=(g.ver[t]||0)+1; save(); };
@@ -5568,7 +5607,7 @@ const Demo = (() => {
   function gcOut(me,type,ver,x){ const g=gcDb(), all=gcList(type), live=all.filter(m=>!m.del).slice(-150), byId=Object.fromEntries(all.map(m=>[m.id,m]));
     const out=m=>{ const r=m.re&&byId[m.re], o={id:m.id,at:m.at,aid:hash(m.email),name:m.name,cu:!!m.cu,ed:!!m.ed,text:m.text,photo:m.photo||'',rx:m.rx||{},
       re: r ? {id:r.id,name:r.name,text:r.del?'':String(r.text||'').slice(0,140),photo:!r.del&&!!r.photo} : null}; if(x.staff) o.email=m.email; return o; };
-    const pm=g.pin[type]&&byId[g.pin[type]], res={list:live.map(out),pin:pm&&!pm.del?out(pm):null,me:hash(me['Email']),v:ver||String(g.ver[type]||0)+(x.staff?'s':'')+(x.banned?'b':''),banned:x.banned};
+    const pins=gcPinIds(type).slice().reverse().map(i=>byId[i]).filter(m=>m&&!m.del).map(out), res={list:live.map(out),pin:pins[0]||null,pins,me:hash(me['Email']),v:ver||String(g.ver[type]||0)+(x.staff?'s':'')+(x.banned?'b':''),banned:x.banned};
     if(x.staff) res.bans=load().students.filter(s=>s['Чат: запрет']).map(s=>({email:s['Email'],name:s['Имя']}));
     return res; }
   function gcSeed(g){
@@ -5633,9 +5672,9 @@ const Demo = (() => {
       m.rx=m.rx||{}; const l=m.rx[emoji]=m.rx[emoji]||[], i=l.indexOf(aid); if(i>-1) l.splice(i,1); else l.push(aid); if(!l.length) delete m.rx[emoji];
       gcBump(type); return gcOut(me,type,null,x); },
     gchatDelete({token,type,id}){ const me=auth(token), x=gcCtx(me,type), m=gcList(type).find(m=>m.id===id); if(!m) throw new Error('Сообщение не найдено');
-      if(!x.staff&&m.email!==me['Email']) throw new Error('Удалять можно только свои сообщения'); m.del=1; if(gcDb().pin[type]===id) delete gcDb().pin[type];
+      if(!x.staff&&m.email!==me['Email']) throw new Error('Удалять можно только свои сообщения'); m.del=1; gcDb().pin[type]=gcPinIds(type).filter(i=>i!==id);
       if(x.staff&&m.email!==me['Email']) log(m.email,'gchat_removed',PNAME[type]); gcBump(type); return gcOut(me,type,null,x); },
-    gchatPin({token,type,id,on}){ const me=adminAuth(token), x=gcCtx(me,type); if(on){ if(!gcList(type).some(m=>m.id===id&&!m.del)) throw new Error('Сообщение не найдено'); gcDb().pin[type]=id; } else delete gcDb().pin[type];
+    gchatPin({token,type,id,on}){ const me=adminAuth(token), x=gcCtx(me,type); if(on){ if(!gcList(type).some(m=>m.id===id&&!m.del)) throw new Error('Сообщение не найдено'); } gcDb().pin[type]=gcPinIds(type).filter(i=>i!==id).concat(on?[id]:[]).slice(-20);
       gcBump(type); return gcOut(me,type,null,x); },
     gchatBan({token,type,email,on}){ const me=adminAuth(token), st=find(email); if(!st) throw new Error('Участница не найдена'); if(isStaff({role:st['Роль']})) throw new Error('Сотрудникам запрет не ставится');
       st['Чат: запрет']=on?now():''; log(st['Email'],on?'gchat_ban':'gchat_unban',''); Object.keys(PNAME).forEach(gcBump); return gcOut(me,type,null,gcCtx(me,type)); },
@@ -6087,7 +6126,7 @@ function chatView(){
 // ═══ Чаты протоколов: общий чат участниц одного типа пищеварения прямо в платформе ═══
 // Сообщения подтягиваются раз в 15 секунд, пока чат открыт. Фото, ответы, реакции, закреп и модерация куратора.
 const GC_RX = ['❤️', '👍', '🙏', '😊'];
-const GC = { data: {}, v: {}, photos: {}, ph: {}, show: {}, staff: false, reply: null, att: [], draft: '', busy: false, stick: true, enter: true, timer: null, err: '' };
+const GC = { data: {}, v: {}, photos: {}, ph: {}, show: {}, pinI: {}, pinOpen: null, pinAll: null, staff: false, reply: null, att: [], draft: '', busy: false, stick: true, enter: true, timer: null, err: '' };
 // Пол клиента: из анкеты («Мужской»/«Женский»), а пока анкеты нет — по имени (Арсен, Игорь — мужские; Анна, Любовь — женские)
 const M_NAMES_A = /^(илья|никита|кузьма|фома|лука|савва|данила|гаврила|миша|гоша|паша|петя|вася|дима|лёша|леша|серёжа|сережа|витя|коля|толя|вова|костя|стёпа|степа|ваня|федя|юра|слава|тимоша|ilya|nikita|misha|dima|sasha_m)$/;
 const F_NAMES_SOFT = /^(любовь|нинель|эсфирь|руфь|адель|ассоль|изабель|рахиль|юдифь|айгуль|гульнур|динара_)$/;
@@ -6166,6 +6205,18 @@ function gcShrink(file){ return new Promise((res, rej) => {
 const GC_PH_MAX = 10, GC_SHOW = 60;
 const gcPids = v => String(v || '').split(',').filter(Boolean);
 const gcAtt = t => GC.att.filter(x => x.t === t);
+const gcPins = d => (d && (d.pins || (d.pin ? [d.pin] : []))) || [];
+const gcClone = (m, d, staff) => gcMsg(m, d, staff).replace(' id="gcm-', ' data-pid="');
+function gcPinBar(t, d, staff){
+  const pins = gcPins(d), n = pins.length; if (!n) return '';
+  if (GC.pinAll === t) return `<div class="gc-pall"><div class="gc-pall-h"><b>📌 Закреплённые сообщения · ${n}</b><button type="button" class="btn ghost sm" data-a="gcPinAll" data-on="0">Закрыть</button></div>
+    ${pins.map(p => `<div class="gc-pall-i">${gcClone(p, d, staff)}${d.list.some(m => m.id === p.id) ? `<button type="button" class="gc-pall-go" data-a="gcJump" data-id="${esc(p.id)}">Показать в чате ›</button>` : ''}</div>`).join('')}</div>`;
+  const i = Math.min(GC.pinI[t] || 0, n - 1), p = pins[i], open = GC.pinOpen === t + ':' + p.id;
+  const seg = n > 1 ? `<span class="gc-pin-seg" aria-hidden="true">${pins.slice(0, 6).map((x, k) => `<i${k === Math.min(i, 5) ? ' class="on"' : ''}></i>`).join('')}</span>` : '';
+  return `<div class="gc-pinw${open ? ' open' : ''}"><button type="button" class="gc-pin" data-a="gcPinTap" aria-expanded="${open}">${seg}<span class="gc-pin-i" aria-hidden="true">📌</span><span class="gc-pin-tx"><small>${n > 1 ? `Закреп ${i + 1} из ${n}` : 'Закреплено'} · ${esc(p.name)}</small><b>${esc(plainMd(p.text) || 'Фото')}</b></span></button>`
+    + (n > 1 ? `<button type="button" class="gc-pin-all" data-a="gcPinAll" data-on="1">Все закрепы</button>` : open ? `<button type="button" class="gc-pin-all" data-a="gcPinTap">Свернуть</button>` : '') + `</div>`
+    + (open ? `<div class="gc-pinbox">${gcClone(p, d, staff)}${n > 1 ? `<button type="button" class="gc-pall-go" data-a="gcPinTap">${i + 1 < n ? 'Следующий закреп ›' : 'К первому закрепу ›'}</button>` : ''}</div>` : '');
+}
 function gcMsg(m, d, staff){
   const mine = m.aid === d.me;
   const re = m.re ? `<button type="button" class="gc-re" data-a="gcJump" data-id="${esc(m.re.id)}"><b>${esc(m.re.name)}</b><span>${esc(plainMd(m.re.text) || (m.re.photo ? 'Фото' : 'Сообщение удалено'))}</span></button>` : '';
@@ -6176,7 +6227,7 @@ function gcMsg(m, d, staff){
   const acts = [`<button type="button" class="gc-a" data-a="gcReply" data-id="${esc(m.id)}">Ответить</button>`];
   if (!U.preview && !(d.banned && !staff) && (mine || (staff && m.cu && isAdmRole()))) acts.push(`<button type="button" class="gc-a" data-a="gcEdit" data-id="${esc(m.id)}">Изменить</button>`);
   if (mine || staff) acts.push(`<button type="button" class="gc-a" data-a="gcDel" data-id="${esc(m.id)}">Удалить</button>`);
-  if (staff) acts.push(`<button type="button" class="gc-a" data-a="gcPin" data-id="${esc(m.id)}" data-on="${d.pin && d.pin.id === m.id ? 0 : 1}">${d.pin && d.pin.id === m.id ? 'Открепить' : 'Закрепить'}</button>`);
+  if (staff) { const pd = gcPins(d).some(p => p.id === m.id); acts.push(`<button type="button" class="gc-a" data-a="gcPin" data-id="${esc(m.id)}" data-on="${pd ? 0 : 1}">${pd ? 'Открепить' : 'Закрепить'}</button>`); }
   if (staff && !m.cu && m.email) { const ban = (d.bans || []).some(x => x.email === m.email);
     acts.push(ban ? `<button type="button" class="gc-a" data-a="gcBan" data-email="${esc(m.email)}" data-on="0">Разрешить писать</button>` : `<button type="button" class="gc-a warn" data-a="gcBan" data-email="${esc(m.email)}" data-name="${esc(m.name)}" data-on="1">Запретить писать</button>`); }
   return `<div class="gc-m${mine ? ' me' : ''}${m.cu ? ' cu' : ''}" id="gcm-${esc(m.id)}">
@@ -6189,7 +6240,7 @@ function gcBody(t, staff){
   if (!d) { if (GC.err) GC.errT = 1; return GC.err ? `<p class="muted">${esc(GC.err)}</p><button type="button" class="btn ghost sm" data-a="gcRetry">Повторить</button>` : `<p class="muted">Загружаем сообщения…</p>`; }
   GC.staff = staff; const lim = GC.show[t] || GC_SHOW, vis = d.list.slice(-lim), more = d.list.length - vis.length;
   const list = (more > 0 ? `<button type="button" class="btn ghost sm gc-more" data-a="gcMore">Показать ранее · ${more}</button>` : '') + vis.map(m => gcMsg(m, d, staff)).join('') || `<p class="muted small gc-empty">Сообщений пока нет. Начните разговор — поздоровайтесь и расскажите, с чего начинаете программу.</p>`;
-  const pin = d.pin ? `<button type="button" class="gc-pin" data-a="gcJump" data-id="${esc(d.pin.id)}"><span class="gc-pin-i" aria-hidden="true">📌</span><span><small>Закреплено · ${esc(d.pin.name)}</small><b>${esc(plainMd(d.pin.text) || 'Фото')}</b></span></button>` : '';
+  const pin = gcPinBar(t, d, staff);
   const rp = GC.reply && GC.reply.t === t ? `<div class="gc-rp"><span><small>Ответ ${esc(GC.reply.name)}</small><b>${esc(GC.reply.text || 'Фото')}</b></span><button type="button" class="fx" data-a="gcReplyX" aria-label="Отменить ответ">✕</button></div>` : '';
   const att = gcAtt(t), pp = att.length ? `<div class="gc-pp gc-pps">${att.map((x, i) => `<span class="gc-pt"><img src="${x.data}" alt=""><button type="button" class="fx" data-a="gcPhotoX" data-i="${i}" aria-label="Убрать фото">✕</button></span>`).join('')}${att.length < GC_PH_MAX ? '' : '<small class="muted">не больше ' + GC_PH_MAX + '</small>'}</div>` : '';
   const form = d.banned && !staff ? `<div class="card alt" style="margin-top:12px"><p style="margin:0">Куратор ограничил отправку сообщений в чат. Если это ошибка, напишите в техподдержку.</p></div>`
@@ -6244,8 +6295,20 @@ function gcClick(a, b, t, staff, rerender){
   if (a === 'gcPin') { run('gchatPin', { id:b.dataset.id, on: b.dataset.on === '1' }, b.dataset.on === '1' ? 'Сообщение закреплено' : 'Сообщение откреплено'); return true; }
   if (a === 'gcBan') { const on = b.dataset.on === '1'; if (on && !confirm(`Запретить ${b.dataset.name || 'участнице'} писать в чатах протоколов? Читать чат она сможет.`)) return true;
     run('gchatBan', { email:b.dataset.email, on }, on ? 'Участнице запрещено писать в чатах' : 'Запрет снят'); return true; }
-  if (a === 'gcJump') { const el = document.getElementById('gcm-' + b.dataset.id), box = document.getElementById('gc-list');
-    if (el && box) { box.scrollTo({ top: el.offsetTop - box.offsetTop - 20, behavior: 'smooth' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600); } else toast('Сообщение уже не в ленте'); return true; }
+  if (a === 'gcJump' || a === 'gcPinTap') { const pins = gcPins(d);
+    const go = id => { const el = document.getElementById('gcm-' + id), box = document.getElementById('gc-list');
+      if (!el || !box) return false; box.scrollTo({ top: el.offsetTop - box.offsetTop - 20, behavior: 'smooth' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600); return true; };
+    const show = id => { if (go(id)) return true; const i = d ? d.list.findIndex(m => m.id === id) : -1;
+      if (i > -1) { GC.show[t] = Math.max(GC.show[t] || GC_SHOW, d.list.length - i + 3); GC.stick = false; rerender(); setTimeout(() => go(id), 30); return true; } return false; };
+    if (a === 'gcJump') { const id = b.dataset.id; if (GC.pinAll === t) { GC.pinAll = null; gcKeep(); rerender(); setTimeout(() => show(id), 30); return true; }
+      if (!show(id)) toast('Это давнее сообщение — его начало видно в цитате'); return true; }
+    if (!pins.length) return true;
+    let i = Math.min(GC.pinI[t] || 0, pins.length - 1); const p = pins[i], wasOpen = GC.pinOpen === t + ':' + p.id;
+    if (wasOpen) { GC.pinOpen = null; if (pins.length < 2) { gcKeep(); rerender(); return true; } i = (i + 1) % pins.length; GC.pinI[t] = i; }
+    const q = pins[i];
+    if (d.list.some(m => m.id === q.id)) { GC.pinOpen = null; if (!wasOpen) GC.pinI[t] = (i + 1) % pins.length; gcKeep(); rerender(); setTimeout(() => show(q.id), 30); return true; }
+    GC.pinOpen = t + ':' + q.id; gcKeep(); rerender(); return true; }
+  if (a === 'gcPinAll') { GC.pinAll = b.dataset.on === '1' ? t : null; GC.pinOpen = null; gcKeep(); rerender(); return true; }
   if (a === 'gcPhoto') { const id = b.dataset.id; if (!GC.photos[id]) { gcPhotoQueue(id); return true; }
     toast('Открываем фото…'); api('gchatPhoto', { token:S.token, id }).then(r => fvOpen(r.data, 'Фото из чата.jpg', b)).catch(err => toast(err.message)); return true; }
   if (a === 'gcMore') { const box = document.getElementById('gc-list'), h0 = box ? box.scrollHeight - box.scrollTop : 0;
@@ -6550,7 +6613,7 @@ function embedUrl(u){
 
 // ── навигация ──
 // Кабинет ученицы: раздел запоминается в адресе (#v=item&id=…) и во вкладке — после обновления страницы она остаётся там же
-const U_VIEWS = ['item','cat','menu','tracker','progress','chat','gchat','profile'];
+const U_VIEWS = ['item','cat','menu','tracker','progress','chat','gchat','profile','mycm'];
 let uDone = false;
 function uSave(){
   if (CFG.PRESENT || U.preview || !S.user || isStaff(S.user) || S.user.status !== STS.ok) return;
@@ -6933,6 +6996,30 @@ function li(x){
   <span class="tx"><b>${esc(x.t)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</span><span class="ch">${I.chev}</span></button>`;
 }
 function liLock(x){ return `<div class="li lock" aria-disabled="true"><span class="st">${I.lock}</span><span class="tx"><b>${esc(x.t)}</b><span>${esc(kindOf(x))}</span></span></div>`; }
+// ── Мои комментарии: все вопросы ученицы под уроками и ответы куратора ──
+function myThreads(){
+  const by = {}; (U.msgs || []).forEach(m => { if (m.lessonId) (by[m.lessonId] = by[m.lessonId] || []).push(m); });
+  const seen = U.st.seenL || {};
+  return Object.entries(by).map(([id, list]) => { list = list.slice().sort((a, b) => tsOf(a) - tsOf(b)); const last = list[list.length - 1];
+    return { id, l: byId(id), title: (byId(id) || {}).t || list[0].lesson || 'Урок', list, at: tsOf(last), wait: last.from !== 'cu', fresh: list.some(m => m.from === 'cu' && tsOf(m) > (seen[id] || 0)) }; })
+    .sort((a, b) => b.at - a.at);
+}
+function mycmView(){
+  const nw = V.nw || [], all = myThreads().map(t => Object.assign(t, { fresh: t.fresh || nw.includes(t.id) })), f = V.f || 'all', nAns = all.filter(t => !t.wait).length, nWait = all.length - nAns;
+  const list = all.filter(t => f === 'all' || (f === 'wait' ? t.wait : !t.wait));
+  const chip = (k, t, n) => `<button type="button" class="mycm-chip${f === k ? ' on' : ''}" data-a="mycmF" data-f="${k}" aria-pressed="${f === k}">${t} · ${n}</button>`;
+  const ro = l => l.map(m => Object.assign({}, m, { id: '' }));
+  const card = t => `<article class="card mycm-c${t.fresh ? ' fresh' : ''}">
+      <div class="mycm-h"><div><small>${t.l && WEEKNAME[t.l.w] ? esc(WEEKNAME[t.l.w]) : 'Урок'}</small><h3>${esc(t.title)}</h3></div>
+        <span class="mycm-st ${t.fresh ? 'new' : t.wait ? 'wait' : 'ok'}">${t.fresh ? 'Новый ответ' : t.wait ? 'Ждёт ответа' : 'Куратор ответил'}</span></div>
+      <div class="chat mycm-chat">${bubbles(ro(t.list), 'cl')}</div>
+      ${t.l ? `<button type="button" class="btn ghost full" data-a="open" data-id="${esc(t.id)}">Перейти к уроку ›</button>` : ''}</article>`;
+  return `<h1 style="margin-top:22px">Мои комментарии</h1>
+  <p class="muted">Все ваши вопросы под уроками и ответы куратора — в одном месте. Чтобы продолжить разговор, откройте урок и напишите под ним.</p>
+  ${all.length ? `<div class="mycm-f">${chip('all', 'Все', all.length)}${chip('ans', 'С ответом', nAns)}${chip('wait', 'Ждут ответа', nWait)}</div>
+  ${list.length ? list.map(card).join('') : `<div class="card"><p style="margin:0">${f === 'wait' ? 'Все ваши вопросы уже с ответом куратора.' : 'Пока здесь пусто.'}</p></div>`}`
+  : `<div class="card"><p style="margin:0 0 12px">Вы пока не оставляли комментариев под уроками. Задайте вопрос внизу любого урока — он появится здесь вместе с ответом куратора.</p><button type="button" class="btn full" data-a="cat" data-k="lessons">Перейти к урокам</button></div>`}`;
+}
 function catList(){
   const k = V.k, c = CATS.find(x => x.k === k), r = RES();
   if (!catOpen(k)) return catLockHtml(c);
@@ -6951,7 +7038,8 @@ function catList(){
     spices: 'Специи вашего протокола: сколько нужно на программу и чем каждая помогает. Вводите новые по одной и наблюдайте за самочувствием.',
     phyto: 'Фитосоставы вашего протокола: кому подходят и как принимать. Рецепты — в уроках 1-й недели, схема — в уроке «Принимаем фитосоставы». Вводите всё постепенно; если принимаете лекарства — согласуйте с врачом.'
   }[k];
-  const note = '';
+  const nr = k === 'lessons' ? newReplies().length : 0, nc = k === 'lessons' ? myThreads().length : 0;
+  const note = k === 'lessons' ? `<button type="button" class="mycm-go" data-a="mycm"><span class="ic">${I.cm}</span><span><b>Мои комментарии</b><small>${nc ? `Вопросов под уроками: ${nc}${nr ? ` · новых ответов: ${nr}` : ''}` : 'Здесь соберутся ваши вопросы под уроками и ответы куратора'}</small></span>${nr ? `<i>${nr}</i>` : ''}<span class="mycm-ch" aria-hidden="true">›</span></button>` : '';
   return `<h1 style="margin-top:22px">${c.t}</h1><p class="muted">${intro}</p>
   <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:4px"><span>Готово ${p.d} из ${p.n}</span><span>${p.p}%</span></div>
   <div class="pb" style="margin-bottom:16px"><i style="width:${p.p}%"></i></div>
@@ -7580,6 +7668,7 @@ function navHtml(){
       ${navSec('phyto', 'herb', 'Фитосоставы', catOpen('phyto') ? r.phyto.map(byId).map(x => navItem(x, 'phyto')).join('') : `<div class="sn-note">Откроется ${whenTxt(catOpenAt())}</div>`, { cnt: catOpen('phyto') ? r.phyto.length : null })}
       ${navLink('tracker', 'cl', 'Трекер', { cur: V.s === 'tracker' })}
       ${navLink('progress', 'chart', 'Прогресс', { cur: V.s === 'progress' })}
+      ${navLink('mycm', 'cm', 'Мои комментарии', { cur: V.s === 'mycm', badge: newReplies().length || '' })}
       ${chatVisible() || gts.length ? `<div class="sn-gl">Чаты</div>` : ''}
       ${chatVisible() ? navLink('chat', 'chat', 'Чат с куратором', { cur: V.s === 'chat', badge: chatUnread() || '' }) : ''}
       ${gts.map(t => navLink('gchat', 'chs', gts.length > 1 ? 'Чат · ' + gcShort(t) : 'Чат протокола', { cur: V.s === 'gchat' && V.t === t, badge: gcUnread(t) || '' }, `data-t="${t}"`)).join('')}
@@ -7998,7 +8087,7 @@ const NIC = ic => NAV_IC[ic] ? `<img class="nic" src="materials/ui/nav/${NAV_IC[
 const I3D = k => `materials/ui/i3d_${({ lessons:'lessons', practices:'practices', menu:'menu', spices:'spices', phyto:'phyto', chat:'chats', progress:'progress', saved:'saved', home:'home' })[k] || 'home'}.webp`;
 const i3d = (k, cls) => `<img class="${cls || 'i3d'}" src="${I3D(k)}" alt="" aria-hidden="true">`;
 const IRINA = () => (S.set && S.set.irina) || CFG.IRINA_URL || 'irina.webp';
-const WIDE_VIEWS = ['dash','cat','item','progress','check','tracker','chat','gchat','fb','fbok','menu','profile'];
+const WIDE_VIEWS = ['dash','cat','item','progress','check','tracker','chat','gchat','fb','fbok','menu','profile','mycm'];
 // ── Всплывающие окна: значок после анкеты, «Заполним трек за вчера?» ──
 const MDL = { k:'' };
 function trkAskDay(){
@@ -8039,9 +8128,9 @@ function mdlClick(b, a){
 }
 document.addEventListener('keydown', e => { if (MDL.k && e.key === 'Escape') mdlClick(document.body, MDL.k === 'trk' ? 'mdlSkip' : 'mdlX'); });
 function render(){
-  const titles = { a2hs:'Значок на экране', profile:'Профиль', fb:'Оценка обучения', fbok:'Спасибо', chat:'Чат', gchat:'Чат протокола', quiz:'Анкета', progress:'Прогресс', check:'Замер', tracker:'Трекер', login:'Вход', menu:'Меню', redflag:'Анкета' };
+  const titles = { a2hs:'Значок на экране', profile:'Профиль', fb:'Оценка обучения', fbok:'Спасибо', chat:'Чат', gchat:'Чат протокола', quiz:'Анкета', progress:'Прогресс', mycm:'Мои комментарии', check:'Замер', tracker:'Трекер', login:'Вход', menu:'Меню', redflag:'Анкета' };
   if (accessClosed() && !['login','calc','fail'].includes(V.s) && !(V.s === 'chat' && chatVisible())) V = { s:'closed' };
-  const map = { a2hs:a2hsView, profile:profView, closed:closedView, login:vLogin, welcome, quiz:quizStep, redflag, calc, wait, result, dash, cat:catList, item, progress:prog, check, tracker, menu:menuView, fail, chat:chatView, gchat:gchatView, fb:fbView, fbok:fbOkView };
+  const map = { a2hs:a2hsView, profile:profView, closed:closedView, login:vLogin, welcome, quiz:quizStep, redflag, calc, wait, result, dash, cat:catList, item, progress:prog, mycm:mycmView, check, tracker, menu:menuView, fail, chat:chatView, gchat:gchatView, fb:fbView, fbok:fbOkView };
   if (V.s === 'item' && !U.preview && lessonMsgs(V.id).some(m => m.from === 'cu')) { U.st.seenL = U.st.seenL || {}; const last = Math.max(...lessonMsgs(V.id).map(tsOf)); if (last > (U.st.seenL[V.id] || 0)) { U.st.seenL[V.id] = last; save(); } }
   if (POLL_VIEWS().includes(V.s)) { if (!pollT) startPoll(); } else stopPoll();
   if (V.s === 'item' && V.id && S.token && !U.preview) { U.lpAt = U.lpAt || {}; if (Date.now() - (U.lpAt[V.id] || 0) > 20000) { U.lpAt[V.id] = Date.now(); setTimeout(() => lpLoad(V.id), 0); } }
@@ -8170,6 +8259,9 @@ function studentClick(e, b, a){
   if (a === 'check') { const base = U.st.checks.length ? U.st.checks[U.st.checks.length-1].scores : scores0(); return go('check', { sc:Object.assign({}, base) }); }
   if (a === 'saveCheck') { U.st.checks.push({ at:Date.now(), scores:V.sc }); save(); track('check', ''); toast('Замер сохранён'); hist.pop(); V = { s:'progress' }; render(); return window.scrollTo(0,0); }
   if (a === 'tracker') return go('tracker', {});
+  if (a === 'mycm') { const nw = myThreads().filter(t => t.fresh).map(t => t.id);
+    if (nw.length && !U.preview) { U.st.seenL = U.st.seenL || {}; nw.forEach(id => U.st.seenL[id] = Date.now()); save(); } return go('mycm', { nw }); }
+  if (a === 'mycmF') { V.f = b.dataset.f; return keepY(render); }
   if (a === 'tw') { V.w = +b.dataset.w; V.day = null; return render(); }
   if (a === 'td') { V.day = +b.dataset.d; return render(); }
   if (a === 'chat') return go('chat');
