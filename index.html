@@ -439,7 +439,7 @@ button.fchip:hover{border-color:var(--mint-bd)}
 .gc-pall-i{margin-bottom:12px}.gc-pall-i:last-child{margin-bottom:0}
 .gc-pall-go{display:block;width:100%;margin-top:8px;font:inherit;font-size:14px;font-weight:700;color:var(--e);background:#fff;border:1px solid var(--mint);border-radius:12px;padding:10px;cursor:pointer}
 .gc-empty{text-align:center;margin:24px auto;max-width:380px}
-.gc-form{margin-top:10px;display:grid;gap:8px}
+.gc-form{margin-top:10px;display:grid;gap:8px;position:relative}
 .gc-form textarea{width:100%;resize:vertical;min-height:58px;max-height:220px}
 .gc-fb{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .gc-fb .btn{flex:0 0 auto;width:auto;margin:0}
@@ -709,6 +709,12 @@ body.u-drop #uChat{outline:3px dashed #9e007e;outline-offset:-4px;border-radius:
 .mycm-chat{margin-bottom:12px}
 @media (max-width:560px){.mycm-h{flex-direction:column}.mycm-h h3{font-size:16px}}
 @media (max-width:560px){.mycm-f{gap:6px;flex-wrap:nowrap}.mycm-chip{font-size:13.5px;padding:8px 11px;white-space:nowrap}}
+
+/* чат протокола: разделитель «Новые сообщения» и кнопка «К последним» */
+.gc-new{display:flex;align-items:center;gap:10px;margin:6px 0 2px;color:var(--mag);font-size:13px;font-weight:700}
+.gc-new::before,.gc-new::after{content:"";flex:1;height:2px;background:var(--mag);opacity:.35;border-radius:2px}
+.gc-down{position:absolute;top:-54px;right:14px;z-index:3;font:inherit;font-size:14px;font-weight:700;color:#fff;background:var(--e);border:0;border-radius:999px;padding:10px 16px;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
+.gc-down[hidden]{display:none}
 
 /* ── дополнения платформы ── */
 /* ── широкая раскладка: шапка, 8/12 + календарь справа ── */
@@ -1750,7 +1756,7 @@ button.fchip:hover{border-color:var(--mint-bd)}
 .gc-pin b{font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gc-pin-i{font-size:18px;flex:none}
 .gc-empty{text-align:center;margin:24px auto;max-width:380px}
-.gc-form{margin-top:10px;display:grid;gap:8px}
+.gc-form{margin-top:10px;display:grid;gap:8px;position:relative}
 .gc-form textarea{width:100%;resize:vertical;min-height:58px;max-height:220px}
 .gc-fb{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .gc-fb .btn{flex:0 0 auto;width:auto;margin:0}
@@ -1938,6 +1944,12 @@ textarea.inp,.emo-w>textarea{border-radius:16px}
 .gc-ph span{padding:48px 16px;text-align:center}
 .gc-phs .gc-ph span{padding:0;height:100%;display:flex;align-items:center;justify-content:center}
 .gc-more{align-self:center;flex:0 0 auto}
+
+/* чат протокола: разделитель «Новые сообщения» и кнопка «К последним» */
+.gc-new{display:flex;align-items:center;gap:10px;margin:6px 0 2px;color:var(--mag);font-size:13px;font-weight:700}
+.gc-new::before,.gc-new::after{content:"";flex:1;height:2px;background:var(--mag);opacity:.35;border-radius:2px}
+.gc-down{position:absolute;top:-54px;right:14px;z-index:3;font:inherit;font-size:14px;font-weight:700;color:#fff;background:var(--e);border:0;border-radius:999px;padding:10px 16px;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
+.gc-down[hidden]{display:none}
 
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
@@ -6220,10 +6232,13 @@ function gcKeep(){ const ta = document.getElementById('gcIn'); if (ta) GC.draft 
 function gcAfter(){
   const fix = () => { const el = document.getElementById('gc-list'); if (!el || el.dataset.fx) return; el.dataset.fx = 1;
     el.scrollTop = GC.stick || GC.top == null ? el.scrollHeight : GC.top;
+    const nw = GC.enter && document.getElementById('gc-new');   // при входе — к первому непрочитанному
+    if (nw) { el.scrollTop += nw.getBoundingClientRect().top - el.getBoundingClientRect().top - 8; GC.stick = false; GC.top = el.scrollTop; }
     // на телефоне при входе в чат прокручиваем страницу к концу ленты, чтобы последние сообщения не прятались под полем ввода
-    if (GC.enter) { GC.enter = false; if (innerWidth <= 760) { const f = document.querySelector('.gc-form'), fh = f ? f.offsetHeight : 0;
+    if (GC.enter) { GC.enter = false; GC.cutT = 0; if (innerWidth <= 760) { const f = document.querySelector('.gc-form'), fh = f ? f.offsetHeight : 0;
       window.scrollTo(0, Math.max(0, el.getBoundingClientRect().bottom + window.scrollY + fh + 12 - innerHeight)); } }
-    el.onscroll = () => { GC.stick = el.scrollHeight - el.scrollTop - el.clientHeight < 80; GC.top = el.scrollTop; }; };
+    const dn = document.getElementById('gc-down'), tog = () => { if (dn) dn.hidden = el.scrollHeight - el.scrollTop - el.clientHeight < 200; };
+    tog(); el.onscroll = () => { GC.stick = el.scrollHeight - el.scrollTop - el.clientHeight < 80; GC.top = el.scrollTop; tog(); }; };
   queueMicrotask(fix);
   setTimeout(() => {
     fix();
@@ -6301,12 +6316,12 @@ function gcBody(t, staff){
   const d = GC.data[t];
   if (!d) { if (GC.err) GC.errT = 1; return GC.err ? `<p class="muted">${esc(GC.err)}</p><button type="button" class="btn ghost sm" data-a="gcRetry">Повторить</button>` : `<p class="muted">Загружаем сообщения…</p>`; }
   GC.staff = staff; const lim = GC.show[t] || GC_SHOW, vis = d.list.slice(-lim), more = d.list.length - vis.length;
-  const list = (more > 0 ? `<button type="button" class="btn ghost sm gc-more" data-a="gcMore">Показать ранее · ${more}</button>` : '') + vis.map(m => gcMsg(m, d, staff)).join('') || `<p class="muted small gc-empty">Сообщений пока нет. Начните разговор — поздоровайтесь и расскажите, с чего начинаете программу.</p>`;
+  const list = (more > 0 ? `<button type="button" class="btn ghost sm gc-more" data-a="gcMore">Показать ранее · ${more}</button>` : '') + vis.map(m => (GC.cut && GC.cut.t === t && GC.cut.id === m.id ? `<div class="gc-new" id="gc-new"><span>Новые сообщения · ${GC.cut.n}</span></div>` : '') + gcMsg(m, d, staff)).join('') || `<p class="muted small gc-empty">Сообщений пока нет. Начните разговор — поздоровайтесь и расскажите, с чего начинаете программу.</p>`;
   const pin = gcPinBar(t, d, staff);
   const rp = GC.reply && GC.reply.t === t ? `<div class="gc-rp"><span><small>Ответ ${esc(GC.reply.name)}</small><b>${esc(GC.reply.text || 'Фото')}</b></span><button type="button" class="fx" data-a="gcReplyX" aria-label="Отменить ответ">✕</button></div>` : '';
   const att = gcAtt(t), pp = att.length ? `<div class="gc-pp gc-pps">${att.map((x, i) => `<span class="gc-pt"><img src="${x.data}" alt=""><button type="button" class="fx" data-a="gcPhotoX" data-i="${i}" aria-label="Убрать фото">✕</button></span>`).join('')}${att.length < GC_PH_MAX ? '' : '<small class="muted">не больше ' + GC_PH_MAX + '</small>'}</div>` : '';
   const form = d.banned && !staff ? `<div class="card alt" style="margin-top:12px"><p style="margin:0">Куратор ограничил отправку сообщений в чат. Если это ошибка, напишите в техподдержку.</p></div>`
-    : d.closed && !staff ? '' : `<div class="gc-form">${rp}${pp}
+    : d.closed && !staff ? '' : `<div class="gc-form"><button type="button" class="gc-down" id="gc-down" data-a="gcDown" aria-label="К последним сообщениям" hidden>↓ К последним</button>${rp}${pp}
       <textarea class="inp" id="gcIn" maxlength="6000" placeholder="${staff ? 'Сообщение от куратора' : 'Ваше сообщение'}" rows="2">${esc(GC.draft)}</textarea>
       <div class="gc-fb"><input type="file" accept="image/*" id="gc-photo" class="vh" multiple><label for="gc-photo" class="btn ghost sm" title="Прикрепить фото">${I.clip.replace('<svg', '<svg width="16" height="16"')} Фото</label>
       <button type="button" class="btn sm${staff ? '' : ' mag'}" data-a="gcSend" data-t="${t}" ${GC.busy ? 'disabled' : ''}>${GC.busy ? 'Отправляем…' : 'Отправить'}</button></div></div>`;
@@ -6317,6 +6332,9 @@ function gchatView(){
   if (!t) return `<h1 style="margin-top:22px">Чат протокола</h1><p class="muted">Чат откроется, когда куратор назначит протокол.</p>`;
   V.t = t;
   if (!GC.data[t] && !GC.loading && !GC.errT) { GC.loading = 1; gcLoad(t, true).then(() => { GC.loading = 0; if (V.s === 'gchat') { gcKeep(); keepY(render); } }); }
+  if (GC.data[t] && GC.enter && !GC.cutT) { GC.cutT = 1; GC.cut = null;   // вход в чат: запоминаем первое непрочитанное
+    const seen = LS.get(gcSeenKey(t), 0), d = GC.data[t], i = seen ? d.list.findIndex(m => m.aid !== d.me && Date.parse(m.at) > seen) : -1;
+    if (i > -1) { GC.cut = { t, id: d.list[i].id, n: d.list.length - i }; GC.show[t] = Math.max(GC.show[t] || GC_SHOW, d.list.length - i + 3); } }
   if (GC.data[t] && !U.preview) LS.set(gcSeenKey(t), Date.now());
   gcAfter();
   return `<h1 style="margin-top:22px">Чат протокола «${esc(PNAME[t])}»</h1>
@@ -6373,6 +6391,7 @@ function gcClick(a, b, t, staff, rerender){
   if (a === 'gcPinAll') { GC.pinAll = b.dataset.on === '1' ? t : null; GC.pinOpen = null; gcKeep(); rerender(); return true; }
   if (a === 'gcPhoto') { const id = b.dataset.id; if (!GC.photos[id]) { gcPhotoQueue(id); return true; }
     toast('Открываем фото…'); api('gchatPhoto', { token:S.token, id }).then(r => fvOpen(r.data, 'Фото из чата.jpg', b)).catch(err => toast(err.message)); return true; }
+  if (a === 'gcDown') { const el = document.getElementById('gc-list'); if (el) { el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }); GC.stick = true; } return true; }
   if (a === 'gcMore') { const box = document.getElementById('gc-list'), h0 = box ? box.scrollHeight - box.scrollTop : 0;
     GC.show[t] = (GC.show[t] || GC_SHOW) + GC_SHOW; GC.stick = false; rerender();
     const nb = document.getElementById('gc-list'); if (nb) { nb.scrollTop = nb.scrollHeight - h0; GC.top = nb.scrollTop; } return true; }
