@@ -588,6 +588,7 @@ body.fv-on{overflow:hidden}
   .tbar button.on{background:var(--e);color:#fff}
   .tbar button i{position:absolute;top:4px;right:calc(50% - 22px);min-width:17px;height:17px;border-radius:9px;background:var(--mag);color:#fff;font-style:normal;font-size:10.5px;font-weight:700;display:grid;place-items:center;padding:0 4px}
   body.wide .pvbar{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  body.wide .pvmini{bottom:calc(88px + env(safe-area-inset-bottom,0px));left:auto;right:12px}
   body.wide .toast{bottom:calc(92px + env(safe-area-inset-bottom,0px))}
   body.wide .gc-form{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 }
@@ -1159,6 +1160,10 @@ a.file{color:inherit;text-decoration:none}
   display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg);border:2px dashed var(--mag);border-radius:16px;padding:10px 14px;font-size:13px;font-weight:700;color:var(--mag)}
 .pvbar select{border:2px solid var(--line);border-radius:999px;padding:6px 10px;font:inherit;font-weight:600;color:var(--ink);background:var(--surface)}
 .pvbar .btn{min-height:36px;padding:7px 14px;font-size:13px;margin-left:auto}
+.pvbar{padding-right:52px}
+.pvx{position:absolute;top:50%;right:8px;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--mag);font:inherit;font-size:14px;cursor:pointer}
+.pvmini{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:20;width:44px;height:44px;border-radius:50%;border:2px dashed var(--mag);background:var(--bg);color:var(--mag);display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.pvmini svg{width:22px;height:22px}
 .chat{display:flex;flex-direction:column;gap:8px;margin:6px 0 0}
 .bub{max-width:85%;padding:10px 13px;border-radius:14px;font-size:14.5px;line-height:1.45;white-space:pre-wrap}
 .bub.them{background:var(--mint-pale);border:1px solid var(--line);align-self:flex-start}
@@ -7668,10 +7673,15 @@ document.addEventListener('change', async e => {
 
 // ═══ РЕНДЕР И СОБЫТИЯ КАБИНЕТА ═════════════════════════════════
 function renderPv(){
-  $('#pv').innerHTML = U.preview ? `<div class="pvbar"><span>Кабинет глазами ученицы</span>
+  if (!U.preview) { $('#pv').innerHTML = ''; return; }
+  if (pvMin()) { $('#pv').innerHTML = `<button type="button" class="pvmini" data-a="pvTog" aria-label="Показать панель «Кабинет глазами ученицы»" title="Кабинет глазами ученицы · ${esc(PNAME[U.ptype] || '')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>`; return; }
+  $('#pv').innerHTML = `<div class="pvbar"><span>Кабинет глазами ученицы</span>
     <select id="pvType" aria-label="Протокол">${Object.keys(PNAME).map(k => `<option value="${k}" ${k === U.ptype ? 'selected' : ''}>${PNAME[k]}</option>`).join('')}</select>
-    <button class="btn" data-a="toAdmin">Вернуться в админку</button></div>` : '';
+    <button class="btn" data-a="toAdmin">Вернуться в админку</button><button type="button" class="pvx" data-a="pvTog" aria-label="Свернуть панель" title="Свернуть">✕</button></div>`;
 }
+// панель просмотра «глазами ученицы»: на телефоне по умолчанию свёрнута в маленький значок-глаз
+function pvMin(){ try { const v = sessionStorage.getItem('hz_pv_min'); return v == null ? !window.matchMedia('(min-width:1100px)').matches : v === '1'; } catch (e) { return false; } }
+function pvTog(){ const m = !pvMin(); try { sessionStorage.setItem('hz_pv_min', m ? '1' : '0'); } catch (e) {} renderPv(); }
 // ── Боковая панель: быстрая навигация, сохранённые уроки, «продолжить» ──
 // Десктоп: закреплена слева или свёрнута в узкую полоску с иконками. Мобильный — выезжает по кнопке ☰.
 const NAV = { pin: LS.get('hz_nav_pin', 1) ? 1 : 0, open: false, sec: LS.get('hz_nav_sec', null) || { lessons: 1, saved: 1 } };
@@ -8242,6 +8252,7 @@ function studentClick(e, b, a){
   if (a === 'demoReset') { Demo.reset(); toast('Демо-данные сброшены'); return; }
   if (a === 'reload') { const wasClosed = accessClosed(); V = { s:'calc', msg:'Проверяем…' }; render(); return loadMe().then(() => { route(); if (wasClosed && accessClosed()) toast('Продление пока не поступило'); else if (S.user.status === STS.wait) toast('Протокол пока не назначен'); }).catch(x => { V = { s:'fail', err:x.message }; render(); }); }
   if (a === 'toAdmin') { U.preview = false; return Adm.open(); }
+  if (a === 'pvTog') return pvTog();
   if (a === 'startQuiz') { let d = LS.get(draftKey(), null); if (reopened() && !(d && d.reo)) d = Object.assign(qdFrom(U.quiz), { step:1 }); QD = Object.assign(newQ(), d || {}); return go('quiz', { step: Math.min(QSTEP_COUNT, Math.max(1, (d && d.step) || 1)) }); }
   if (a === 'qp') {
     const [id, v] = b.dataset.v.split('|'); const it = ITEMS.find(x => x.id === id), val = +v;
