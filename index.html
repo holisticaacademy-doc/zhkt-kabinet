@@ -1961,6 +1961,18 @@ textarea.inp,.emo-w>textarea{border-radius:16px}
 .gc-down{position:absolute;top:-54px;right:14px;z-index:3;font:inherit;font-size:14px;font-weight:700;color:#fff;background:var(--e);border:0;border-radius:999px;padding:10px 16px;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
 .gc-down[hidden]{display:none}
 
+/* «Комментарии и ответы» в карточке ученицы */
+.mya{border-top:1px solid var(--line);padding:12px 0}
+.mya:first-of-type{border-top:0}
+.mya-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-bottom:6px}
+.mya-h b{font-size:14px}
+.mya-h .btn.lnk{margin-left:auto;padding:0}
+.mya-t{white-space:pre-wrap;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.mya-q{font-size:12.5px;color:var(--grey);border-left:3px solid var(--line);padding:2px 8px;margin-bottom:6px}
+.mya-r{background:var(--mint-pale);border-radius:10px;padding:8px 12px;margin-top:8px;font-size:13.5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.mya-d summary{cursor:pointer;font-size:13.5px;font-weight:600}
+.mya-d .ar{margin-top:6px}
+
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
 .side .role b{display:block;font-size:13px;margin-bottom:2px}
@@ -5801,6 +5813,9 @@ const Demo = (() => {
     gchatScheduled({token}){ adminAuth(token); gcDue(); return {list:gcSchOut()}; },
     gchatScheduleAct({token,id,act}){ const me=adminAuth(token), x=(gcDb().sch||[]).find(s=>s.id===id); if(!x||x.status!=='ждёт') throw new Error('Сообщение уже отправлено или отменено');
       if(act==='cancel') x.status='отменено · '+(me['Имя']||''); else { x.at=now(); gcDue(); } save(); return {list:gcSchOut()}; },
+    gchatOf({token,email}){ adminAuth(token); const g=gcDb(), em=String(email||'').toLowerCase(), out=[]; Object.keys(g.list).forEach(t=>{ const L=g.list[t], by=Object.fromEntries(L.map(m=>[m.id,m])), mine=new Set(L.filter(m=>!m.cu&&String(m.email).toLowerCase()===em).map(m=>m.id));
+      L.forEach(m=>{ const own=mine.has(m.id); if(!own&&!(m.cu&&mine.has(m.re))) return; const q=m.re&&by[m.re]; out.push({id:m.id,t,at:m.at,cu:!own,name:m.name||'',text:m.text||'',photos:String(m.photo||'').split(',').filter(Boolean).length,del:!!m.del,re:m.re||'',reText:q?String(q.text||'').slice(0,160):'',reName:q?q.name||'':''}); }); });
+      return {list:out.sort((a,b)=>String(a.at).localeCompare(String(b.at)))}; },
     gchatStats({token}){ adminAuth(token); const g=gcDb(), out=[]; Object.keys(g.list).forEach(t=>{ const cu={}; g.list[t].forEach(m=>{ if(m.cu) cu[m.id]=1; });
       g.list[t].forEach(m=>out.push({t,at:m.at,email:m.email,name:m.name,cu:!!m.cu,del:!!m.del,q:!m.cu&&(/\?/.test(m.text||'')||!!cu[m.re])})); }); return {list:out}; },
     setOverrides({token,email,ov,log:l}){ adminAuth(token); const st=find(email); st['Правки материалов']=JSON.stringify({add:ov.add||[],rm:ov.rm||[]}); if(l) log(email,'materials',l); return {}; },
@@ -8923,7 +8938,7 @@ const Adm = (() => {
       <button class="btn ghost sm" data-a="resetPw" ${c.hasPw ? '' : 'disabled'}>Сбросить пароль</button></div></div>${c.paidOnly ? '' : marksPanel(c) + holdPanel(c) + earlyPanel(c)}`;
     if (!c.filled && c.lost) return head + `<div class="alert"><div><b>Анкета отправлена, но ответы не читаются.</b> В листе «Ученики» статус «${esc(c.status)}»${c.filledAt ? `, дата анкеты ${esc(fmtDT(c.filledAt))}` : ''}, а в листе «Анкеты» строки с этим e-mail нет или колонка JSON пустая/повреждена. Откройте лист «Анкеты» и найдите ${esc(c.email)}. Подробная проверка всех учеников — функция <b>checkQuizzes</b> в Apps Script. Текст анкеты сохранился в таблице ИИ-проверки.</div></div>${chatPanel(c)}`;
     if (!c.filled) return head + `<div class="panel"><h2><span>Анкета не заполнена</span></h2><p>${c.paidOnly ? `${W(c).N} ещё не заходил${W(c).l === 'ла' ? 'а' : ''} в кабинет. E-mail есть в выгрузке оплативших из GetCourse — карточка появится в листе «Ученики» при первом входе.` : stageOf(c) === 0 ? `${W(c).N} ещё не заходил${W(c).l === 'ла' ? 'а' : ''} в кабинет.` : `${W(c).N} вош${W(c).l === 'ла' ? 'ла' : 'ёл'} в кабинет${c.first ? ' ' + fmtDT(c.first) : ''}, но анкету ещё не отправил${W(c).l === 'ла' ? 'а' : ''}.`}</p>
-      <p class="small muted" style="margin:0">Пароль ${c.hasPw ? 'задан' : 'ещё не задан'}. Доступ: ${accessTxt(c)}.</p></div>${c.paidOnly ? '' : chatPanel(c) + `<div style="margin-top:16px">${histBlock(c)}</div>`}`;
+      <p class="small muted" style="margin:0">Пароль ${c.hasPw ? 'задан' : 'ещё не задан'}. Доступ: ${accessTxt(c)}.</p></div>${c.paidOnly ? '' : myAllPanel(c) + chatPanel(c) + clientComments(c) + `<div style="margin-top:16px">${histBlock(c)}</div>`}`;
     const a = c.quiz, last = c.state.checks[c.state.checks.length-1], sc = a.scores || {}, p = a.personal || {};
     const tab = AV.tab || 'lessons';
     const tabs = [['lessons','Уроки'],['practices','Практики'],['spices','Специи'],['phyto','Фитосоставы']];
@@ -8961,6 +8976,7 @@ const Adm = (() => {
         ${TRK_WEEKS.map(w => { const s = weekTrack(c, w); return `<div class="wkr"><span>Неделя ${w}</span><span class="pb"><i style="width:${s ? s.p : 0}%"></i></span><span>${s ? s.p + '%' : '—'}</span></div>`; }).join('')}
         ${a.auto ? `<p class="small muted" style="margin-top:10px">Выраженность по анкете</p><p class="small">вялое ${a.auto.pct.V}% · воспалённое ${a.auto.pct.I}% · чувствительное ${a.auto.pct.C}%</p>` : ''}</div>
     </div>
+    ${myAllPanel(c)}
         ${answersPanel(c)}
     ${chatPanel(c)}
     ${clientComments(c)}
@@ -9350,7 +9366,48 @@ const Adm = (() => {
     ${last.from === 'cl' && !last.read ? `<button class="btn sm ghost" data-a="msgRead" data-email="${esc(t.c.email)}" data-lid="${t.lessonId}" title="Ответ не нужен — убрать из «Без ответа»">✓ Прочитано</button>` : last.from === 'cl' ? '<span class="small muted" style="align-self:center">✓ прочитано, ответ не нужен</span>' : ''}</div></div>`;
   }
   function clientComments(c){ const list = threads().filter(t => t.c === c); if (!list.length) return '';
-    return `<div class="panel" style="margin-top:16px"><h2><span>Вопросы под уроками</span></h2>${list.map(t => commentItem(t, false)).join('')}</div>`; }
+    return `<div class="panel" id="ccm" style="margin-top:16px"><h2><span>Вопросы под уроками</span></h2>${list.map(t => `<div id="thr-${esc(t.lessonId)}">${commentItem(t, false)}</div>`).join('')}</div>`; }
+  // ── «Комментарии и ответы»: всё, что ученица написала на платформе, в одной ленте ──
+  const GCO = {};
+  function gcoLoad(email){ if (GCO[email] || !S.token) return; GCO[email] = 'busy';
+    api('gchatOf', { token:S.token, email }).then(r => { GCO[email] = r.list || []; }).catch(() => { GCO[email] = 'err'; })
+      .then(() => { if (AV.s === 'client' && AV.id === email) render(true); }); }
+  const MY_K = { lesson:'Под уроком', chat:'Чат с куратором', proto:'Чат протокола', fb:'Анкета', rz:'Розыгрыш' };
+  function myItems(c){
+    const out = [], ans = (L, m) => { const t = tsOf(m); return L.find(x => x.from === 'cu' && tsOf(x) >= t); };
+    const g = {}; (c.msgs || []).forEach(m => { (g[m.lessonId || ''] = g[m.lessonId || ''] || []).push(m); });
+    Object.keys(g).forEach(lid => { const L = g[lid].slice().sort((x, y) => tsOf(x) - tsOf(y));
+      L.filter(m => m.from !== 'cu').forEach(m => { const r = ans(L, m), l = lid && byId(lid);
+        out.push({ k: lid ? 'lesson' : 'chat', at: m.at, where: lid ? 'Урок «' + (l ? l.t : m.lesson || lid) + '»' : 'Личный чат',
+          text: m.text || '', files: (m.files || []).length, pub: !!m.pub, lid, reply: r ? { who: r.who || 'Куратор', text: r.text || '' } : null, wait: !r && !m.read }); }); });
+    const G = GCO[c.email];
+    if (Array.isArray(G)) G.filter(m => !m.cu).forEach(m => { const rs = G.filter(x => x.cu && x.re === m.id && !x.del);
+      out.push({ k:'proto', at: m.at, where: 'Чат протокола «' + (PNAME[m.t] || m.t) + '»', t: m.t, text: m.text, files: m.photos, del: m.del,
+        quote: m.reText ? { who: m.reName, text: m.reText } : null, reply: rs.length ? { who: rs[rs.length - 1].name || 'Куратор', text: rs[rs.length - 1].text } : null }); });
+    (c.fb || []).forEach(f => out.push({ k:'fb', at: f.date, where: FB_TITLE[f.key] || f.key, fb: f }));
+    rzList().filter(r => r.email === c.email).forEach(r => out.push({ k:'rz', at: r.at, where: 'Заявка на розыгрыш', rz: r }));
+    return out.sort((x, y) => (Date.parse(y.at) || 0) - (Date.parse(x.at) || 0));
+  }
+  function myAllPanel(c){
+    gcoLoad(c.email);
+    const all = myItems(c), f = AV.mf || 'all', L = f === 'all' ? all : all.filter(x => x.k === f), lim = AV.mfAll ? L.length : 12;
+    const cnt = k => all.filter(x => x.k === k).length, G = GCO[c.email];
+    const seg = (k, t) => (k === 'all' || cnt(k)) ? `<button class="${f === k ? 'on' : ''}" data-a="myf" data-v="${k}">${t} · ${k === 'all' ? all.length : cnt(k)}</button>` : '';
+    const txt = s => `<div class="mya-t">${linkify(s || '')}</div>`;
+    const item = x => {
+      let body = '';
+      if (x.fb) body = `<details class="mya-d"><summary>Ответы анкеты${x.fb.flag ? ` · <span class="chip r">${esc(x.fb.flag)}</span>` : ''}</summary>${fbAnswersHtml(x.fb) || '<p class="small muted">Без ответов</p>'}</details>`;
+      else if (x.rz) { const r = x.rz; body = `<div class="mya-t">${esc(r.kind || 'Материалы')}${r.files ? ` · файлов: ${r.files}` : ''}${r.video ? ` · <a href="${esc(r.video)}" target="_blank" rel="noopener">видео</a>` : ''} · <span class="chip ${r.status === RZ_ST.wait ? '' : 'g'}">${esc(r.status)}</span></div>${r.review ? txt(r.review) : ''}${r.comment ? `<div class="mya-r"><b>${esc(r.by || 'Куратор')}:</b> ${esc(r.comment)}</div>` : ''}`; }
+      else body = `${x.quote ? `<div class="mya-q">в ответ ${esc(x.quote.who || '')}: ${esc(x.quote.text)}</div>` : ''}${x.del ? '<p class="small muted" style="margin:0">Сообщение удалено</p>' : ''}${x.text ? txt(x.text) : ''}${x.files ? `<p class="small muted" style="margin:4px 0 0">Вложений: ${x.files}</p>` : ''}
+        ${x.reply ? `<div class="mya-r"><b>${esc(x.reply.who)}:</b> ${esc(String(x.reply.text).slice(0, 300))}${String(x.reply.text).length > 300 ? '…' : ''}</div>` : x.wait ? '<p class="small" style="margin:6px 0 0;color:var(--mag);font-weight:700">Ждёт ответа</p>' : ''}`;
+      const go = x.k === 'lesson' ? `<button class="btn lnk" data-a="toThr" data-id="${esc(x.lid)}">К переписке</button>` : x.k === 'chat' ? `<button class="btn lnk" data-a="toChat">К чату</button>` : x.k === 'proto' ? `<button class="btn lnk" data-a="rtGo" data-t="${esc(x.t)}">Открыть чат</button>` : '';
+      return `<div class="mya"><div class="mya-h"><span class="chip ${x.k === 'fb' || x.k === 'rz' ? 'm' : ''}">${MY_K[x.k]}</span><b>${esc(x.where)}</b>${x.pub ? '<span class="chip g">видят все</span>' : ''}<span class="small muted">${fmtDT(x.at)}</span>${go}</div>${body}</div>`; };
+    const note = G === 'busy' ? '<p class="small muted" style="margin:0 0 8px">Загружаем сообщения из чатов протоколов…</p>' : G === 'err' ? '<p class="small muted" style="margin:0 0 8px">Сообщения из чатов протоколов сейчас не загрузились — обновите данные.</p>' : '';
+    return `<div class="panel" id="mya" style="margin-top:16px"><h2><span>Комментарии и ответы</span><span class="small muted">всё, что ${W(c).l === 'ла' ? 'она писала' : 'он писал'} на платформе</span></h2>
+      <div class="seg" style="flex-wrap:wrap;margin-bottom:12px">${seg('all','Все')}${seg('lesson','Под уроками')}${seg('chat','Чат с куратором')}${seg('proto','Чаты протоколов')}${seg('fb','Анкеты')}${seg('rz','Розыгрыш')}</div>
+      ${note}${L.length ? L.slice(0, lim).map(item).join('') : `<p class="small muted" style="margin:0">${all.length ? 'В этом разделе пока ничего нет.' : 'Пока ничего не писал' + (W(c).l === 'ла' ? 'а' : '') + '.'}</p>`}
+      ${L.length > lim ? `<button class="btn ghost sm" data-a="myAll" style="margin-top:6px">Показать все · ${L.length}</button>` : ''}</div>`;
+  }
   function rzList(){ return ((D && D.raffle) || []).map(r => ({ email: String(r['Email'] || '').trim().toLowerCase(), name: r['Имя'] || r['Email'], protocol: r['Протокол'] || '', kind: r['Что прислали'] || '', files: +r['Файлов'] || 0,
     folder: r['Папка'] || '', video: r['Видео (ссылка)'] || '', review: r['Отзыв'] || '', status: r['Статус'] || RZ_ST.wait, comment: r['Комментарий куратора'] || '', by: r['Проверил'] || '', at: r['Дата'] || '', rat: r['Дата проверки'] || '' })); }
   function rvList(){ return fbAll().filter(f => f.key === 'final'); }
@@ -9609,6 +9666,9 @@ const Adm = (() => {
       if (text.length > 6000) return toast('Сводка длиннее 6000 символов — сократите');
       if (!confirm(`Отправить сводку в чат «${PNAME[t]}»? Её увидят все участницы протокола.`)) return;
       AV.dgText = text; return act(() => api('gchatSend', { token:S.token, type:t, text }), 'Сводка отправлена в чат протокола'); }
+    if (a === 'myf') { AV.mf = b.dataset.v; AV.mfAll = false; return render(true); }
+    if (a === 'myAll') { AV.mfAll = true; return render(true); }
+    if (a === 'toThr') { const el = document.getElementById('thr-' + b.dataset.id) || document.getElementById('ccm'); if (el) el.scrollIntoView({ behavior:'smooth', block:'start' }); return; }
     if (a === 'toChat') { const el = document.getElementById('chat'); if (el) { el.scrollIntoView({ behavior:'smooth', block:'start' }); setTimeout(() => { const t = $('#chatIn'); if (t) t.focus(); }, 400); } return; }
     if (a === 'openChat') { closeDr(); AV = { s:'client', id:b.dataset.id, tab:'lessons' }; render(); const el = document.getElementById('chat'); if (el) el.scrollIntoView(); return; }
     if (a === 'msgEdit') { AV.edit = b.dataset.id; render(true); const ta = $('#msgEdIn'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } return; }
