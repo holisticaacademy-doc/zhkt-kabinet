@@ -2593,7 +2593,28 @@ function parseDate0(x) {
   var t = new Date(s).getTime();
   return isNaN(t) ? 0 : t;
 }
+// hold — ручная пауза (только админ): block — доступ закрыт вручную; fz — периоды заморозки [{from,to}] (даты включительно):
+// во время заморозки кабинет закрыт, а срок доступа продлевается на все дни заморозки.
+function holdCalc0(h, now) {
+  h = h || {}; var days = 0, frozen = '', fz = (h.fz || []).map(function (f) { var a = parseDate0(f.from), b = parseDate0(f.to); return a && b && b >= a ? { a: dayStart0(a), b: dayStart0(b) + DAY_MS } : null; }).filter(Boolean);
+  fz.forEach(function (f) { days += Math.round((f.b - f.a) / DAY_MS); if (now >= f.a && now < f.b) frozen = new Date(f.b - DAY_MS).toISOString(); });
+  return { blocked: !!h.block, frozen: frozen, days: days };
+}
+// Свой старт ученицы (ставит админ): вся программа и срок доступа сдвигаются на разницу со стартом потока.
+// Возвращает сдвиг в мс (0 — нет своего старта).
+function startShift0(pstart, streamStart) {
+  var p = parseDate0(pstart), s = parseDate0(streamStart);
+  return p && s ? Math.round((dayStart0(p) - dayStart0(s)) / DAY_MS) * DAY_MS : 0;
+}
 function accessCalc(o) {
+  var r = accessCalc0(o), h = holdCalc0(o.hold, o.now || Date.now());
+  if (h.days && r.end) { var end = new Date(r.end).getTime() + h.days * DAY_MS, now = o.now || Date.now();
+    r.end = new Date(end).toISOString(); r.last = new Date(end - DAY_MS).toISOString(); r.closed = now >= end; r.left = Math.max(0, Math.ceil((end - now) / DAY_MS)); }
+  r.blocked = h.blocked; r.frozen = h.frozen; r.fzDays = h.days;
+  if (h.blocked || h.frozen) r.closed = true;
+  return r;
+}
+function accessCalc0(o) {
   var start = parseDate0(o.start);
   if (!start && !o.until && !o.endAt) return { end: '', last: '', closed: false, left: null, ext: 0 };
   var endAt = o.endAt ? new Date(o.endAt).getTime() : 0;
@@ -5610,11 +5631,14 @@ const Demo = (() => {
   }
   function hash(x){ let h=5381; for(const c of x) h=((h<<5)+h+c.charCodeAt(0))|0; return 'd'+(h>>>0).toString(36); }
   function session(st){ const t='demo-'+Math.random().toString(36).slice(2); load().sessions[t]=st['Email']; if(!st['Первый вход']) st['Первый вход']=now(); st['Последний вход']=now(); log(st['Email'],'login'); return t; }
-  const accessOf = d => accessCalc({ start: load().settings.start || d['Дата подтверждения'] || d['Первый вход'], endAt: load().settings.accessEnd, accessDays: load().settings.accessDays, extDays: load().settings.extDays, exts: load().ext[d['Email']] || [], until: d['Доступ до'] });
+  const accessOf = d => { const set = load().settings, sh = startShift0(d['Свой старт'], set.start); let start = set.start || d['Дата подтверждения'] || d['Первый вход'], endAt = set.accessEnd;
+    if (sh) { start = new Date(parseDate0(set.start) + sh).toISOString(); if (endAt) endAt = new Date(new Date(endAt).getTime() + sh).toISOString(); }
+    return accessCalc({ start, endAt, accessDays: set.accessDays, extDays: set.extDays, exts: load().ext[d['Email']] || [], until: d['Доступ до'], hold: parse(d['Пауза доступа']) }); };
+  const ymdOf = x => { const t = parseDate0(x); if (!t) return ''; const z = new Date(t); return z.getFullYear() + '-' + String(z.getMonth() + 1).padStart(2, '0') + '-' + String(z.getDate()).padStart(2, '0'); };
   const openOnly = st => { if (!isStaff({role:st['Роль']}) && accessOf(st).closed) throw new Error('Доступ к программе закрыт'); };
   const pub = d => ({ access: accessOf(d), rec:isRecFmt(d['Формат']), email:d['Email'], name:d['Имя'], role:d['Роль'], status:d['Статус']||STS.none, autoProtocol:d['Протокол авто']||'', protocol:d['Протокол итог']||'',
     recs:d['Комментарий куратора']||'', confirmedAt:d['Дата подтверждения']||'', filledAt:d['Дата анкеты']||'', hasPhoto:!!(load().quizzes[d['Email']]||{}).photo, hasForm:!!(load().quizzes[d['Email']]||{}).form, raffle:(load().raffle||{})[d['Email']]||null,
-    tariff:d['Тариф']||'Общий', early:parse(d['Досрочно'])||null, ov:parse(d['Правки материалов']), profile:parse(d['Профиль'])||{}, extra:parse(d['Доп. протоколы'])||[], excl:parse(d['Не ем'])||null });
+    tariff:d['Тариф']||'Общий', pstart:ymdOf(d['Свой старт']), early:parse(d['Досрочно'])||null, ov:parse(d['Правки материалов']), profile:parse(d['Профиль'])||{}, extra:parse(d['Доп. протоколы'])||[], excl:parse(d['Не ем'])||null });
   const msgsOf = e => load().messages.filter(m => m.email === e);
   const addMsg = (email, lessonId, from, who, text, files, by, pub) => { load().messages.push({ id:'m'+Math.random().toString(36).slice(2), by:by||'', pub:!!pub, at:now(), email, lessonId:lessonId||'', lesson: lessonId ? (byId(lessonId)||{t:''}).t : '', from, who, text, files: files && files.length ? files : undefined }); log(email, from === 'cu' ? (lessonId ? 'reply_comment' : 'reply_chat') : (lessonId ? 'comment' : 'chat'), lessonId ? (byId(lessonId)||{t:''}).t : ''); };
   const parse = s => { try { return s ? JSON.parse(s) : null } catch(e){ return null } };
@@ -5752,6 +5776,12 @@ const Demo = (() => {
       if(status==='fix'&&!cm) throw new Error('Напишите, что нужно доработать — ученица увидит комментарий'); Object.assign(r,{status:status==='ok'?RZ_ST.ok:status==='fix'?RZ_ST.fix:RZ_ST.wait,comment:cm,by:a['Имя']||a['Email'],rat:now()}); log(email,'raffle_review',r.status); return {}; },
     reviewAccept({token,email,ok}){ const a=adminAuth(token), f=(load().feedback||[]).find(x=>x.email===String(email).toLowerCase()&&x.key==='final'); if(!f) throw new Error('Итоговая анкета не найдена');
       Object.assign(f,{rv:ok?RV_OK:'',rvBy:ok?(a['Имя']||a['Email']):'',rvAt:ok?now():''}); log(email,'review_accept',ok?RV_OK:'сброшено'); return {}; },
+    setHold({token,email,hold}){ const me=adminAuth(token); if(!/^(админ|admin|администратор)$/i.test(String(me['Роль']||'').trim())) throw new Error('Раздел доступен только администратору'); const st=find(email); if(!st) throw new Error('Ученица не найдена');
+      const h=hold||{}, by=me['Имя']||me['Email'], dt=/^\d{4}-\d{2}-\d{2}$/, fz=(h.fz||[]).filter(f=>f&&dt.test(f.from)&&dt.test(f.to)&&f.to>=f.from).slice(0,20).map(f=>({from:f.from,to:f.to,by:f.by||by,at:f.at||now()}));
+      const v={block:h.block?{note:String(h.block.note||'').slice(0,300),by:h.block.by||by,at:h.block.at||now()}:null,fz}; const empty=!v.block&&!fz.length;
+      st['Пауза доступа']=empty?'':JSON.stringify(v); log(email,'hold',(v.block?'доступ закрыт':'доступ открыт')+(fz.length?'; заморозка: '+fz.map(f=>f.from+'—'+f.to).join(', '):'')); return {access:accessOf(st)}; },
+    setStart({token,email,start}){ const me=adminAuth(token); if(!/^(админ|admin|администратор)$/i.test(String(me['Роль']||'').trim())) throw new Error('Раздел доступен только администратору'); const st=find(email); if(!st) throw new Error('Ученица не найдена');
+      const m=String(start||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); if(start&&!m) throw new Error('Неверная дата'); st['Свой старт']=m?m[3]+'.'+m[2]+'.'+m[1]:''; log(email,'start',st['Свой старт']?'свой старт '+st['Свой старт']:'старт по потоку'); return {access:accessOf(st),pstart:ymdOf(st['Свой старт'])}; },
     setEarly({token,email,early}){ const me=adminAuth(token); if(!/^(админ|admin|администратор)$/i.test(String(me['Роль']||'').trim())) throw new Error('Открывать досрочно может только администратор'); const st=find(email);
       const e=early||{}, int=(x,a,b)=>{ x=Math.floor(+x||0); return x>=a&&x<=b?x:0; }, v={wk:int(e.wk,1,5),menu:int(e.menu,3,5),ids:(e.ids||[]).map(String).filter(x=>!EARLY_NO.includes(x)).slice(0,60),by:me['Имя']||me['Email'],at:now()};
       const empty=!v.wk&&!v.menu&&!v.ids.length; st['Досрочно']=empty?'':JSON.stringify(v); log(email,'early',empty?'по расписанию':'досрочно'); return {early:empty?null:v}; },
@@ -5856,7 +5886,10 @@ const Demo = (() => {
 // ═══ Состояние ══════════════════════════════════════════════════
 const TOKEN_KEY = 'hz_token_' + MODE;
 const S = { token: LS.get(TOKEN_KEY, null), user: null, set: {} };
-const START = () => (S.set && S.set.start) || CFG.START_DATE || '';
+const START0 = () => (S.set && S.set.start) || CFG.START_DATE || '';
+// свой старт ученицы (ставит админ в карточке): сдвиг всей программы в мс; в просмотре «глазами ученицы» — сдвиг этой клиентки
+const SHIFT = () => U.preview ? (U.pshift || 0) : (S.user && S.user.pstart && !isStaff(S.user) ? startShift0(S.user.pstart, START0()) : 0);
+const START = () => { const s = START0(), sh = SHIFT(); return s && sh ? new Date(new Date(s).getTime() + sh).toISOString() : s; };
 const U = { quiz: null, st: null, links: {}, preview: false, ptype: 'slow', msgs: [], pov: null };
 let V = { s: 'calc' }, hist = [], QD = null;
 
@@ -6497,7 +6530,11 @@ const preStart = () => !U.preview && !!START() && dayStart(Date.now()) < mskDay(
 // ── расписание: неделя открывается в заданный момент (лист «Настройки» → CFG.SCHEDULE) ──
 function SCHED(set){ const d = CFG.SCHEDULE, s = ((set !== undefined ? set : S.set) || {}).schedule || {};
   const pick = (a, b) => { const o = Object.assign({}, a); for (const k in (b || {})) if (b[k]) o[k] = b[k]; return o; };
-  return { weeks: pick(d.weeks, s.weeks), menu: pick(d.menu, s.menu), final: s.final || d.final, finalUrl: s.finalUrl || d.finalUrl, raffle: pick(d.raffle, s.raffle) }; }
+  const o = { weeks: pick(d.weeks, s.weeks), menu: pick(d.menu, s.menu), final: s.final || d.final, finalUrl: s.finalUrl || d.finalUrl, raffle: pick(d.raffle, s.raffle) };
+  // свой старт: недели, меню, анкеты и розыгрыш ученицы сдвигаются; живой завершающий вебинар — нет (запись будет в уроке)
+  const sh = set === undefined ? SHIFT() : 0;
+  if (sh) ['weeks', 'menu', 'raffle'].forEach(g => { const x = {}; for (const k in o[g]) { const t = o[g][k] ? new Date(o[g][k]).getTime() : 0; x[k] = t ? new Date(t + sh).toISOString() : o[g][k]; } o[g] = x; });
+  return o; }
 const openAt = (w, set) => new Date(SCHED(set).weeks[w]).getTime() || 0;
 // Разделы «Специи» и «Фитосоставы» открываются вместе с неделей 1 — после вводного эфира
 const SP_KEYS = ['spices', 'phyto'];
@@ -6634,6 +6671,20 @@ const extTxt = () => { const d = (S.set && S.set.extDays) || 60; return d % 30 =
 const accessClosed = () => !!S.user && !U.preview && !isStaff(S.user) && !!(S.user.access && S.user.access.closed);
 function closedView(){
   const a = S.user.access || {}, url = S.set && S.set.extendUrl;
+  const keep = 'Ваши отметки, трекер и замеры сохранены — всё вернётся на место.';
+  if (a.blocked) return `<div class="top"><div class="sub">Формула здоровья ЖКТ</div><h1>Доступ временно закрыт</h1>
+    <p style="margin:0">Администратор временно закрыл доступ к программе. ${keep}</p></div>
+  <div class="card"><p>Если вы не знаете, почему так произошло, или хотите вернуть доступ — напишите в службу заботы.</p></div>
+  <div class="opts">${supportLink()}</div>
+  <button class="btn ghost full" data-a="reload" style="margin-top:10px">Проверить доступ</button>
+  ${foot()}`;
+  if (a.frozen) { const back = new Date(new Date(a.frozen).getTime() + 864e5);
+    return `<div class="top"><div class="sub">Формула здоровья ЖКТ</div><h1>Доступ заморожен</h1>
+    <p style="margin:0">Доступ к программе заморожен до ${fmtM(a.frozen)} включительно. ${fmtM(back)} кабинет откроется сам. ${keep}</p></div>
+  <div class="card"><p>Дни заморозки не сгорают: срок доступа продлён на ${a.fzDays} ${plural(a.fzDays, ['день','дня','дней'])}${a.last ? ' — теперь он открыт до ' + fmtM(a.last) : ''}. Уроки, которые откроются за это время, будут ждать вас в кабинете.</p></div>
+  <div class="opts">${supportLink()}</div>
+  <button class="btn ghost full" data-a="reload" style="margin-top:10px">Проверить доступ</button>
+  ${foot()}`; }
   return `<div class="top"><div class="sub">Формула здоровья ЖКТ</div><h1>Доступ к программе закрыт</h1>
     <p style="margin:0">Срок доступа закончился${a.last ? ' ' + fmtM(a.last) : ''}. Ваши отметки, трекер и замеры сохранены — после продления всё вернётся на место.</p></div>
   <div class="card"><p><b>Продление — ещё ${extTxt()}.</b> После оплаты кабинет откроется сам, как только оплата появится в системе. Если в течение суток он всё ещё закрыт, напишите в службу заботы.</p></div>
@@ -8242,7 +8293,7 @@ function mdlClick(b, a){
 document.addEventListener('keydown', e => { if (MDL.k && e.key === 'Escape') mdlClick(document.body, MDL.k === 'trk' ? 'mdlSkip' : 'mdlX'); });
 function render(){
   const titles = { a2hs:'Значок на экране', profile:'Профиль', fb:'Оценка обучения', fbok:'Спасибо', chat:'Чат', gchat:'Чат протокола', quiz:'Анкета', progress:'Прогресс', mycm:'Мои комментарии', check:'Замер', tracker:'Трекер', login:'Вход', menu:'Меню', redflag:'Анкета' };
-  if (accessClosed() && !['login','calc','fail'].includes(V.s) && !(V.s === 'chat' && chatVisible())) V = { s:'closed' };
+  if (accessClosed() && !['login','calc','fail'].includes(V.s) && !(V.s === 'chat' && chatVisible() && !((S.user.access || {}).blocked || (S.user.access || {}).frozen))) V = { s:'closed' };
   const map = { a2hs:a2hsView, profile:profView, closed:closedView, login:vLogin, welcome, quiz:quizStep, redflag, calc, wait, result, dash, cat:catList, item, progress:prog, mycm:mycmView, check, tracker, menu:menuView, fail, chat:chatView, gchat:gchatView, fb:fbView, fbok:fbOkView };
   if (V.s === 'item' && !U.preview && lessonMsgs(V.id).some(m => m.from === 'cu')) { U.st.seenL = U.st.seenL || {}; const last = Math.max(...lessonMsgs(V.id).map(tsOf)); if (last > (U.st.seenL[V.id] || 0)) { U.st.seenL[V.id] = last; save(); } }
   if (POLL_VIEWS().includes(V.s)) { if (!pollT) startPoll(); } else stopPoll();
@@ -8479,12 +8530,12 @@ const Adm = (() => {
       const assigned = status === STS.ok, filled = !!q && status !== STS.none;
       const autoKey = q && q.auto ? CODEKEY[q.auto.code] : null;
       const type = assigned ? (PKEY[s['Протокол итог']] || autoKey || 'slow') : autoKey;
-      const start = (d.settings && d.settings.start) || CFG.START_DATE || s['Дата подтверждения'] || '';
+      const shift = startShift0(s['Свой старт'], d.settings && d.settings.start), start = shift ? new Date(new Date(d.settings.start).getTime() + shift).toISOString() : ((d.settings && d.settings.start) || CFG.START_DATE || s['Дата подтверждения'] || '');
       return { email:e, name:s['Имя'] || x.name || e, status, assigned, filled, quiz:filled ? q : null, autoKey, type,
         first:s['Первый вход'] || '', lastAt:s['Последний вход'] || '', last:daysAgo(s['Последний вход']), hasPw:s['Пароль задан'] === 'да',
         recs:s['Комментарий куратора'] || '', note:s['Заметка куратора'] || '', marks:marksOf(s['Отметки куратора']), curator:s['Куратор'] || '', profile:(() => { try { return JSON.parse(s['Профиль'] || 'null') || {}; } catch (e) { return {}; } })(),
         confirmedAt:s['Дата подтверждения'] || '', filledAt:s['Дата анкеты'] || '', protoName:s['Протокол итог'] || '',
-        red:filled ? (q.redFlags || []) : [], photo:!!(filled && q.photo), state:normState(s.state), start,
+        red:filled ? (q.redFlags || []) : [], photo:!!(filled && q.photo), state:normState(s.state), start, shift, pstartRaw:s['Свой старт'] || '',
         day:assigned && start ? dayNum(new Date(start).getTime()) : 0, events:evs[e] || [], paidOnly:!!x.paidOnly,
         tariff:(t => /индивид/i.test(t) ? TARIFF_IND : t)(String(s['Тариф'] || x.tariff || 'Общий')), rec:isRecFmt(s['Формат']) || (!s['Email'] && !!x.rec), ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
         msgs:(msgs[e] || []).slice().sort((a, b) => tsOf(a) - tsOf(b)), fb:(fbs[e] || []).slice().sort((a, b) => FB_KEYS.indexOf(a.key) - FB_KEYS.indexOf(b.key)),
@@ -8526,7 +8577,7 @@ const Adm = (() => {
   const openThreads = () => threads().filter(t => { const l = t.list[t.list.length-1]; return l.from === 'cl' && !l.read; });
   const chatClients = () => C.filter(c => !c.paidOnly && (c.tariff === TARIFF_IND || chatOf(c).length));
   function lessonPct(c){ const ls = eff(c, 'lessons'); return ls.length ? Math.round(ls.filter(id => c.state.done[id]).length/ls.length*100) : 0; }
-  const wkOpenC = (c, w) => CFG.OPEN_ALL_WEEKS || Date.now() >= openAt(w, D && D.settings);
+  const wkOpenC = (c, w) => CFG.OPEN_ALL_WEEKS || Date.now() >= openAt(w, D && D.settings) + (c.shift || 0);
   const lsOpenC = (c, l) => CFG.OPEN_ALL_WEEKS || earlyLesson(l, c.early || {}) || Date.now() >= lessonOpenAt(l, D && D.settings);
   const curWeekC = c => trkWeekOf(Math.min(c.day, CAL.programDays)) || (c.day < trkSpan(2).a ? 2 : 5);
   const weekTrack = (c, w) => c.assigned && c.day ? weekStatT(c.state.track, c.type, c.day, w) : null;
@@ -8560,6 +8611,8 @@ const Adm = (() => {
   }
   function status(c){
     const s = stageOf(c);
+    if (!c.paidOnly && c.access && c.access.blocked) return `<span class="st o">Доступ закрыт вручную</span>`;
+    if (!c.paidOnly && c.access && c.access.frozen) return `<span class="st o">Заморожен до ${esc(fmtD0(c.access.frozen))}</span>`;
     if (!c.paidOnly && closedC(c)) return `<span class="st o">Доступ закрыт</span>`;
     if (s < 3) return `<span class="st o">${s === 0 ? (W(c) === WM ? 'Не заходил' : 'Не заходила') : c.reo ? 'Правит анкету' : 'Анкета не заполнена'}</span>`;
     const f = flowOf(c);
@@ -8756,6 +8809,41 @@ const Adm = (() => {
     return ch.length || n ? `<span class="mkc">${ch.join('')}</span>${n}` : '<span class="nd muted">—</span>';
   }
   // ── досрочное открытие (только админ) ──
+  // ── закрытие, заморозка доступа и свой старт обучения (только админ) ──
+  const fmtD0 = d => new Date(d).toLocaleDateString('ru-RU', { day:'numeric', month:'short', timeZone:'Europe/Moscow' });
+  const holdOf = c => { try { return JSON.parse((rowOf(c.email) || {})['Пауза доступа'] || 'null') || {}; } catch (e) { return {}; } };
+  const ymd = s => { const [y, m, d] = String(s).split('-'); return `${+d}.${m}.${y}`; };
+  const isoYmd = x => { const t = parseDate0(x); if (!t) return ''; const z = new Date(t); return z.getFullYear() + '-' + String(z.getMonth() + 1).padStart(2, '0') + '-' + String(z.getDate()).padStart(2, '0'); };
+  function holdPanel(c){
+    if (!isAdmRole()) return '';
+    const h = holdOf(c), fz = h.fz || [], a = c.access || {}, today = new Date().toLocaleDateString('sv-SE', { timeZone:'Europe/Moscow' });
+    const fzRow = (f, i) => { const n = Math.round((new Date(f.to) - new Date(f.from)) / 864e5) + 1, now = today >= f.from && today <= f.to, past = today > f.to;
+      return `<span class="mkt ${now ? 'on' : ''}" title="${esc((f.by || '') + (f.at ? ', ' + fmtDT(f.at) : ''))}">${now ? 'идёт: ' : past ? 'была: ' : 'план: '}${ymd(f.from)} — ${ymd(f.to)} · ${n} ${plural(n, ['день','дня','дней'])} <button type="button" class="btn lnk" data-a="holdFzRm" data-i="${i}" title="Отменить заморозку" style="${now ? 'color:#fff;' : ''}margin-left:4px">×</button></span>`; };
+    const ps = isoYmd(c.pstartRaw), st0 = D && D.settings && D.settings.start ? isoYmd(D.settings.start) : '', shD = Math.round((c.shift || 0) / 864e5);
+    return `<div class="panel mkp"><h2><span>Сроки обучения и доступ</span><span class="small muted">только для администраторов</span></h2>
+      <div><b class="small">Свой старт обучения</b>
+        <p class="small muted" style="margin:6px 0 0">Если ученице нужно начать позже потока: с этой даты у неё пойдут недели программы, меню, анкеты обратной связи, трекер и розыгрыш — со сдвигом от старта потока${st0 ? ` (${ymd(st0)})` : ''}. Срок доступа сдвигается так же. Вебинары остаются в общие даты — запись будет в уроке.</p>
+        ${ps ? `<p class="small" style="margin:6px 0 0"><span class="mark">Свой старт: ${ymd(ps)}</span>${shD ? ` · сдвиг ${shD > 0 ? '+' : ''}${shD} ${plural(Math.abs(shD), ['день','дня','дней'])}` : ''}${a.last ? ` · доступ до ${esc(fmtD0(a.last))}` : ''}</p>` : ''}
+        <div class="row2" style="gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><label class="small muted">с <input type="date" id="pStart" class="inp" value="${ps}" style="width:auto;display:inline-block"></label><button class="btn sm" data-a="pStartSave">Сохранить</button>${ps ? `<button class="btn ghost sm" data-a="pStartClear">Вернуть старт потока</button>` : ''}</div></div>
+      <div style="margin-top:16px"><b class="small">Заморозить на период</b>
+        <p class="small muted" style="margin:6px 0 0">На эти дни кабинет закрыт, а срок доступа продлевается на столько же дней. Уроки открываются по расписанию — после заморозки все они будут доступны.${a.fzDays ? ` Сейчас срок продлён на ${a.fzDays} ${plural(a.fzDays, ['день','дня','дней'])}.` : ''}</p>
+        ${fz.length ? `<div class="mkb" style="margin-top:8px">${fz.map(fzRow).join('')}</div>` : ''}
+        <div class="row2" style="gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><label class="small muted">с <input type="date" id="fzFrom" class="inp" value="${today}" style="width:auto;display:inline-block"></label><label class="small muted">по <input type="date" id="fzTo" class="inp" style="width:auto;display:inline-block"></label><button class="btn sm" data-a="holdFz">Заморозить</button></div></div>
+      <div style="margin-top:16px"><b class="small">Закрыть доступ полностью</b>
+        ${h.block ? `<p class="small" style="margin:6px 0 0"><span class="mark">Доступ закрыт</span> ${esc(h.block.by || '')}${h.block.at ? ', ' + esc(fmtDT(h.block.at)) : ''}${h.block.note ? ` · причина: ${esc(h.block.note)}` : ''}</p>
+          <div style="margin-top:8px"><button class="btn sm" data-a="holdOpen">Открыть доступ</button></div>`
+        : `<p class="small muted" style="margin:6px 0 0">Кабинет закроется сразу и до тех пор, пока вы не откроете его снова. Срок доступа не продлевается. Ученица видит «Доступ временно закрыт» и может написать в службу заботы.</p>
+          <div class="row2" style="gap:8px;margin-top:8px;flex-wrap:wrap"><input id="holdNote" class="inp" placeholder="Причина (видно только сотрудникам)" style="flex:1 1 280px;max-width:420px"><button class="btn sm" data-a="holdBlock">Закрыть доступ</button></div>`}</div></div>`;
+  }
+  function holdSave(c, h){
+    const v = { block:h.block || null, fz:h.fz || [] };
+    return act(() => api('setHold', { token:S.token, email:c.email, hold:v }).then(r => { const row = rowOf(c.email); if (row && r.access) row.access = r.access; C = build(D); render(true); }), 'Сохранено',
+      () => { const row = rowOf(c.email); if (row) row['Пауза доступа'] = (!v.block && !v.fz.length) ? '' : JSON.stringify(v); });
+  }
+  function startSave(c, ymdV){
+    return act(() => api('setStart', { token:S.token, email:c.email, start:ymdV }).then(r => { const row = rowOf(c.email); if (row && r.access) row.access = r.access; C = build(D); render(true); }), ymdV ? 'Свой старт сохранён' : 'Старт — по потоку',
+      () => { const row = rowOf(c.email); if (row) row['Свой старт'] = ymdV ? ymd(ymdV) : ''; });
+  }
   function earlyPanel(c){
     if (!isAdmRole() || !c.assigned) return '';
     const e = c.early || {}, sel = (id, cur, opts) => `<select id="${id}" class="sel" style="width:auto;display:inline-block;padding:4px 10px">${opts.map(([v, t]) => `<option value="${v}" ${+cur === v ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
@@ -8832,7 +8920,7 @@ const Adm = (() => {
       ${c.assigned ? `<button class="btn ghost sm" data-a="asStudent">Кабинет ${W(c) === WM ? 'его' : 'её'} глазами</button>` : c.filled ? `<button class="btn ghost sm" disabled title="Пока протокол не назначен, ${W(c) === WM ? 'клиент видит' : 'клиентка видит'} только экран «Анкета на проверке»: фото языка, файлы и чат с куратором (на индивидуальном тарифе). Уроки и меню откроются после назначения протокола.">Кабинет ${W(c) === WM ? 'его' : 'её'} глазами — после назначения</button>` : ''}
       ${isAdmRole() ? `<button class="btn ghost sm" data-a="resetAll" ${c.filled ? '' : 'disabled'}>Открыть анкету для правки</button>` : ''}
       <button class="btn ghost sm" data-a="resetProg" ${c.assigned ? '' : 'disabled'}>Сбросить прогресс</button>
-      <button class="btn ghost sm" data-a="resetPw" ${c.hasPw ? '' : 'disabled'}>Сбросить пароль</button></div></div>${c.paidOnly ? '' : marksPanel(c) + earlyPanel(c)}`;
+      <button class="btn ghost sm" data-a="resetPw" ${c.hasPw ? '' : 'disabled'}>Сбросить пароль</button></div></div>${c.paidOnly ? '' : marksPanel(c) + holdPanel(c) + earlyPanel(c)}`;
     if (!c.filled && c.lost) return head + `<div class="alert"><div><b>Анкета отправлена, но ответы не читаются.</b> В листе «Ученики» статус «${esc(c.status)}»${c.filledAt ? `, дата анкеты ${esc(fmtDT(c.filledAt))}` : ''}, а в листе «Анкеты» строки с этим e-mail нет или колонка JSON пустая/повреждена. Откройте лист «Анкеты» и найдите ${esc(c.email)}. Подробная проверка всех учеников — функция <b>checkQuizzes</b> в Apps Script. Текст анкеты сохранился в таблице ИИ-проверки.</div></div>${chatPanel(c)}`;
     if (!c.filled) return head + `<div class="panel"><h2><span>Анкета не заполнена</span></h2><p>${c.paidOnly ? `${W(c).N} ещё не заходил${W(c).l === 'ла' ? 'а' : ''} в кабинет. E-mail есть в выгрузке оплативших из GetCourse — карточка появится в листе «Ученики» при первом входе.` : stageOf(c) === 0 ? `${W(c).N} ещё не заходил${W(c).l === 'ла' ? 'а' : ''} в кабинет.` : `${W(c).N} вош${W(c).l === 'ла' ? 'ла' : 'ёл'} в кабинет${c.first ? ' ' + fmtDT(c.first) : ''}, но анкету ещё не отправил${W(c).l === 'ла' ? 'а' : ''}.`}</p>
       <p class="small muted" style="margin:0">Пароль ${c.hasPw ? 'задан' : 'ещё не задан'}. Доступ: ${accessTxt(c)}.</p></div>${c.paidOnly ? '' : chatPanel(c) + `<div style="margin-top:16px">${histBlock(c)}</div>`}`;
@@ -9557,8 +9645,8 @@ const Adm = (() => {
     if (a === 'refresh') return open();
     if (a === 'logout') return logout();
     if (a === 'demoResetA') { Demo.reset(); toast('Демо-данные сброшены'); return logout(); }
-    if (a === 'preview') { U.pexcl = []; U.pname = ''; U.prec = false; U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
-    if (a === 'asStudent' && c) { U.pexcl = exclCodesOf(c, c.quiz).codes; U.pname = c.name; U.prec = !!c.rec; U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
+    if (a === 'preview') { U.pexcl = []; U.pname = ''; U.prec = false; U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.pshift = 0; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
+    if (a === 'asStudent' && c) { U.pexcl = exclCodesOf(c, c.quiz).codes; U.pname = c.name; U.prec = !!c.rec; U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.pshift = c.shift || 0; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (!c) return;
     if (a === 'assignMe') return act(() => api('assignCurator', { token:S.token, email:c.email, curator:meEmail() }), `${W(c).N} ${W(c).zk} за вами`, () => { rowOf(c.email)['Закреплён за'] = meEmail(); });
     if (a === 'demoExtend') return act(() => api('demoExtend', { token:S.token, email:c.email }), 'Продление добавлено (демо)');
@@ -9576,6 +9664,14 @@ const Adm = (() => {
     if (a === 'acfDel') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; (AV.cf || []).splice(+b.dataset.i, 1); return render(true); }
     if (a === 'cfOpen') return openChatFile(b);
     if (a === 'earlyAdd' && c) { const id = ($('#earlyPick') || {}).value; if (!id) return; return earlySave(c, { ids:((c.early || {}).ids || []).concat(id) }); }
+    if (a === 'holdBlock' && c) { const h = holdOf(c); if (!confirm(`Закрыть доступ для ${c.name || c.email}? Кабинет закроется сразу.`)) return; return holdSave(c, Object.assign({}, h, { block:{ note:($('#holdNote') || {}).value || '' } })); }
+    if (a === 'holdOpen' && c) { const h = holdOf(c); return holdSave(c, Object.assign({}, h, { block:null })); }
+    if (a === 'holdFz' && c) { const f = ($('#fzFrom') || {}).value, t = ($('#fzTo') || {}).value; if (!f || !t) return toast('Укажите даты «с» и «по»'); if (t < f) return toast('Дата «по» раньше даты «с»');
+      const h = holdOf(c), fz = (h.fz || []); if (fz.some(x => !(t < x.from || f > x.to))) return toast('Этот период пересекается с уже заданной заморозкой');
+      return holdSave(c, Object.assign({}, h, { fz:fz.concat({ from:f, to:t }).sort((x, y) => x.from < y.from ? -1 : 1) })); }
+    if (a === 'holdFzRm' && c) { const h = holdOf(c), i = +b.dataset.i; return holdSave(c, Object.assign({}, h, { fz:(h.fz || []).filter((x, k) => k !== i) })); }
+    if (a === 'pStartSave' && c) { const v = ($('#pStart') || {}).value; if (!v) return toast('Выберите дату старта'); return startSave(c, v); }
+    if (a === 'pStartClear' && c) return startSave(c, '');
     if (a === 'earlyRm' && c) return earlySave(c, { ids:((c.early || {}).ids || []).filter(x => x !== b.dataset.id) });
     if (a === 'tongueFromChat' && c) { if (!confirm('Сделать это фото фото языка? Если фото уже было, оно заменится.')) return; return tongueSet(c, { fileId:b.dataset.id }); }
     if (a === 'addMat') { AV.pk = AV.tab || 'lessons'; AV.pq = ''; return openDr(picker()); }
