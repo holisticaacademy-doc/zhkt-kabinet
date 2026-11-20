@@ -6200,11 +6200,21 @@ function lpHtml(id){
     ? `<div class="lp-r"><b>${esc(m.name)} · куратор</b><div>${linkify(m.text)}</div><small>${fmtDT(m.at)}</small></div>`
     : `<div class="lp-q"><b>${esc(m.name)}</b><div>${linkify(m.text)}</div><small>${fmtDT(m.at)}${m.edited ? ' · изменено' : ''}</small></div>`).join('')}</div>`).join('')}</div>`;
 }
+// Перерисовка не должна сбивать набор: возвращаем фокус и курсор в поле, где человек печатал (без прокрутки страницы)
+function focusKeep(){
+  const el = document.activeElement; if (!el || !/^(TEXTAREA|INPUT)$/.test(el.tagName) || /^(file|checkbox|radio|button|submit)$/.test(el.type)) return () => {};
+  const sel = el.id ? '#' + CSS.escape(el.id) : el.dataset && el.dataset.keep ? '[data-keep="' + CSS.escape(el.dataset.keep) + '"]' : ''; if (!sel) return () => {};
+  let a = null, b = null; try { a = el.selectionStart; b = el.selectionEnd; } catch (e) {}
+  return () => { const n = document.querySelector(sel); if (!n || n === el || n.disabled) return;
+    try { n.focus({ preventScroll:true }); if (a != null) n.setSelectionRange(Math.min(a, n.value.length), Math.min(b, n.value.length)); } catch (e) {} };
+}
 async function sendMsg(lessonId){
   const ta = $('#msgIn'), text = (ta.value || '').trim(), pend = lessonId ? [] : (U.cf || []);
   if (!text && !pend.length) return toast('Напишите сообщение');
   if (U.preview) return toast('В режиме просмотра отправка недоступна');
   const btn = $('[data-a=send]'); btn.disabled = true;
+  // поле очищаем сразу — пока сообщение уходит, можно набирать следующее
+  ta.value = ''; if (lessonId) { if (U.ldraft) delete U.ldraft[lessonId]; } else U.cdraft = '';
   try {
     const files = pend.length ? await uploadChatFiles(pend, '', (i, n) => { btn.textContent = 'Загружаем файл ' + i + ' из ' + n + '…'; }) : [];
     const priv = !!(lessonId && $('#lPriv') && $('#lPriv').checked);
@@ -6212,8 +6222,9 @@ async function sendMsg(lessonId){
     const r = await api('sendMessage', { token:S.token, text, files, lessonId: lessonId || '', lessonTitle: lessonId ? byId(lessonId).t : '', priv });
     U.msgs = r.messages;
     if (!lessonId) { const my = chatMsgsU().filter(m => m.from === 'cl'), T = my.length ? tsOf(my[my.length - 1]) : Date.now();
-      U.chMiss = chatMsgsU().filter(m => m.from === 'cu' && tsOf(m) > seen && tsOf(m) <= T).map(m => m.id || m.at); U.chMissShown = ''; U.chBase = null; } U.cf = []; U.cdraft = ''; if (lessonId && U.ldraft) delete U.ldraft[lessonId]; if (lessonId && U.lpriv) delete U.lpriv[lessonId]; ta.value = ''; keepY(render); toast('Отправлено'); }
-  catch (e) { btn.disabled = false; btn.textContent = 'Отправить'; toast(e.message); }
+      U.chMiss = chatMsgsU().filter(m => m.from === 'cu' && tsOf(m) > seen && tsOf(m) <= T).map(m => m.id || m.at); U.chMissShown = ''; U.chBase = null; } U.cf = []; if (lessonId && U.lpriv) delete U.lpriv[lessonId]; keepY(render); toast('Отправлено'); }
+  catch (e) { btn.disabled = false; btn.textContent = 'Отправить'; toast(e.message);
+    const t2 = $('#msgIn'); if (t2 && !t2.value.trim()) { t2.value = text; if (lessonId) (U.ldraft = U.ldraft || {})[lessonId] = text; else U.cdraft = text; } }
 }
 // Файлы в чат ученицы: кнопка, перетаскивание в чат и вставка из буфера (Ctrl+V)
 async function uAddFiles(files){ if (!files || !files.length || !document.getElementById('chat-file') || V.s !== 'chat') return;
@@ -6297,6 +6308,7 @@ function gcSc(el){
     bottom: sm => el.scrollTo({ top: el.scrollHeight, behavior: sm ? 'smooth' : 'auto' }),
     to: (n, sm) => el.scrollTo({ top: el.scrollTop + n.getBoundingClientRect().top - el.getBoundingClientRect().top - 8, behavior: sm ? 'smooth' : 'auto' }) };
 }
+document.addEventListener('input', e => { if (e.target && e.target.id === 'gcIn') GC.draft = e.target.value; });   // черновик живёт, даже если экран перерисуется до отправки
 function gcKeep(){ const ta = document.getElementById('gcIn'); if (ta) GC.draft = ta.value; const el = document.getElementById('gc-list'); if (el) { const sc = gcSc(el); GC.stick = sc.gap() < 80; GC.top = sc.top(); } }
 // после перерисовки лента остаётся на том же месте (реакция, ответ, новое сообщение не сбивают прокрутку)
 function gcAfter(){
@@ -6422,10 +6434,14 @@ async function gcSend(t, staff, rerender){
   const text = GC.draft.trim(), photos = gcAtt(t).map(x => x.data);
   if (!text && !photos.length) return toast('Напишите сообщение');
   if (U.preview) return toast('В режиме просмотра отправка недоступна');
+  // поле очищаем сразу: пока сообщение уходит, можно набирать следующее — оно не пропадёт, когда придёт ответ сервера
+  const rp = GC.reply && GC.reply.t === t ? GC.reply : null, att = GC.att.filter(x => x.t === t);
+  GC.draft = ''; GC.reply = null; GC.att = GC.att.filter(x => x.t !== t); GC.stick = true;
+  const ta0 = document.getElementById('gcIn'); if (ta0) ta0.value = '';
   GC.busy = true; rerender();
-  try { const r = await api('gchatSend', { token:S.token, type:t, text, photos, replyTo: GC.reply && GC.reply.t === t ? GC.reply.id : '' });
-    GC.data[t] = r; GC.v[t] = r.v; GC.draft = ''; GC.reply = null; GC.att = GC.att.filter(x => x.t !== t); GC.stick = true; }
-  catch (e) { toast(e.message); }
+  try { const r = await api('gchatSend', { token:S.token, type:t, text, photos, replyTo: rp ? rp.id : '' });
+    gcKeep(); GC.data[t] = r; GC.v[t] = r.v; }
+  catch (e) { toast(e.message); gcKeep(); if (!GC.draft.trim()) GC.draft = text; if (!GC.reply) GC.reply = rp; if (!GC.att.some(x => x.t === t)) GC.att = GC.att.concat(att); }
   GC.busy = false; rerender();
 }
 // общие действия чата — и в кабинете, и в админке
@@ -8326,8 +8342,10 @@ function render(){
   renderPop();
   const html = map[V.s]();
   document.body.classList.toggle('calrail', side && !CALP.pin);
+  const fk = focusKeep();
   $('#app').innerHTML = side ? (CALP.pin ? `<div class="lay"><div class="lay-main">${html}</div><aside class="lay-side">${calMonth()}</aside></div>`
     : `<div class="lay lay1"><div class="lay-main">${html}</div></div><aside class="crail" aria-label="Календарь программы">${calRail()}</aside>`) : html;
+  fk();
   mountVideo();
   renderPv();
   if (V.s === 'chat') uChatAfter(); else { U.chBase = null; uChStick = true; }
@@ -8708,8 +8726,10 @@ const Adm = (() => {
     // недописанный текст в полях переживает перерисовку (фоновая загрузка, действия в соседних блоках)
     const kept = {}; document.querySelectorAll('#adm textarea[data-keep]').forEach(t => { kept[t.dataset.keep] = t.value; });
     Object.assign(kept, AV.restore || {}); AV.restore = null;
+    const fk = focusKeep();
     $('#adm').innerHTML = ({ over, clients, client, catalog, comments, chats, gchats, rtime, ratings, raffle, reviews })[AV.s]();
     document.querySelectorAll('#adm textarea[data-keep]').forEach(t => { const v = kept[t.dataset.keep]; if (v != null && v !== t.value) t.value = v; });
+    fk();
     const ch1 = document.querySelector('#chat .chat');
     if (ch1) ch1.scrollTop = chatPos.stick ? ch1.scrollHeight : chatPos.top;
     if (ch1) chatAfter(ch1);
@@ -9347,7 +9367,7 @@ const Adm = (() => {
       : `<p class="small muted">${ind ? 'Сообщений пока нет.' : `На общем тарифе чат появится у ${W(c).g}, когда вы напишете первое сообщение.`}</p>`}
     ${miss.length ? `<div class="chmiss"><b>Пока вы писали ответ, ${nm} ${miss.length > 1 ? 'прислала ещё ' + miss.length + ' сообщения' : 'прислала ещё сообщение'}</b> (${miss.map(x => fmtDT(x.at).split(', ').pop()).join(', ')}). Оно выше вашего ответа.<span><button type="button" class="btn sm" data-a="missShow">Показать</button><button type="button" class="btn sm ghost" data-a="msgRead" data-email="${esc(c.email)}" data-lid="">✓ Видела</button></span></div>` : ''}
     <div class="chnew" id="chNew" hidden></div>
-    <textarea id="chatIn" rows="5" placeholder="Сообщение ученице" style="margin-top:10px;min-height:136px">${esc(AV.cdraft || '')}</textarea>
+    <textarea id="chatIn" data-keep="chat:${esc(c.email)}" rows="5" placeholder="Сообщение ученице" style="margin-top:10px;min-height:136px">${esc(AV.cdraft || '')}</textarea>
     ${ind ? `<div class="cattach"><input type="file" multiple id="adm-chat-file" class="vh" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf,.odt,.heic"><label for="adm-chat-file" class="btn sm ghost">${I.clip.replace('<svg', '<svg width="15" height="15"')} Прикрепить файл</label><span class="small muted">или перетащите файлы в чат / вставьте Ctrl+V · до ${CF_MAX} файлов, до ${CF_MB} МБ каждый</span></div>${cfPending(AV.cf || [], 'acfDel')}` : ''}
     <div style="margin-top:8px"><button class="btn sm" data-a="chatSend">Отправить</button>${unreadOf(c) ? ` <button class="btn sm ghost" data-a="msgRead" data-email="${esc(c.email)}" data-lid="" title="Ответ не нужен — убрать из новых">✓ Прочитано</button>` : ''} <span class="small muted">${W(c).N} увидит сообщение в кабинете, в разделе «Чат с куратором».</span></div></div>`;
   }
@@ -9715,10 +9735,10 @@ const Adm = (() => {
       if (text.length > 20000) return toast('Сообщение слишком длинное: ' + text.length + ' символов, можно до 20 000. Разделите его на две части.');
       if (!pend.length) { const ta = $('#chatIn'); AV.cdraft = ''; if (ta) ta.value = '';
         const seen = new Date((AV.rendTs || {})[c.email] || 1).toISOString(); AV.nwBase = null;
-        chatPos.stick = true; return act(() => api('reply', { token:S.token, email:c.email, lessonId:'', text, files:[], seen }).catch(e => { AV.cdraft = text; throw e; }), '', () => { chatPos.stick = true; addMsg(c.email, '', text, [], seen); }); }
-      b.disabled = true;
+        chatPos.stick = true; return act(() => api('reply', { token:S.token, email:c.email, lessonId:'', text, files:[], seen }).catch(e => { const ta = $('#chatIn'); if (ta && !ta.value.trim()) { ta.value = text; AV.cdraft = text; } throw e; }), '', () => { chatPos.stick = true; addMsg(c.email, '', text, [], seen); }); }
+      b.disabled = true; { const ta = $('#chatIn'); AV.cdraft = ''; if (ta) ta.value = ''; }
       return act(async () => { const files = pend.length ? await uploadChatFiles(pend, c.email, (i, n) => { b.textContent = 'Загружаем ' + i + ' из ' + n + '…'; }) : [];
-        await api('reply', { token:S.token, email:c.email, lessonId:'', text, files, seen:new Date((AV.rendTs || {})[c.email] || 1).toISOString() }); AV.cf = []; AV.cdraft = ''; chatPos.stick = true; }, 'Сообщение отправлено').then(() => { b.disabled = false; }); }
+        await api('reply', { token:S.token, email:c.email, lessonId:'', text, files, seen:new Date((AV.rendTs || {})[c.email] || 1).toISOString() }).catch(e => { const ta = $('#chatIn'); if (ta && !ta.value.trim()) { ta.value = text; AV.cdraft = text; } throw e; }); AV.cf = []; chatPos.stick = true; }, 'Сообщение отправлено').then(() => { const b2 = $('[data-a="chatSend"]'); if (b2) b2.disabled = false; b.disabled = false; }); }
     if (a === 'missShow' || a === 'chNewShow') { const ta = $('#chatIn'); if (ta) AV.cdraft = ta.value; if (a === 'chNewShow') { render(true); } chatFocus(a === 'missShow' ? '.bub.miss' : '.bub.nw'); return; }
     if (a === 'chDown') { const ch = document.querySelector('#chat .chat'); if (ch) ch.scrollTo({ top:ch.scrollHeight, behavior:'smooth' }); b.hidden = true; return; }
     if (a === 'acfDel') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; (AV.cf || []).splice(+b.dataset.i, 1); return render(true); }
@@ -9841,7 +9861,10 @@ const EMO = (() => {
   function decorate(root){
     (root.querySelectorAll ? root : document).querySelectorAll(SEL).forEach(t => {
       if (t.dataset.emo || t.closest('#emoPop')) return; t.dataset.emo = '1';
+      // перенос поля в обёртку снимает с него фокус — возвращаем фокус и курсор, иначе набор обрывается (а на телефоне закрывается клавиатура)
+      const foc = document.activeElement === t; let sa = null, sb = null; if (foc) { try { sa = t.selectionStart; sb = t.selectionEnd; } catch (e) {} }
       const w = document.createElement('span'); w.className = 'emo-w'; t.parentNode.insertBefore(w, t); w.appendChild(t);
+      if (foc) { try { t.focus({ preventScroll:true }); if (sa != null) t.setSelectionRange(sa, sb); } catch (e) {} }
       const b = document.createElement('button'); b.type = 'button'; b.className = 'emo-b'; b.title = 'Смайлики'; b.setAttribute('aria-label', 'Смайлики'); b.textContent = '🙂';
       b.addEventListener('mousedown', e => e.preventDefault());
       b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); pop && tgt === t ? close() : open(t, b); });
