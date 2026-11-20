@@ -2063,6 +2063,48 @@ details.fold .ans{margin-top:0}
 
 </head>
 <body>
+<div id="splash" aria-hidden="true">
+<style>
+#splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(120% 90% at 50% 38%,#1E4A3E 0%,#173F35 45%,#0F2C25 100%);color:#fff;font-family:Montserrat,system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;overflow:hidden;transition:opacity .45s ease,visibility .45s ease}
+#splash.out{opacity:0;visibility:hidden}
+#splash .sp-b{position:absolute;border-radius:50%;filter:blur(2px);opacity:.5}
+#splash .sp-b1{width:72vmin;height:72vmin;right:-26vmin;top:-22vmin;background:radial-gradient(circle at 40% 40%,#3F8F6E,#25664F 60%,transparent 70%);animation:spF 7s ease-in-out infinite alternate}
+#splash .sp-b2{width:64vmin;height:64vmin;left:-24vmin;bottom:-20vmin;background:radial-gradient(circle at 60% 50%,#7A1666,#4A1F45 60%,transparent 70%);animation:spF 8s ease-in-out infinite alternate-reverse}
+@keyframes spF{from{transform:translate(0,0) scale(1)}to{transform:translate(-3vmin,3vmin) scale(1.06)}}
+#splash .sp-logo{position:relative;text-align:center;animation:spIn .7s cubic-bezier(.2,.8,.2,1) both}
+#splash .sp-k{font-weight:800;font-size:clamp(60px,20vmin,112px);line-height:.9;letter-spacing:.01em}
+#splash .sp-hol{font-weight:700;font-size:clamp(15px,4.6vmin,24px);letter-spacing:.14em;color:#BFE8D3;margin-top:8px}
+#splash .sp-line{display:block;width:34%;height:4px;border-radius:2px;background:#C0189F;margin:10px auto 0;transform-origin:left;animation:spBar .9s .35s cubic-bezier(.2,.8,.2,1) both}
+@keyframes spIn{from{opacity:0;transform:translateY(10px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes spBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+#splash .sp-wave{position:relative;width:min(78vw,360px);height:70px;margin-top:34px}
+#splash .sp-wave path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+#splash .sp-wave .w1{stroke:rgba(255,255,255,.14);stroke-width:2}
+#splash .sp-wave .w2{stroke:#7FD3AE;stroke-width:3.5;stroke-dasharray:640;stroke-dashoffset:640;animation:spDraw 1.2s .2s ease-in-out forwards,spPulse 2.4s 1.5s ease-in-out infinite}
+#splash .sp-wave circle{fill:#BFE8D3;opacity:0;animation:spDot .3s 1.35s ease forwards}
+@keyframes spDraw{to{stroke-dashoffset:0}}
+@keyframes spPulse{50%{opacity:.6}}
+@keyframes spDot{to{opacity:1}}
+#splash .sp-name{position:relative;margin-top:22px;font-size:clamp(17px,4.8vmin,22px);font-weight:600;text-align:center;padding:0 24px;animation:spIn .7s .2s both}
+#splash .sp-sub{position:relative;margin-top:6px;font-size:14px;color:rgba(255,255,255,.62);animation:spIn .7s .35s both}
+#splash .sp-foot{position:absolute;bottom:calc(26px + env(safe-area-inset-bottom,0px));font-size:12px;letter-spacing:.18em;color:rgba(255,255,255,.45);font-weight:700}
+@media (prefers-reduced-motion:reduce){#splash *{animation:none!important}#splash .sp-wave .w2{stroke-dashoffset:0}#splash .sp-wave circle{opacity:1}}
+</style>
+<span class="sp-b sp-b1"></span><span class="sp-b sp-b2"></span>
+<div class="sp-logo"><div class="sp-k">ЖКТ</div><div class="sp-hol">HOLISTICA</div><span class="sp-line"></span></div>
+<!-- линия: от неровного «беспокойного» пищеварения — к спокойному ровному ритму -->
+<svg class="sp-wave" viewBox="0 0 360 70" aria-hidden="true"><path class="w1" d="M4 40 H356"/><path class="w2" d="M4 40 C14 40 18 10 30 10 C42 10 44 64 58 64 C72 64 74 14 88 14 C102 14 104 58 118 58 C132 58 136 22 150 22 C166 22 170 52 186 52 C204 52 208 30 226 30 C246 30 250 46 270 46 C292 46 300 36 322 36 C338 36 346 40 356 40"/><circle cx="356" cy="40" r="5"/></svg>
+<div class="sp-name">Формула здоровья ЖКТ</div>
+<div class="sp-sub">Открываем кабинет…</div>
+<div class="sp-foot">HOLISTICA DOC</div>
+<script>
+(function(){ var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone, t0 = Date.now(), done = false;
+  window.splashDone = function(){ if (done) return; done = true; var el = document.getElementById('splash'); if (!el) return;
+    setTimeout(function(){ el.classList.add('out'); setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 500); }, Math.max(0, (standalone ? 1900 : 1500) - (Date.now() - t0))); };
+  setTimeout(function(){ window.splashDone(); }, 12000);   // на всякий случай: заставка не висит дольше 12 секунд
+})();
+</script>
+</div>
 <div id="U">
   <div class="bar"><div class="in" id="bar"></div></div>
   <div id="snav"></div>
@@ -5909,7 +5951,7 @@ const U = { quiz: null, st: null, links: {}, preview: false, ptype: 'slow', msgs
 let V = { s: 'calc' }, hist = [], QD = null;
 
 function useUI(w){
-  const u = w === 'u';
+  const u = w === 'u'; if (!u && window.splashDone) window.splashDone();
   $('#css-u').disabled = !u; $('#css-a').disabled = u;
   $('#U').hidden = !u; $('#A').hidden = u;
 }
@@ -8323,6 +8365,7 @@ function mdlClick(b, a){
 }
 document.addEventListener('keydown', e => { if (MDL.k && e.key === 'Escape') mdlClick(document.body, MDL.k === 'trk' ? 'mdlSkip' : 'mdlX'); });
 function render(){
+  if (V && V.s !== 'calc' && window.splashDone) window.splashDone();
   const titles = { a2hs:'Значок на экране', profile:'Профиль', fb:'Оценка обучения', fbok:'Спасибо', chat:'Чат', gchat:'Чат протокола', quiz:'Анкета', progress:'Прогресс', mycm:'Мои комментарии', check:'Замер', tracker:'Трекер', login:'Вход', menu:'Меню', redflag:'Анкета' };
   if (accessClosed() && !['login','calc','fail'].includes(V.s) && !(V.s === 'chat' && chatVisible() && !((S.user.access || {}).blocked || (S.user.access || {}).frozen))) V = { s:'closed' };
   const map = { a2hs:a2hsView, profile:profView, closed:closedView, login:vLogin, welcome, quiz:quizStep, redflag, calc, wait, result, dash, cat:catList, item, progress:prog, mycm:mycmView, check, tracker, menu:menuView, fail, chat:chatView, gchat:gchatView, fb:fbView, fbok:fbOkView };
