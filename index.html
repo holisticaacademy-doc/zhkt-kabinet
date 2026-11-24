@@ -9471,10 +9471,12 @@ const Adm = (() => {
       const go = x.k === 'lesson' ? `<button class="btn lnk" data-a="toThr" data-id="${esc(x.lid)}">К переписке</button>` : x.k === 'chat' ? `<button class="btn lnk" data-a="toChat">К чату</button>` : x.k === 'proto' ? `<button class="btn lnk" data-a="rtGo" data-t="${esc(x.t)}">Открыть чат</button>` : '';
       return `<div class="mya"><div class="mya-h"><span class="chip ${x.k === 'fb' || x.k === 'rz' ? 'm' : ''}">${MY_K[x.k]}</span><b>${esc(x.where)}</b>${x.pub ? '<span class="chip g">видят все</span>' : ''}<span class="small muted">${fmtDT(x.at)}</span>${go}</div>${body}</div>`; };
     const note = G === 'busy' ? '<p class="small muted" style="margin:0 0 8px">Загружаем сообщения из чатов протоколов…</p>' : G === 'err' ? '<p class="small muted" style="margin:0 0 8px">Сообщения из чатов протоколов сейчас не загрузились — обновите данные.</p>' : '';
-    return `<div class="panel" id="mya" style="margin-top:16px"><h2><span>Комментарии и ответы</span><span class="small muted">всё, что ${W(c).l === 'ла' ? 'она писала' : 'он писал'} на платформе</span></h2>
+    const waitN = all.filter(x => x.wait).length;
+    const sub = all.length ? `${all.length} ${plural(all.length, ['запись','записи','записей'])}${waitN ? ` · <b style="color:var(--mag)">ждут ответа: ${waitN}</b>` : ''}${all[0] ? ' · последняя ' + fmtDT(all[0].at) : ''}` : (G === 'busy' ? 'загружаем…' : 'пока пусто');
+    return `<div id="mya">` + fold('mya', 'Комментарии и ответы', sub, `<p class="small muted" style="margin:0 0 10px">Всё, что ${W(c).l === 'ла' ? 'она писала' : 'он писал'} на платформе.</p>
       <div class="seg" style="flex-wrap:wrap;margin-bottom:12px">${seg('all','Все')}${seg('lesson','Под уроками')}${seg('chat','Чат с куратором')}${seg('proto','Чаты протоколов')}${seg('fb','Анкеты')}${seg('rz','Розыгрыш')}</div>
       ${note}${L.length ? L.slice(0, lim).map(item).join('') : `<p class="small muted" style="margin:0">${all.length ? 'В этом разделе пока ничего нет.' : 'Пока ничего не писал' + (W(c).l === 'ла' ? 'а' : '') + '.'}</p>`}
-      ${L.length > lim ? `<button class="btn ghost sm" data-a="myAll" style="margin-top:6px">Показать все · ${L.length}</button>` : ''}</div>`;
+      ${L.length > lim ? `<button class="btn ghost sm" data-a="myAll" style="margin-top:6px">Показать все · ${L.length}</button>` : ''}`) + `</div>`;
   }
   function rzList(){ return ((D && D.raffle) || []).map(r => ({ email: String(r['Email'] || '').trim().toLowerCase(), name: r['Имя'] || r['Email'], protocol: r['Протокол'] || '', kind: r['Что прислали'] || '', files: +r['Файлов'] || 0,
     folder: r['Папка'] || '', video: r['Видео (ссылка)'] || '', review: r['Отзыв'] || '', status: r['Статус'] || RZ_ST.wait, comment: r['Комментарий куратора'] || '', by: r['Проверил'] || '', at: r['Дата'] || '', rat: r['Дата проверки'] || '' })); }
