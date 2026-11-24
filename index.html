@@ -1973,31 +1973,6 @@ textarea.inp,.emo-w>textarea{border-radius:16px}
 .mya-d summary{cursor:pointer;font-size:13.5px;font-weight:600}
 .mya-d .ar{margin-top:6px}
 
-/* ── Боковое меню вписывается в экран при любом масштабе (24.11): своя прокрутка + компактнее на низких экранах ── */
-@media (min-width:861px){
-  .side{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.28) transparent}
-  .side::-webkit-scrollbar{width:6px}.side::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);border-radius:6px}
-  .side>*{flex-shrink:0}
-}
-@media (min-width:861px) and (max-height:860px){
-  .side{padding:14px 12px;gap:2px}
-  .side .prog{padding-bottom:10px}
-  .nav{padding:7px 12px}
-  .side .role{padding:10px}
-  .nav{line-height:1.25}
-  .side .role .btn{padding:6px 10px;margin-top:5px}
-}
-@media (min-width:861px) and (max-height:680px){
-  .side{padding:10px 10px;gap:1px}
-  .side .prog{padding-bottom:6px}
-  .nav{padding:5px 10px;font-size:13px;gap:8px}
-  .nav svg{width:16px;height:16px}
-  .side .role p{display:none}
-  .side .role{padding:8px}
-  .side .role label{margin-bottom:2px}
-  .side .role .btn{padding:4px 8px;margin-top:3px;font-size:12px}
-}
-
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
 .side .role b{display:block;font-size:13px;margin-bottom:2px}
@@ -6921,6 +6896,9 @@ document.addEventListener('click', e => {
   const href = a.getAttribute('href') || ''; if (!/\.pdf(\?|#|$)/i.test(href)) return;
   let u; try { u = new URL(href, location.href); } catch (x) { return; } if (u.origin !== location.origin) return;
   e.preventDefault(); e.stopPropagation();
+  // iPhone/iPad, кабинет открыт со значка: iOS в таком режиме вообще не умеет скачивать файлы (ни ссылкой, ни через blob) —
+  // нажатие просто ничего не делает. Открываем PDF в системном окне просмотра Safari: там есть «Готово» и «Поделиться → Сохранить в Файлы».
+  if (a2hsEnv().ios) { const w = window.open(u.href, '_blank'); if (!w) location.href = u.href; toast('Сохранить файл: «Поделиться» → «Сохранить в Файлы»'); return; }
   const name = a.getAttribute('download') || decodeURIComponent(u.pathname.split('/').pop());
   toast('Открываю файл…');
   fetch(u.href).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => {
