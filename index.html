@@ -1973,6 +1973,31 @@ textarea.inp,.emo-w>textarea{border-radius:16px}
 .mya-d summary{cursor:pointer;font-size:13.5px;font-weight:600}
 .mya-d .ar{margin-top:6px}
 
+/* ── Боковое меню вписывается в экран при любом масштабе (24.11): своя прокрутка + компактнее на низких экранах ── */
+@media (min-width:861px){
+  .side{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.28) transparent}
+  .side::-webkit-scrollbar{width:6px}.side::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);border-radius:6px}
+  .side>*{flex-shrink:0}
+}
+@media (min-width:861px) and (max-height:860px){
+  .side{padding:14px 12px;gap:2px}
+  .side .prog{padding-bottom:10px}
+  .nav{padding:7px 12px}
+  .side .role{padding:10px}
+  .nav{line-height:1.25}
+  .side .role .btn{padding:6px 10px;margin-top:5px}
+}
+@media (min-width:861px) and (max-height:680px){
+  .side{padding:10px 10px;gap:1px}
+  .side .prog{padding-bottom:6px}
+  .nav{padding:5px 10px;font-size:13px;gap:8px}
+  .nav svg{width:16px;height:16px}
+  .side .role p{display:none}
+  .side .role{padding:8px}
+  .side .role label{margin-bottom:2px}
+  .side .role .btn{padding:4px 8px;margin-top:3px;font-size:12px}
+}
+
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
 .side .role b{display:block;font-size:13px;margin-bottom:2px}
@@ -8595,7 +8620,8 @@ const Adm = (() => {
 
   function build(d){
     const map = {}, evs = {};
-    (d.students || []).forEach(s => { map[String(s['Email']).trim().toLowerCase()] = { row:s }; });
+    // если email встречается в «Учениках» несколько раз — берём ПЕРВУЮ строку: с ней работает сервер (назначение протокола, вход, прогресс)
+    (d.students || []).forEach(s => { const e = String(s['Email']).trim().toLowerCase(); if (map[e]) map[e].dups = (map[e].dups || 1) + 1; else map[e] = { row:s }; });
     (d.paid || []).forEach(p => { const e = String(p.email || '').trim().toLowerCase(); if (e && !map[e]) map[e] = { paidOnly:true, name:p.name, tariff:p.tariff, rec:!!p.rec }; });
     (d.events || []).forEach(x => { const e = String(x['Email']).toLowerCase(); (evs[e] = evs[e] || []).push(x); });
     const msgs = {}; (d.messages || []).forEach(m => { (msgs[m.email] = msgs[m.email] || []).push(m); });
@@ -8607,7 +8633,7 @@ const Adm = (() => {
       const autoKey = q && q.auto ? CODEKEY[q.auto.code] : null;
       const type = assigned ? (PKEY[s['Протокол итог']] || autoKey || 'slow') : autoKey;
       const shift = startShift0(s['Свой старт'], d.settings && d.settings.start), start = shift ? new Date(new Date(d.settings.start).getTime() + shift).toISOString() : ((d.settings && d.settings.start) || CFG.START_DATE || s['Дата подтверждения'] || '');
-      return { email:e, name:s['Имя'] || x.name || e, status, assigned, filled, quiz:filled ? q : null, autoKey, type,
+      return { email:e, dups:x.dups || 0, name:s['Имя'] || x.name || e, status, assigned, filled, quiz:filled ? q : null, autoKey, type,
         first:s['Первый вход'] || '', lastAt:s['Последний вход'] || '', last:daysAgo(s['Последний вход']), hasPw:s['Пароль задан'] === 'да',
         recs:s['Комментарий куратора'] || '', note:s['Заметка куратора'] || '', marks:marksOf(s['Отметки куратора']), curator:s['Куратор'] || '', profile:(() => { try { return JSON.parse(s['Профиль'] || 'null') || {}; } catch (e) { return {}; } })(),
         confirmedAt:s['Дата подтверждения'] || '', filledAt:s['Дата анкеты'] || '', protoName:s['Протокол итог'] || '',
@@ -8820,6 +8846,7 @@ const Adm = (() => {
     const lp = AV.lp || 'slow';
     const lessons = CAT.lessons.filter(l => l.core ? lp === 'core' : (l.types || []).includes(lp)).slice().sort((a, b) => a.w - b.w);
     return `<div class="head"><div><h1>Обзор программы</h1><p class="muted" style="margin:0">Данные на ${fmt(Date.now())}${D.settings && D.settings.start ? ` · старт потока ${fmt(D.settings.start)} · доступ до ${D.settings.accessEnd ? fmt(new Date(D.settings.accessEnd).getTime() - DAY) + ' включительно' : fmt(new Date(dayStart(D.settings.start) + (D.settings.accessDays - 1) * DAY))}` : ' · старт потока не задан — отсчёт от назначения протокола'}</p></div></div>
+    ${(() => { const dd = C.filter(c => c.dups); return dd.length ? `<div class="alert" style="margin-bottom:16px"><div><b>Повторяющиеся строки в листе «Ученики»: ${dd.length}.</b> У этих учениц e-mail записан несколько раз — платформа берёт первую строку, остальные лучше удалить: ${dd.map(c => `<button class="btn lnk" data-a="open" data-id="${esc(c.email)}" style="padding:0">${esc(c.name)}</button>`).join(', ')}</div></div>` : ''; })()}
     <div class="panel todo" style="margin-bottom:16px"><h2><span>Нужно сделать</span></h2><div class="todo-g">
       <button class="tdi" data-a="navq" data-st="review"><b>${C.filter(c => flowOf(c) === 'review').length}</b><span>ждут проверки и назначения протокола</span></button>
       <button class="tdi" data-a="navq" data-st="photo"><b>${C.filter(c => flowOf(c) === 'photo').length}</b><span>ждём фото языка</span></button>
@@ -8988,7 +9015,7 @@ const Adm = (() => {
     const c = C.find(x => x.email === AV.id);
     if (!c) return `<button class="btn lnk" data-a="nav" data-s="clients">← Все клиенты</button><div class="panel"><p>Клиент не найден.</p></div>`;
     const initials = c.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-    const head = `<button class="btn lnk" data-a="nav" data-s="clients" style="margin-bottom:10px">← Все клиенты</button>
+    const head = (c.dups ? `<div class="alert" style="margin-bottom:12px"><div><b>В листе «Ученики» этот e-mail встречается ${c.dups} ${plural(c.dups, ['раз','раза','раз'])}.</b> Платформа работает с первой (верхней) строкой — протокол, статус, вход и прогресс берутся из неё. Удалите лишние строки ниже, чтобы данные не путались.</div></div>` : '') + `<button class="btn lnk" data-a="nav" data-s="clients" style="margin-bottom:10px">← Все клиенты</button>
     <div class="ch"><div class="who"><span class="av">${esc(initials)}</span><div><h1 style="margin:0">${esc(c.name)}</h1><p class="muted" style="margin:0">${esc(c.email)}${c.paidOnly ? ' · из выгрузки GetCourse' : ''}</p>
     ${c.paidOnly ? '' : `<div class="row2" style="align-items:center;margin-top:6px"><label class="small muted">Куратор: <select id="curSel" class="sel" style="width:auto;display:inline-block;padding:4px 10px"><option value="">— ${W(c).fr} —</option>${curators().map(x => `<option value="${esc(x.email)}" ${x.email === c.cur ? 'selected' : ''}>${esc(x.name)}${x.email === meEmail() ? ' (я)' : ''}</option>`).join('')}</select></label>
       ${c.cur !== meEmail() ? `<button class="btn sm mag" data-a="assignMe">Закрепить за мной</button>` : ''}</div>`}
