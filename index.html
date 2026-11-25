@@ -6795,6 +6795,9 @@ function lessonLinks(id, sheet){
   // ссылки на GetCourse → файлы на сайте платформы (у части учениц GetCourse не открывается)
   if (typeof LOCAL_FILES !== 'undefined') { const nl = t => String(t).toLowerCase().replace(/ё/g, 'е').replace(/[^а-яa-z0-9]+/g, ' ').trim();
     files = files.map(f => { const p = LOCAL_FILES[f[1]] || LOCAL_FILES_ID[id + '|' + nl(f[0]) + '|' + (f[2] || 'pdf')]; return p ? [f[0], p, (p.match(/\.(\w+)$/) || [, 'pdf'])[1]] : f; }); }
+  // гимнастика: порядок упражнений в PDF, чтобы сохранить себе (25.11)
+  const GYM = { slow4_4:'materials/slow/slow4_4_gimnastika.pdf', infl4_9:'materials/infl/infl4_9_gimnastika.pdf', sens4_5:'materials/sens/sens4_5_gimnastika.pdf', mix4_3:'materials/mix/mix4_3_gimnastika.pdf' };
+  if (GYM[id] && !files.some(f => f[1] === GYM[id])) files.unshift(['Порядок упражнений — сохранить себе', GYM[id], 'pdf']);
   const loc = localMat(id);
   const pf = (/^[a-z]+/.exec(id) || [''])[0];
   if ((LOCAL_CON[pf] || []).includes(id) || (typeof CON_HTML !== 'undefined' && CON_HTML[id])) files.forEach(f => { if (/^презентация и конспект$/i.test(String(f[0]).trim())) f[0] = 'Презентация'; });
