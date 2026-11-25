@@ -8651,7 +8651,10 @@ const Adm = (() => {
   // «Пришло, пока куратор писал ответ»: сообщения клиентки раньше последнего ответа куратора по времени,
   // но позже того, что куратор видел на экране в момент отправки (поле seen у ответа). Снимается «✓ Видела» или новым ответом.
   function missedOf(c){ const m = chatOf(c); let L = -1; for (let i = m.length-1; i >= 0; i--) if (m[i].from === 'cu') { L = i; break; }
-    if (L < 0) return []; const s0 = Date.parse(m[L].seen || '') || 0; if (!s0) return []; const t = tsOf(m[L]);
+    if (L < 0) return []; let s0 = Date.parse(m[L].seen || '') || 0; if (!s0) return []; const t = tsOf(m[L]);
+    // «пришло, пока писали» — только то, что пришло ПОСЛЕ предыдущего ответа куратора: старая переписка, на которую уже отвечали, сюда не попадает
+    for (let i = L - 1; i >= 0; i--) if (m[i].from === 'cu') { s0 = Math.max(s0, tsOf(m[i])); break; }
+    if (t - s0 > 864e5 * 2) return [];   // «видела до» больше чем за 2 дня до ответа — это не «пока писали», а сбой записи времени
     return m.slice(0, L).filter(x => x.from !== 'cu' && !x.read && tsOf(x) > s0 && tsOf(x) <= t); }
   function threads(){ const t = {}; C.forEach(c => c.msgs.filter(m => m.lessonId).forEach(m => { const k = c.email + '|' + m.lessonId; (t[k] = t[k] || { c, lessonId:m.lessonId, list:[] }).list.push(m); })); return Object.values(t); }
   const openThreads = () => threads().filter(t => { const l = t.list[t.list.length-1]; return l.from === 'cl' && !l.read; });
@@ -9784,11 +9787,13 @@ const Adm = (() => {
       if (!text && !pend.length) return toast('Напишите сообщение');
       if (text.length > 20000) return toast('Сообщение слишком длинное: ' + text.length + ' символов, можно до 20 000. Разделите его на две части.');
       if (!pend.length) { const ta = $('#chatIn'); AV.cdraft = ''; if (ta) ta.value = '';
-        const seen = new Date((AV.rendTs || {})[c.email] || 1).toISOString(); AV.nwBase = null;
+        const rt = (AV.rendTs || {})[c.email], seen = rt ? new Date(rt).toISOString() : ''; AV.nwBase = null;
         chatPos.stick = true; return act(() => api('reply', { token:S.token, email:c.email, lessonId:'', text, files:[], seen }).catch(e => { const ta = $('#chatIn'); if (ta && !ta.value.trim()) { ta.value = text; AV.cdraft = text; } throw e; }), '', () => { chatPos.stick = true; addMsg(c.email, '', text, [], seen); }); }
       b.disabled = true; { const ta = $('#chatIn'); AV.cdraft = ''; if (ta) ta.value = ''; }
+      // что куратор видел на экране — запоминаем сразу: пока грузятся файлы, можно уйти в другую карточку, и тогда время терялось (уходило «1970»)
+      const rt0 = (AV.rendTs || {})[c.email], seen0 = rt0 ? new Date(rt0).toISOString() : '';
       return act(async () => { const files = pend.length ? await uploadChatFiles(pend, c.email, (i, n) => { b.textContent = 'Загружаем ' + i + ' из ' + n + '…'; }) : [];
-        await api('reply', { token:S.token, email:c.email, lessonId:'', text, files, seen:new Date((AV.rendTs || {})[c.email] || 1).toISOString() }).catch(e => { const ta = $('#chatIn'); if (ta && !ta.value.trim()) { ta.value = text; AV.cdraft = text; } throw e; }); AV.cf = []; chatPos.stick = true; }, 'Сообщение отправлено').then(() => { const b2 = $('[data-a="chatSend"]'); if (b2) b2.disabled = false; b.disabled = false; }); }
+        await api('reply', { token:S.token, email:c.email, lessonId:'', text, files, seen:seen0 }).catch(e => { const ta = $('#chatIn'); if (ta && !ta.value.trim()) { ta.value = text; AV.cdraft = text; } throw e; }); AV.cf = []; chatPos.stick = true; }, 'Сообщение отправлено').then(() => { const b2 = $('[data-a="chatSend"]'); if (b2) b2.disabled = false; b.disabled = false; }); }
     if (a === 'missShow' || a === 'chNewShow') { const ta = $('#chatIn'); if (ta) AV.cdraft = ta.value; if (a === 'chNewShow') { render(true); } chatFocus(a === 'missShow' ? '.bub.miss' : '.bub.nw'); return; }
     if (a === 'chDown') { const ch = document.querySelector('#chat .chat'); if (ch) ch.scrollTo({ top:ch.scrollHeight, behavior:'smooth' }); b.hidden = true; return; }
     if (a === 'acfDel') { const ta = $('#chatIn'); AV.cdraft = ta ? ta.value : ''; (AV.cf || []).splice(+b.dataset.i, 1); return render(true); }
