@@ -1973,6 +1973,20 @@ textarea.inp,.emo-w>textarea{border-radius:16px}
 .mya-d summary{cursor:pointer;font-size:13.5px;font-weight:600}
 .mya-d .ar{margin-top:6px}
 
+/* чат с ученицей — окно поверх карточки, фон затемнён (кнопка в шапке карточки) */
+body.chfull-on{overflow:hidden}
+.chfull-bd{position:fixed;inset:0;z-index:999;background:rgba(15,32,26,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);cursor:pointer;animation:chfIn .18s ease}
+#chat.chfull{position:fixed;z-index:1000;top:3vh;bottom:3vh;left:50%;transform:translateX(-50%);width:min(1180px,94vw);margin:0!important;border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.35);display:flex;flex-direction:column;padding:20px clamp(16px,3vw,32px) 16px;overflow:hidden;animation:chfIn .18s ease}
+@keyframes chfIn{from{opacity:0}to{opacity:1}}
+#chat.chfull>*{flex:0 0 auto}
+#chat.chfull>h2{padding-right:130px}
+#chat.chfull>.chwrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+#chat.chfull .chwrap .chat{max-height:none;flex:1 1 auto;min-height:0}
+#chat.chfull .emo-w{flex:0 0 auto}
+#chat.chfull #chatIn{min-height:90px!important;height:110px}
+#chat .chfull-x{position:absolute;top:18px;right:clamp(16px,3vw,32px);z-index:2}
+@media (max-width:700px){#chat.chfull{top:0;bottom:0;width:100vw;border-radius:0;padding:12px 12px 10px}#chat.chfull>h2{font-size:16px;padding-right:110px}#chat .chfull-x{top:10px;right:12px}}
+
 /* ── дополнения платформы ── */
 [hidden]{display:none!important}
 .side .role b{display:block;font-size:13px;margin-bottom:2px}
@@ -8788,6 +8802,7 @@ const Adm = (() => {
     if (ch1) chatAfter(ch1);
     if (AV.s === 'gchats') { if (!gcPollT) gcPoll(true, () => AV.t || 'slow', () => { schKeep(); render(true); }); } else if (gcPollT) gcPoll(false);
     if (AV.s === 'client') { loadPhoto(); loadMenuDays(); }
+    document.body.classList.toggle('chfull-on', !!(AV.chFull && AV.s === 'client' && document.querySelector('#chat.chfull')));
     if (keep) window.scrollTo(0, y);
     saveView();
   }
@@ -9002,7 +9017,7 @@ const Adm = (() => {
     const head = (c.dups ? `<div class="alert" style="margin-bottom:12px"><div><b>В листе «Ученики» этот e-mail встречается ${c.dups} ${plural(c.dups, ['раз','раза','раз'])}.</b> Платформа работает с первой (верхней) строкой — протокол, статус, вход и прогресс берутся из неё. Удалите лишние строки ниже, чтобы данные не путались.</div></div>` : '') + `<button class="btn lnk" data-a="nav" data-s="clients" style="margin-bottom:10px">← Все клиенты</button>
     <div class="ch"><div class="who"><span class="av">${esc(initials)}</span><div><h1 style="margin:0">${esc(c.name)}</h1><p class="muted" style="margin:0">${esc(c.email)}${c.paidOnly ? ' · из выгрузки GetCourse' : ''}</p>
     ${c.paidOnly ? '' : `<div class="row2" style="align-items:center;margin-top:6px"><label class="small muted">Куратор: <select id="curSel" class="sel" style="width:auto;display:inline-block;padding:4px 10px"><option value="">— ${W(c).fr} —</option>${curators().map(x => `<option value="${esc(x.email)}" ${x.email === c.cur ? 'selected' : ''}>${esc(x.name)}${x.email === meEmail() ? ' (я)' : ''}</option>`).join('')}</select></label>
-      ${c.cur !== meEmail() ? `<button class="btn sm mag" data-a="assignMe">Закрепить за мной</button>` : ''}</div>`}
+      ${c.cur !== meEmail() ? `<button class="btn sm mag" data-a="assignMe">Закрепить за мной</button>` : ''}<button class="btn sm" data-a="chatFull" title="Открыть чат на весь экран">${I.chat ? I.chat.replace('<svg', '<svg width="15" height="15" style="vertical-align:-2px;margin-right:4px"') : ''}Чат с ${W(c).i}${unreadOf(c) ? ` <span class="chip r" style="margin-left:4px">${unreadOf(c)}</span>` : ''}</button></div>`}
     ${c.paidOnly ? '' : `<label class="small muted">Тариф: <select id="tariff" class="sel" style="width:auto;display:inline-block;padding:4px 10px">${['Общий', TARIFF_IND].map(t => `<option ${t === c.tariff ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
       <label class="small muted" title="«В записи» — программа по расписанию потока, без чата протокола; на индивидуальном тарифе остаётся личный чат с куратором">Формат: <select id="fmtSel" class="sel" style="width:auto;display:inline-block;padding:4px 10px"><option value="" ${c.rec ? '' : 'selected'}>Поток</option><option value="rec" ${c.rec ? 'selected' : ''}>В записи</option></select></label>`}</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${status(c)}
@@ -9416,7 +9431,8 @@ const Adm = (() => {
     if (!AV.nwBase || AV.nwBase.email !== c.email) AV.nwBase = { email:c.email, ids:new Set(m.filter(x => x.from !== 'cu').map(x => x.id || x.at)) };
     const isNew = x => x.from !== 'cu' && !AV.nwBase.ids.has(x.id || x.at);
     const nm = esc(c.name.split(' ')[0]);
-    return `<div class="panel" id="chat" style="margin-top:16px"><h2><span>Чат с ${W(c).i}</span> <span class="chip ${ind ? 'm' : 'g'}" style="vertical-align:middle">${ind ? 'индивидуальный тариф' : 'общий тариф'}</span></h2>
+    const full = AV.chFull === c.email;
+    return `${full ? '<div class="chfull-bd" data-a="chatFullX" title="Закрыть"></div>' : ''}<div class="panel${full ? ' chfull' : ''}" id="chat" style="margin-top:16px" ${full ? 'role="dialog" aria-modal="true"' : ''}>${full ? `<button type="button" class="btn sm ghost chfull-x" data-a="chatFullX" title="Свернуть (Esc)">✕ Свернуть</button>` : ''}<h2><span>Чат с ${W(c).i}${full ? ' · ' + esc(c.name) : ''}</span> <span class="chip ${ind ? 'm' : 'g'}" style="vertical-align:middle">${ind ? 'индивидуальный тариф' : 'общий тариф'}</span></h2>
     ${m.length ? `<div class="chwrap"><div class="chat">${m.map(x => `<div class="bub ${x.from}${missIds.has(x.id || x.at) ? ' miss' : isNew(x) ? ' nw' : ''}" data-mid="${esc(x.id || x.at)}">${missIds.has(x.id || x.at) ? '<span class="nwl">пришло, пока вы писали ответ</span>' : isNew(x) ? '<span class="nwl">новое</span>' : ''}${AV.edit === x.id ? msgEditor(x, c) : (x.text ? linkify(x.text) : '')}${fileChips(x.files, c.email)}<small>${x.from === 'cu' ? esc(x.who || 'Куратор') : esc(c.name.split(' ')[0])} · ${fmtDT(x.at)}${x.edited ? ' · изменено' : ''}${canEdit(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgEdit" data-id="${esc(x.id)}">изменить</button>` : ''}${canDel(x) && AV.edit !== x.id ? ` · <button type="button" class="ed-l" data-a="msgDel" data-id="${esc(x.id)}" data-email="${esc(c.email)}">удалить</button>` : ''}</small></div>`).join('')}</div><button type="button" class="chdn" data-a="chDown" hidden>↓ <span>новые</span></button></div>`
       : `<p class="small muted">${ind ? 'Сообщений пока нет.' : `На общем тарифе чат появится у ${W(c).g}, когда вы напишете первое сообщение.`}</p>`}
     ${miss.length ? `<div class="chmiss"><b>Пока вы писали ответ, ${nm} ${miss.length > 1 ? 'прислала ещё ' + miss.length + ' сообщения' : 'прислала ещё сообщение'}</b> (${miss.map(x => fmtDT(x.at).split(', ').pop()).join(', ')}). Оно выше вашего ответа.<span><button type="button" class="btn sm" data-a="missShow">Показать</button><button type="button" class="btn sm ghost" data-a="msgRead" data-email="${esc(c.email)}" data-lid="">✓ Видела</button></span></div>` : ''}
@@ -9745,6 +9761,8 @@ const Adm = (() => {
     if (a === 'myf') { AV.mf = b.dataset.v; AV.mfAll = false; return render(true); }
     if (a === 'myAll') { AV.mfAll = true; return render(true); }
     if (a === 'toThr') { const el = document.getElementById('thr-' + b.dataset.id) || document.getElementById('ccm'); if (el) el.scrollIntoView({ behavior:'smooth', block:'start' }); return; }
+    if (a === 'chatFull') { AV.chFull = c.email; chatPos.stick = true; render(true); setTimeout(() => { const t = $('#chatIn'); if (t) t.focus({ preventScroll:true }); }, 50); return; }
+    if (a === 'chatFullX') { AV.chFull = null; render(true); return; }
     if (a === 'toChat') { const el = document.getElementById('chat'); if (el) { el.scrollIntoView({ behavior:'smooth', block:'start' }); setTimeout(() => { const t = $('#chatIn'); if (t) t.focus(); }, 400); } return; }
     if (a === 'openChat') { closeDr(); AV = { s:'client', id:b.dataset.id, tab:'lessons' }; render(); const el = document.getElementById('chat'); if (el) el.scrollIntoView(); return; }
     if (a === 'msgEdit') { AV.edit = b.dataset.id; render(true); const ta = $('#msgEdIn'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } return; }
@@ -9883,7 +9901,7 @@ const Adm = (() => {
     if (t.id === 'asq') { $('#asl').innerHTML = assignList(AV.lastPrev, t.value); }
     if (t.id === 'kq') { KF.q = t.value; const p = t.selectionStart; render(true); const n = $('#kq'); n.focus(); n.setSelectionRange(p, p); }
   }
-  return { fold(k, v){ AV.open = AV.open || {}; AV.open[k] = v; }, open, click, change, input, closeDr, reset(){ D = null; C = []; AV = { s:'over' }; }, get data(){ return D; }, set data(v){ if (!v) this.reset(); } };
+  return { chatX(){ if (AV.chFull) { AV.chFull = null; render(true); return true; } return false; }, fold(k, v){ AV.open = AV.open || {}; AV.open[k] = v; }, open, click, change, input, closeDr, reset(){ D = null; C = []; AV = { s:'over' }; }, get data(){ return D; }, set data(v){ if (!v) this.reset(); } };
 })();
 
 // ═══ Общие обработчики ═════════════════════════════════════════
@@ -9897,7 +9915,7 @@ document.addEventListener('change', e => { if (e.target.closest && e.target.clos
 document.addEventListener('input', e => { if (e.target.closest && e.target.closest('#A')) Adm.input(e); });
 document.addEventListener('toggle', e => { if (e.target.matches && e.target.matches('details.fold[data-k]')) Adm.fold(e.target.dataset.k, e.target.open); }, true);
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') Adm.closeDr();
+  if (e.key === 'Escape') { if (!document.getElementById('fv') && Adm.chatX()) return; Adm.closeDr(); }
   if (e.key === 'Enter' && e.target.matches && e.target.matches('tr[data-a=open]')) e.target.click();
 });
 $('#dr').addEventListener('click', e => { if (e.target.id === 'dr') Adm.closeDr(); });
