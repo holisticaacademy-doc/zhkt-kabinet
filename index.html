@@ -6774,7 +6774,11 @@ function calClick(b, a){
   keepY(render);
 }
 const curWeek = () => { let w = 1; for (let i = 1; i <= 6; i++) if (Date.now() >= openAt(i)) w = i; return w; };
-const accessLeft = () => { const a = S.user && S.user.access; return a && a.left != null ? a.left : Math.max(0, CAL.accessDays - dayN() + 1); };
+// «Доступ ещё N дней»: у ученицы — с сервера; в просмотре глазами ученицы — её доступ из карточки или дата закрытия потока из «Настроек» (27.11)
+const previewAccess = () => { if (U.pacc && U.pacc.left != null) return U.pacc; const set = S.set || {};
+  const endAt = set.accessEnd ? new Date(new Date(set.accessEnd).getTime() + (U.pshift || 0)).toISOString() : '';
+  try { return accessCalc({ start: START() || '', endAt, accessDays: set.accessDays || CAL.accessDays, extDays: set.extDays }); } catch (e) { return null; } };
+const accessLeft = () => { const a = U.preview ? previewAccess() : S.user && S.user.access; return a && a.left != null ? a.left : Math.max(0, CAL.accessDays - dayN() + 1); };
 const extTxt = () => { const d = (S.set && S.set.extDays) || 60; return d % 30 === 0 ? (d/30) + ' ' + plural(d/30, ['месяц','месяца','месяцев']) : d + ' ' + plural(d, ['день','дня','дней']); };
 const accessClosed = () => !!S.user && !U.preview && !isStaff(S.user) && !!(S.user.access && S.user.access.closed);
 function closedView(){
@@ -9854,9 +9858,9 @@ const Adm = (() => {
     if (a === 'refresh') return open();
     if (a === 'logout') return logout();
     if (a === 'demoResetA') { Demo.reset(); toast('Демо-данные сброшены'); return logout(); }
-    if (a === 'preview') { U.pstat = ''; U.pdraft = null; U.pexcl = []; U.pname = ''; U.prec = false; U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.pshift = 0; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
-    if (a === 'asStudentQ' && c) { U.pexcl = []; U.pname = c.name; U.prec = !!c.rec; U.pov = null; U.msgs = c.msgs; U.preview = true; U.pstat = 'none'; U.pdraft = c.draft ? (c.draft.d || c.draft) : null; U.pstart = ''; U.pshift = 0; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.links) || {}; _RK = ''; return route(); }
-    if (a === 'asStudent' && c) { U.pstat = ''; U.pdraft = null; U.pexcl = exclCodesOf(c, c.quiz).codes; U.pname = c.name; U.prec = !!c.rec; U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.pshift = c.shift || 0; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
+    if (a === 'preview') { U.pacc = null; U.pstat = ''; U.pdraft = null; U.pexcl = []; U.pname = ''; U.prec = false; U.pov = null; U.msgs = []; U.preview = true; U.pstart = ''; U.pshift = 0; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
+    if (a === 'asStudentQ' && c) { U.pacc = c.access || null; U.pexcl = []; U.pname = c.name; U.prec = !!c.rec; U.pov = null; U.msgs = c.msgs; U.preview = true; U.pstat = 'none'; U.pdraft = c.draft ? (c.draft.d || c.draft) : null; U.pstart = ''; U.pshift = 0; U.ptype = 'slow'; U.quiz = null; U.st = freshState(); U.links = (D && D.links) || {}; _RK = ''; return route(); }
+    if (a === 'asStudent' && c) { U.pacc = c.access || null; U.pstat = ''; U.pdraft = null; U.pexcl = exclCodesOf(c, c.quiz).codes; U.pname = c.name; U.prec = !!c.rec; U.pov = c.ov; U.msgs = c.msgs; U.preview = true; U.pstart = c.start; U.pshift = c.shift || 0; U.ptype = c.type; U.quiz = c.quiz; U.st = JSON.parse(JSON.stringify(c.state)); U.links = (D && D.lessons) || {}; _RK = ''; return route(); }
     if (!c) return;
     if (a === 'assignMe') return act(() => api('assignCurator', { token:S.token, email:c.email, curator:meEmail() }), `${W(c).N} ${W(c).zk} за вами`, () => { rowOf(c.email)['Закреплён за'] = meEmail(); });
     if (a === 'demoExtend') return act(() => api('demoExtend', { token:S.token, email:c.email }), 'Продление добавлено (демо)');
