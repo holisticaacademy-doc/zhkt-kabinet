@@ -8654,17 +8654,15 @@ const Adm = (() => {
   const nowISO = () => new Date().toISOString();
   const addMsg = (email, lessonId, text, files, seen) => { D.messages = D.messages || []; D.messages.push({ at:nowISO(), email, lessonId:lessonId || '', lesson: lessonId ? (byId(lessonId) || { t:'' }).t : '', from:'cu', who:S.user.name || S.user.email, text, files:files || [], seen:seen || '' }); };
 
-  // перешла с «Общего» на «Индивидуальный» (27.11): в журнале есть смена тарифа на индивидуальный, а карточка создавалась не сразу индивидуальной
-  const upgOf = (evs, tariff) => { if (tariff !== TARIFF_IND) return '';
-    if (evs.some(x => x['Событие'] === 'added_from_getcourse' && /индивид/i.test(String(x['Объект'] || '')))) return '';
-    const t = evs.filter(x => x['Событие'] === 'tariff' && /индивид/i.test(String(x['Объект'] || ''))).map(x => x['Дата']).filter(Boolean).map(String).sort();
-    return t.length ? t[0] : ''; };
-  const upgChip = c => c.upg ? ` <span class="chip upg" title="Перешла с общего тарифа на индивидуальный ${esc(fmtDT(c.upg))}">общ.→инд.</span>` : '';
+  // перешла с «Общего» на «Индивидуальный» (27.11): в оплатах GetCourse есть заказ «Переход на тариф „Индивидуальный“»
+  const upgOf = (paidUpg, tariff) => paidUpg && tariff === TARIFF_IND ? 'да' : '';
+  const upgChip = c => c.upg ? ` <span class="chip upg" title="Перешла с общего тарифа на индивидуальный — в оплатах GetCourse есть «Переход на тариф „Индивидуальный“»">общ.→инд.</span>` : '';
   function build(d){
     const map = {}, evs = {};
     // если email встречается в «Учениках» несколько раз — берём ПЕРВУЮ строку: с ней работает сервер (назначение протокола, вход, прогресс)
     (d.students || []).forEach(s => { const e = String(s['Email']).trim().toLowerCase(); if (map[e]) map[e].dups = (map[e].dups || 1) + 1; else map[e] = { row:s }; });
     (d.paid || []).forEach(p => { const e = String(p.email || '').trim().toLowerCase(); if (e && !map[e]) map[e] = { paidOnly:true, name:p.name, tariff:p.tariff, rec:!!p.rec }; });
+    const upgPaid = {}; (d.paid || []).forEach(p => { const e = String(p.email || '').trim().toLowerCase(); if (e && p.upg) upgPaid[e] = 1; });
     (d.events || []).forEach(x => { const e = String(x['Email']).toLowerCase(); (evs[e] = evs[e] || []).push(x); });
     const msgs = {}; (d.messages || []).forEach(m => { (msgs[m.email] = msgs[m.email] || []).push(m); });
     const fbs = {}; (d.feedback || []).forEach(f => { const e = String(f.email || '').toLowerCase(); (fbs[e] = fbs[e] || []).push(f); });
@@ -8685,7 +8683,7 @@ const Adm = (() => {
         tariff:(t => /индивид/i.test(t) ? TARIFF_IND : t)(String(s['Тариф'] || x.tariff || 'Общий')), rec:isRecFmt(s['Формат']) || (!s['Email'] && !!x.rec), ov:s.ov || { add:[], rm:[] }, aiRes:s['Решение по ИИ'] || '', ai:filled ? (d.ai || {})[e] || null : null,
         msgs:(msgs[e] || []).slice().sort((a, b) => tsOf(a) - tsOf(b)), fb:(fbs[e] || []).slice().sort((a, b) => FB_KEYS.indexOf(a.key) - FB_KEYS.indexOf(b.key)),
         lost:!q && !!status && status !== STS.none, early:(() => { try { return JSON.parse(s['Досрочно'] || 'null'); } catch (e) { return null; } })(), cur:String(s['Закреплён за'] || '').trim().toLowerCase(), reo:!!(q && q.reopened && status === STS.none), gcGroup:String(s['GetCourse группа'] || ''), access:s.access || null, extra:assigned ? extraList(s['Доп. протоколы'], type) : [] };
-    }).map(c => Object.assign(c, { upg: upgOf(c.events, c.tariff) })).sort((a, b) => (b.lastAt || '').localeCompare(a.lastAt || ''));
+    }).map(c => Object.assign(c, { upg: upgOf(upgPaid[c.email], c.tariff) })).sort((a, b) => (b.lastAt || '').localeCompare(a.lastAt || ''));
   }
   const stageOf = c => c.paidOnly || !c.first ? 0 : !c.filled ? 1 : 3;
   const flowOf = c => !c.filled ? 'none' : c.assigned ? 'assigned' : !c.photo ? 'photo' : 'review';
@@ -9066,7 +9064,7 @@ const Adm = (() => {
     <div class="ch"><div class="who"><span class="av">${esc(initials)}</span><div><h1 style="margin:0">${esc(c.name)}</h1><p class="muted" style="margin:0">${esc(c.email)}${c.paidOnly ? ' · из выгрузки GetCourse' : ''}</p>
     ${c.paidOnly ? '' : `<div class="row2" style="align-items:center;margin-top:6px"><label class="small muted">Куратор: <select id="curSel" class="sel" style="width:auto;display:inline-block;padding:4px 10px"><option value="">— ${W(c).fr} —</option>${curators().map(x => `<option value="${esc(x.email)}" ${x.email === c.cur ? 'selected' : ''}>${esc(x.name)}${x.email === meEmail() ? ' (я)' : ''}</option>`).join('')}</select></label>
       ${c.cur !== meEmail() ? `<button class="btn sm mag" data-a="assignMe">Закрепить за мной</button>` : ''}<button class="btn sm" data-a="chatFull" title="Открыть чат на весь экран">${I.chat ? I.chat.replace('<svg', '<svg width="15" height="15" style="vertical-align:-2px;margin-right:4px"') : ''}Чат с ${W(c).i}${unreadOf(c) ? ` <span class="chip r" style="margin-left:4px">${unreadOf(c)}</span>` : ''}</button></div>`}
-    ${c.paidOnly ? '' : `<label class="small muted">Тариф: <select id="tariff" class="sel" style="width:auto;display:inline-block;padding:4px 10px">${['Общий', TARIFF_IND].map(t => `<option ${t === c.tariff ? 'selected' : ''}>${t}</option>`).join('')}</select></label>${c.upg ? ` <span class="chip upg" title="Смена тарифа записана в истории карточки">перешла с общего ${esc(fmtDT(c.upg).split(',')[0])}</span>` : ''}
+    ${c.paidOnly ? '' : `<label class="small muted">Тариф: <select id="tariff" class="sel" style="width:auto;display:inline-block;padding:4px 10px">${['Общий', TARIFF_IND].map(t => `<option ${t === c.tariff ? 'selected' : ''}>${t}</option>`).join('')}</select></label>${c.upg ? ` <span class="chip upg" title="В оплатах GetCourse есть «Переход на тариф „Индивидуальный“»">перешла с общего</span>` : ''}
       <label class="small muted" title="«В записи» — без чата протокола, без розыгрыша и живых вебинаров (только их записи), в уроках «Перед стартом» нет дат; на индивидуальном тарифе остаётся личный чат с куратором">Формат: <select id="fmtSel" class="sel" style="width:auto;display:inline-block;padding:4px 10px"><option value="" ${c.rec ? '' : 'selected'}>Поток</option><option value="rec" ${c.rec ? 'selected' : ''}>В записи</option></select></label>`}</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${status(c)}
       ${!c.filled && !c.paidOnly ? `<button class="btn ghost sm" data-a="asStudentQ" title="Что ${W(c) === WM ? 'он видит' : 'она видит'} сейчас: анкета${c.draft ? ' — с ответами из черновика, на шаге, где ' + (W(c) === WM ? 'он' : 'она') + ' остановил' + W(c).l : ''}">Кабинет ${W(c) === WM ? 'его' : 'её'} глазами</button>` : ''}${c.assigned ? `<button class="btn ghost sm" data-a="asStudent">Кабинет ${W(c) === WM ? 'его' : 'её'} глазами</button>` : c.filled ? `<button class="btn ghost sm" disabled title="Пока протокол не назначен, ${W(c) === WM ? 'клиент видит' : 'клиентка видит'} только экран «Анкета на проверке»: фото языка, файлы и чат с куратором (на индивидуальном тарифе). Уроки и меню откроются после назначения протокола.">Кабинет ${W(c) === WM ? 'его' : 'её'} глазами — после назначения</button>` : ''}
